@@ -29,7 +29,7 @@ SCHEDULING_SERVERS=(
 # Credentials
 USERNAME="root"
 PASSWORD="Arcturus@Test2024"
-REPO_URL="https://github.com/Bootes2022/Arcturus.git"
+REPO_URL="https://github.com/matthewliu58/Arcturus.git"
 WORK_DIR="/root"
 REPO_NAME="Arcturus"
 
@@ -94,7 +94,7 @@ fi
 
 # Clone Repository (quiet mode)
 echo "Cloning Arcturus repository..."
-git clone -q --progress https://github.com/Bootes2022/Arcturus.git 2>&1 | grep -E "Receiving objects:|done"
+git clone -q --progress https://github.com/matthewliu58/Arcturus.git 2>&1 | grep -E "Receiving objects:|done"
 
 # Enter deployment directory
 cd Arcturus/deployment
@@ -122,7 +122,7 @@ fi
 
 # Clone Repository (quiet mode)
 echo "Cloning Arcturus repository..."
-git clone -q --progress https://github.com/Bootes2022/Arcturus.git 2>&1 | grep -E "Receiving objects:|done"
+git clone -q --progress https://github.com/matthewliu58/Arcturus.git 2>&1 | grep -E "Receiving objects:|done"
 
 # Enter deployment directory
 cd Arcturus/deployment
@@ -156,7 +156,7 @@ fi
 
 # Clone Repository (quiet mode)
 echo "Cloning Arcturus repository..."
-git clone -q --progress https://github.com/Bootes2022/Arcturus.git 2>&1 | grep -E "Receiving objects:|done"
+git clone -q --progress https://github.com/matthewliu58/Arcturus.git 2>&1 | grep -E "Receiving objects:|done"
 
 # Enter deployment directory
 cd Arcturus/deployment
