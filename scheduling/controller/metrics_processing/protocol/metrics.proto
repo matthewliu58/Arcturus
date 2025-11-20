@@ -1,0 +1,198 @@
+syntax = "proto3";
+package proto;
+
+option go_package = ".;protocol";
+
+
+message CPUInfo {
+  int32 cores = 1;
+  string model_name = 2;
+  double mhz = 3;
+  int32 cache_size = 4;
+  double usage = 5;
+}
+
+message MemoryInfo {
+  uint64 total = 1;
+  uint64 available = 2;
+  uint64 used = 3;
+  double used_percent = 4;
+}
+
+message DiskInfo {
+  string device = 1;
+  uint64 total = 2;
+  uint64 free = 3;
+  uint64 used = 4;
+  double used_percent = 5;
+}
+
+message NetworkInfo {
+  string interface_name = 1;
+  uint64 bytes_sent = 2;
+  uint64 bytes_recv = 3;
+  uint64 packets_sent = 4;
+  uint64 packets_recv = 5;
+}
+
+message HostInfo {
+  string hostname = 1;
+  string os = 2;
+  string platform = 3;
+  string platform_version = 4;
+  uint64 uptime = 5;
+}
+
+message LoadInfo {
+  double load1 = 1;
+  double load5 = 2;
+  double load15 = 3;
+}
+
+message Metrics {
+  string ip = 1;
+  CPUInfo cpu_info = 2;
+  MemoryInfo memory_info = 3;
+  DiskInfo disk_info = 4;
+  NetworkInfo network_info = 5;
+  HostInfo host_info = 6;
+  LoadInfo load_info = 7;
+}
+
+
+message ProbeTask {
+  string task_id = 1;
+  string target_ip = 2;
+  int32 timeout = 3;
+  repeated string args = 4;
+
+
+}
+
+
+message DomainIPMapping {
+  string domain = 1;
+  string ip = 2;
+}
+
+message NodeInfo {
+  string ip = 1;
+  string region = 2;
+}
+
+
+message NodeList {
+  repeated NodeInfo nodes = 1;
+}
+
+
+message ProbeResult {
+  string target_ip = 1;
+  int64 tcp_delay = 2;
+}
+
+
+message RegionProbeResult {
+  string region = 1;
+  repeated ProbeResult ip_probes = 2;
+}
+
+
+message InitRequest {
+  Metrics metrics = 1;
+}
+
+
+message IPPairAssessment {
+  string ip1 = 1;
+  string ip2 = 2;
+  float assessment = 3;
+}
+
+
+message RegionPairAssessment {
+  string region1 = 1;
+  string region2 = 2;
+  repeated IPPairAssessment ip_pairs = 3;
+}
+
+
+message SyncRequest {
+  Metrics metrics = 1;
+
+
+  string node_list_hash = 2;
+  string probe_tasks_hash = 3;
+  string domain_ip_mappings_hash = 4;
+
+
+  repeated RegionProbeResult region_probe_results = 5;
+}
+
+
+message SyncResponse {
+  string status = 1;
+  string message = 2;
+
+  bool need_update_node_list = 3;
+  bool need_update_probe_tasks = 4;
+  bool need_update_domain_ip_mappings = 5;
+
+
+  NodeList node_list = 6;
+  repeated ProbeTask probe_tasks = 7;
+  repeated DomainIPMapping domain_ip_mappings = 8;
+
+
+  repeated RegionPairAssessment region_assessments = 9;
+
+
+  repeated FaultInfo acknowledged_faults = 10;
+}
+
+
+message PushConfigRequest {
+  NodeList node_list = 1;
+  repeated ProbeTask probe_tasks = 2;
+  repeated DomainIPMapping domain_ip_mappings = 3;
+}
+
+
+message SimpleResponse {
+  string status = 1;
+  string message = 2;
+}
+
+
+message FaultInfo {
+  string fault_id = 1;
+  string node_ip = 2;
+  string fault_type = 3;
+  string fault_description = 4;
+}
+
+
+message ReportFaultRequest {
+  FaultInfo fault_info = 1;
+}
+
+
+service MetricsService {
+
+  rpc InitDataPlane (InitRequest) returns (SimpleResponse);
+
+
+  rpc SyncMetrics (SyncRequest) returns (SyncResponse);
+}
+
+
+service ConfigService {
+
+  rpc PushConfig (PushConfigRequest) returns (SimpleResponse);
+}
+
+
+service FaultService {
+
+  rpc ReportFault (ReportFaultRequest) returns (SimpleResponse);
+}

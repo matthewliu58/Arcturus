@@ -1,0 +1,74 @@
+# traefik/conf.d/domain-resolver.yml
+http:
+  routers:
+    # Route matches path "/resolve/example.com"
+    router-for-example-path:
+      rule: "Path(`/resolve/example.com`)" # Exact path match, use PathPrefix for prefix matching
+      service: "noop-service"             # Associated with a dummy service
+      entryPoints:
+        - "web"                           # Via "web" entry point
+      middlewares:
+        - "weighted-redirect-for-example" # Apply weighted middleware for example.com path
+
+    # Route matches path "/resolve/test.com"
+    router-for-test-path:
+      rule: "Path(`/resolve/test.com`)"
+      service: "noop-service"
+      entryPoints:
+        - "web"
+      middlewares:
+        - "weighted-redirect-for-test"    # Apply weighted middleware for test.com path
+
+    # You can continue to add more routes for other "domain paths"
+    # routing-for-another-path:
+    #   rule: "Path(`/resolve/another.domain`)"
+    #   service: "noop-service"
+    #   entryPoints:
+    #     - "web"
+    #   middlewares:
+    #     - "weighted-redirect-for-another" # This middleware instance would need to be defined
+
+  middlewares:
+    # Middleware instance: Provides weighted IP redirection for the "/resolve/example.com" path
+    weighted-redirect-for-example:
+      plugin:
+        myWeightedRedirector: # Reference the plugin name registered in traefik.yml.template
+          defaultScheme: "http"
+          defaultPort: 50055
+          # preservePathAndQuery: false # If false (default), redirects to http://<ip>:50055/
+                                       # If true, redirects to http://<ip>:50055/resolve/example.com (if that was the original path)
+                                       # Consider if StripPrefix is needed to handle the path after redirection
+          targets:
+            - ip: "47.94.193.70"
+              weight: 70
+            - ip: "1.92.150.161"
+              weight: 30
+
+    # Middleware instance: Provides weighted IP redirection for the "/resolve/test.com" path
+    weighted-redirect-for-test:
+      plugin:
+        myWeightedRedirector:
+          defaultScheme: "http"
+          defaultPort: 8080
+          # preservePathAndQuery: false
+          targets:
+            - ip: "10.0.1.10"
+              weight: 1
+            - ip: "10.0.1.11"
+              weight: 2
+
+    # If you added a route for another.domain, you would also need to define its corresponding middleware instance
+    # weighted-redirect-for-another:
+    #   plugin:
+    #     myWeightedRedirector:
+    #       defaultScheme: "http"
+    #       defaultPort: 9090
+    #       targets:
+    #         - ip: "20.0.0.1"
+    #           weight: 1
+
+  services:
+    noop-service: # Dummy service, because routing rules require it
+      loadBalancer:
+        servers:
+          - url: "http://127.0.0.1:1" # Invalid address, will not be actually called

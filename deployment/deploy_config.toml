@@ -1,0 +1,183 @@
+# ============================================================================
+# Arcturus Unified Deployment Configuration - Three Region Architecture
+# ============================================================================
+# 15-node global acceleration framework
+# Scheduling Plane: london (EU region)
+# Regions: EU (2 nodes), US (3 nodes), Asian (2 nodes)
+# ============================================================================
+
+# ----------------------------------------------------------------------------
+# [1] Environment Configuration
+# ----------------------------------------------------------------------------
+[environment]
+go_version = "1.23.7"
+go_arch = "linux-amd64"
+etcd_version = "v3.5.9"
+etcd_arch = "linux-amd64"
+
+# ----------------------------------------------------------------------------
+# [2] Database Configuration (Scheduling Plane Only - london)
+# ----------------------------------------------------------------------------
+[database]
+mysql_root_password = "VeryStrongRootPassword123!"
+mysql_db_name = "arcturus_global"
+mysql_db_user = "arcturus_user"
+mysql_db_password = "ArCtuRus@2024!"
+mysql_host = "localhost"
+sql_script_path = "scheduling/sql/create_table.sql"
+
+# ----------------------------------------------------------------------------
+# [3] Service Configuration
+# ----------------------------------------------------------------------------
+[services]
+# Scheduling Plane is now in london
+scheduling_ip = "139.84.236.251"
+scheduling_metrics_port = 8080
+scheduling_api_port = 8081
+scheduling_traefik_port = 8090
+etcd_endpoints = ["http://139.84.236.251:2379"]
+
+[services.etcd]
+node_name = "etcd-london"
+initial_advertise_peer_urls = "http://139.84.236.251:2380"
+listen_peer_urls = "http://0.0.0.0:2380"
+advertise_client_urls = "http://139.84.236.251:2379"
+listen_client_urls = "http://0.0.0.0:2379"
+initial_cluster = "etcd-london=http://139.84.236.251:2380"
+
+# ----------------------------------------------------------------------------
+# [4] Node Configuration - 7 Nodes in 3 Regions
+# ----------------------------------------------------------------------------
+
+# ========== Global Scheduling Plane (in EU region) ==========
+[[nodes]]
+ip = "139.84.236.251"
+region = "EU"
+hostname = "controller-london"
+description = "scheduling"
+role = "scheduling"
+
+# ========== EU Region (2 additional nodes) ==========
+[[nodes]]
+ip = "80.240.28.138"
+region = "EU"
+hostname = "edge-frankfurt"
+description = "traefik+forwarding"
+role = "traefik+forwarding"
+
+[[nodes]]
+ip = "45.77.90.250"
+region = "EU"
+hostname = "forwarding-london"
+description = "forwarding"
+role = "forwarding"
+
+# ========== US Region (3 nodes) ==========
+[[nodes]]
+ip = "149.248.8.34"
+region = "US"
+hostname = "edge-losangeles"
+description = "traefik+forwarding"
+role = "traefik+forwarding"
+
+[[nodes]]
+ip = "144.202.36.22"
+region = "US"
+hostname = "forwarding-toronto"
+description = "forwarding"
+role = "forwarding"
+
+[[nodes]]
+ip = "155.138.146.39"
+region = "US"
+hostname = "forwarding-miami"
+description = "forwarding"
+role = "forwarding"
+
+# ========== Asian Region (2 nodes) ==========
+[[nodes]]
+ip = "67.219.99.230"
+region = "Asian"
+hostname = "edge-singapore"
+description = "traefik+forwarding"
+role = "traefik+forwarding"
+
+[[nodes]]
+ip = "45.32.24.199"
+region = "Asian"
+hostname = "forwarding-tokyo"
+description = "forwarding"
+role = "forwarding"
+
+# ----------------------------------------------------------------------------
+# [5] Domain Configuration
+# ----------------------------------------------------------------------------
+
+[[domains]]
+domain = "google.com"
+origin_ip = "142.250.185.206"
+region_req_increment = {
+    "EU" = 20,
+    "US" = 30,
+    "Asian" = 50
+}
+redistribution_proportion = 0.5
+
+[[domains]]
+domain = "github.com"
+origin_ip = "140.82.121.4"
+region_req_increment = {
+    "EU" = 20,
+    "US" = 30,
+    "Asian" = 50
+}
+redistribution_proportion = 0.5
+
+
+# ----------------------------------------------------------------------------
+# [6] BPR Scheduling Tasks 
+# ----------------------------------------------------------------------------
+
+# EU Region
+[[bpr_scheduling_tasks]]
+region = "EU"
+interval_seconds = 10
+
+# US Region
+[[bpr_scheduling_tasks]]
+region = "US"
+interval_seconds = 10
+
+# Asian Region
+[[bpr_scheduling_tasks]]
+region = "Asian"
+interval_seconds = 10
+
+# ----------------------------------------------------------------------------
+# [7] Traefik Configuration
+# ----------------------------------------------------------------------------
+[traefik]
+version = "v3.4.0"
+plugin_name = "weightedredirector"
+http_port = 80
+dashboard_port = 8080
+
+[traefik.client_probe]
+probe_interval = 10
+probe_timeout = 3000
+log_level = "INFO"
+
+# ----------------------------------------------------------------------------
+# [8] Forwarding Configuration
+# ----------------------------------------------------------------------------
+[forwarding]
+port_start = 50050
+port_end = 50059
+metrics_report_interval = 30
+
+# ----------------------------------------------------------------------------
+# [9] Firewall Configuration
+# ----------------------------------------------------------------------------
+[firewall]
+auto_configure = true
+backend = "ufw"

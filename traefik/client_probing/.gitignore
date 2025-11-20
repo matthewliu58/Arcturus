@@ -1,0 +1,27 @@
+# Binaries
+traefik_client_probe
+traefik_client_probe.exe
+*.exe
+*.out
+
+# Go build artifacts
+*.test
+*.prof
+
+# Logs
+*.log
+
+# Config backups
+config.toml.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+

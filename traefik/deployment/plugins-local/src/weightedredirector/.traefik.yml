@@ -1,0 +1,15 @@
+# plugins-local/src/weightedredirector/.traefik.yml.template
+displayName: My Weighted Redirector
+type: middleware
+import: weightedredirector # This is your module name from go.mod
+summary: 'Redirects requests based on weighted IP targets.'
+testData: # <--- Add this field and the content below
+  defaultScheme: "http"
+  defaultPort: 8080
+  permanentRedirect: false
+  preservePathAndQuery: false
+  targets:
+    - ip: "192.168.1.100"
+      weight: 1
+    - ip: "192.168.1.101"
+      weight: 2
