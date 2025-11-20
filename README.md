@@ -53,9 +53,50 @@ vim deployment/deploy_config.toml
 
 Configure the following sections:
 - Database credentials (for scheduling plane)
-- Node list (all forwarding nodes)
+- Node list (all scheduling, forwarding and traefik nodes)
 - Domain configurations
 - Service endpoints
+
+For example:
+```bash
+-----------------Scheduling------------
+[services]
+# Scheduling Plane is now in london
+scheduling_ip = "139.84.236.251"
+scheduling_metrics_port = 8080
+scheduling_api_port = 8081
+scheduling_traefik_port = 8090
+etcd_endpoints = ["http://139.84.236.251:2379"]
+
+# ========== Global Scheduling Plane (in EU region) ==========
+[[nodes]]
+ip = "139.84.236.251"
+region = "EU"
+hostname = "controller-london"
+description = "scheduling"
+role = "scheduling"
+
+-----------------Forwarding------------
+[[nodes]]
+ip = "80.240.28.138"
+region = "EU"
+hostname = "edge-frankfurt"
+description = "traefik+forwarding"
+role = "traefik+forwarding"
+
+[[nodes]]
+ip = "45.77.90.250"
+region = "EU"
+hostname = "forwarding-london"
+description = "forwarding"
+role = "forwarding"
+
+-----------------Domain------------
+[[domains]]
+domain = "google.com"
+origin_ip = "142.250.185.206"
+```
+
 
 ### Step 2: Batch Deployment
 
@@ -70,6 +111,33 @@ PASSWORD="Arcturus@Test2024"
 
 ```bash
 vim deployment/deploy_to_server.sh
+```
+Server Configuration:
+- FORWARDING_SERVERS
+- TRAEFIK_SERVERS
+- SCHEDULING_SERVERS
+
+For example:
+```bash
+FORWARDING_SERVERS=(
+     "80.240.28.138"
+     "149.248.8.34"
+     "67.219.99.230"
+     "45.77.90.250"
+     "144.202.36.22"
+     "155.138.146.39"
+     "45.32.24.199"
+)
+
+TRAEFIK_SERVERS=(
+    "80.240.28.138"
+    "149.248.8.34"
+    "67.219.99.230"
+)
+
+SCHEDULING_SERVERS=(
+    "139.84.236.251"
+)
 ```
 
 ### 3. Run the batch deployment script:
