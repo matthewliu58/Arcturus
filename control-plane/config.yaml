@@ -7,10 +7,10 @@ data_dir: "/root/etcd"                # Etcd 数据目录
 #name: "etcd-1"                            # 当前节点名字
 
 node:
-  provider: "vultr"        # gcp | aws | azure | vultr | digitalocean | onprem
-  continent: "northAmerica"      # ONLY field used for bandwidth / cost query
-  country: "us"          # 可选，用于日志/解释/未来扩展
-  city: "chicago"          # 可选，用于日志/解释/未来扩展
+  provider: "Vultr"        # gcp | aws | azure | vultr | digitalocean | onprem
+  continent: "NorthAmerica"      # ONLY field used for bandwidth / cost query
+  country: "US"          # 可选，用于日志/解释/未来扩展
+  city: "Chicago"          # 可选，用于日志/解释/未来扩展
   ip:
     private: "0.0.0.0"  # 内网 IP
     public: "173.199.92.182" # 公网 IP 作为hostname

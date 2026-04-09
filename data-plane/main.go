@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"data-plane/probing"
+	last_analyzer "data-plane/report-info/last-analyzer"
 	"data-plane/report-info/reporter"
 	"data-plane/util"
 	"encoding/json"
@@ -80,26 +81,62 @@ func main() {
 			slog.String("config", string(b)))
 	}
 
+	if err := util.InitIPInfo(logPre, logger); err != nil {
+		logger.Warn("IP库初始化失败", slog.String("pre", logPre), slog.Any("err", err))
+	}
+
+	if err := util.LoadCountryContinent(logPre, logger); err != nil {
+		logger.Warn("国家-洲信息初始化失败", slog.String("pre", logPre), slog.Any("err", err))
+	}
+
+	go last_analyzer.AccessAnalyzer(logPre, logger)
+
 	go reporter.ReportCycle(util.Config_.ControlHost, logPre, logger)
 
 	//启动探测逻辑
-	cfg := probing.Config{
-		Concurrency: 4,
-		Timeout:     2 * time.Second,
-		Interval:    5 * time.Second,
-		Attempts:    5, // 每轮尝试次数
-	}
-	ctx := context.Background()
-	probing.StartProbePeriodically(ctx, util.Config_.ControlHost, cfg, logPre, logger)
+	probing.StartProbePeriodically(context.Background(), util.Config_.ControlHost,
+		probing.Config{
+			Concurrency: 4,
+			Timeout:     2 * time.Second,
+			Interval:    5 * time.Second,
+			Attempts:    5,
+		}, logPre, logger)
 
 	router := gin.Default()
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "success")
 	})
+	ipGroup := router.Group("/ip")
+	{
+		ipGroup.GET("/info", getIPInfoHandler)
+	}
 
 	logger.Info("API端口启动", slog.String("pre", logPre), slog.String("port", ":7082"))
 	if err := router.Run(":7082"); err != nil {
 		logger.Error("API服务启动失败", slog.String("pre", logPre), slog.Any("err", err))
 		return
 	}
+}
+
+// getIPInfoHandler GET /ip/info?ip=1.1.1.1
+func getIPInfoHandler(c *gin.Context) {
+	ip := c.Query("ip")
+	if ip == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "ip parameter is required",
+		})
+		return
+	}
+
+	// 调用你现有的 IP 解析函数
+	ipInfo, err := util.GetIPInfo(ip, "api_ip_info", slog.Default())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	// 返回结果
+	c.JSON(http.StatusOK, ipInfo)
 }

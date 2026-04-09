@@ -1,2 +1,12 @@
 port: "7082"
 control_host: "http://127.0.0.1:7081"
+access_log: "/root/data-proxy/logs/access.log"
+
+node:
+  provider: "Vultr"        # gcp | aws | azure | vultr | digitalocean | onprem
+  continent: "NorthAmerica"      # ONLY field used for bandwidth / cost query
+  country: "US"          # 可选，用于日志/解释/未来扩展
+  city: "Chicago"          # 可选，用于日志/解释/未来扩展
+  ip:
+    private: "0.0.0.0"  # 内网 IP
+    public: "173.199.92.182" # 公网 IP 作为hostname

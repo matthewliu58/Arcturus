@@ -1,4 +1,4 @@
-package collector
+package middle_collector
 
 import (
 	"data-plane/probing"

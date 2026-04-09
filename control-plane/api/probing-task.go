@@ -103,7 +103,8 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 
 	// 2. 解析每个节点JSON，生成Targets列表
 	var tasks []model.ProbeTask
-	ip_, _ := util.GetPublicIP()
+	//ip_, _ := util.GetPublicIP()
+	ip_ := util.Config_.Node.IP.Public
 	for k, nodeJson := range nodeMap {
 		var telemetry storage.NetworkTelemetry
 		if err := json.Unmarshal([]byte(nodeJson), &telemetry); err != nil {

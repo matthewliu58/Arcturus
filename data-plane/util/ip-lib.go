@@ -33,14 +33,14 @@ func InitIPInfo(pre string, logger *slog.Logger) error {
 
 // IPInfoResult 结构化IP信息（给你离线分析用）
 type IPInfoResult struct {
-	IP          string  `json:"ip"`
-	Country     string  `json:"country"`      // 国家
-	CountryCode string  `json:"country_code"` // 国家码
-	Province    string  `json:"province"`     // 省份
-	City        string  `json:"city"`         // 城市
-	ISP         string  `json:"isp"`          // 运营商
-	Latitude    float64 `json:"latitude"`
-	Longitude   float64 `json:"longitude"`
+	IP          string `json:"ip"`
+	Country     string `json:"country"`      // 国家
+	CountryCode string `json:"country_code"` // 国家码
+	Province    string `json:"province"`     // 省份
+	City        string `json:"city"`         // 城市
+	ISP         string `json:"isp"`          // 运营商
+	//Latitude    float64 `json:"latitude"`
+	//Longitude   float64 `json:"longitude"`
 }
 
 // GetIPInfo 输入IP → 输出地区+运营商信息

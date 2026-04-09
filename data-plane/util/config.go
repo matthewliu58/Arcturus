@@ -12,7 +12,24 @@ var Config_ *Config
 
 // Config 一级结构体，对应yaml平级配置
 type Config struct {
-	ControlHost string `yaml:"control_host"`
+	ControlHost string     `yaml:"control_host"`
+	AccessLog   string     `yaml:"access_log"`
+	Node        NodeConfig `yaml:"node"`
+}
+
+// NodeConfig 对应 node 配置
+type NodeConfig struct {
+	Provider  string `yaml:"provider"`  // gcp | aws | azure | vultr | digitalocean | onprem
+	Continent string `yaml:"continent"` // 仅用于 bandwidth / cost 查询
+	Country   string `yaml:"country"`   // 可选，用于日志/可解释性
+	City      string `yaml:"city"`      // 可选，用于日志/可解释性
+	IP        NodeIP `yaml:"ip"`        // 内外网 IP
+}
+
+// NodeIP 内外网 IP
+type NodeIP struct {
+	Private string `yaml:"private"` // 内网 IP
+	Public  string `yaml:"public"`  // 公网 IP（可选）
 }
 
 // ReadYamlConfig 读取同层级的config.yaml配置
