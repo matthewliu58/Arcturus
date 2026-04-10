@@ -3,6 +3,8 @@ package middle_mile
 import (
 	"container/heap"
 	"control-plane/routing/graph"
+	"control-plane/routing/routing"
+	"fmt"
 	"log/slog"
 	"math"
 )
@@ -57,8 +59,8 @@ func NewDijkstraSolver(edges []*graph.Edge) *DijkstraSolver {
 	}
 }
 
-// Dijkstra
-func (d *DijkstraSolver) Computing(start, end string, pre string, logger *slog.Logger) ([]string, float64) {
+// Computing 执行最短路径计算
+func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
 
 	// 构建图和节点集合
 	graph_ := make(map[string][]*graph.Edge)
@@ -71,10 +73,10 @@ func (d *DijkstraSolver) Computing(start, end string, pre string, logger *slog.L
 
 	// 校验起点和终点是否存在
 	if _, ok := nodes[start]; !ok {
-		return nil, math.Inf(1)
+		return nil, fmt.Errorf("start node %s not found", start)
 	}
 	if _, ok := nodes[end]; !ok {
-		return nil, math.Inf(1)
+		return nil, fmt.Errorf("end node %s not found", end)
 	}
 
 	// 初始化距离映射和前驱节点映射
@@ -95,36 +97,34 @@ func (d *DijkstraSolver) Computing(start, end string, pre string, logger *slog.L
 
 	// 处理优先级队列
 	for pq.Len() > 0 {
-		// 弹出当前成本最低的节点
 		u := heap.Pop(pq).(*PQNode)
 		currNode := u.node
 		currCost := u.cost
 
-		// 【核心修复】添加校验：如果当前弹出的成本大于已记录的最短距离，直接跳过该节点（已处理过更优路径）
 		if currCost > dist[currNode] {
 			continue
 		}
 
 		// 到达终点，回溯路径并返回
 		if currNode == end {
-			// 通过prev映射回溯路径
 			path := []string{}
 			for node := end; node != ""; node = prev[node] {
 				path = append([]string{node}, path...)
 			}
-			return path, currCost
+			logger.Info("Dijkstra path found", slog.String("pre", pre),
+				slog.String("start", start), slog.String("end", end),
+				slog.Any("path", path), slog.Float64("rtt", currCost))
+			return []routing.PathInfo{{Hops: path, Rtt: currCost}}, nil
 		}
 
 		// 遍历当前节点的邻接边，更新最短路径
 		for _, e := range graph_[currNode] {
 			nextNode := e.DestinationIp
-			// 计算新路径成本
 			newCost := currCost + e.EdgeWeight*d.alpha
 
-			// 如果新路径更优，更新距离并推入优先级队列
 			if newCost < dist[nextNode] {
 				dist[nextNode] = newCost
-				prev[nextNode] = currNode // 记录前驱节点
+				prev[nextNode] = currNode
 				heap.Push(pq, &PQNode{
 					node: nextNode,
 					cost: newCost,
@@ -134,5 +134,10 @@ func (d *DijkstraSolver) Computing(start, end string, pre string, logger *slog.L
 	}
 
 	// 无法到达终点
-	return nil, math.Inf(1)
+	return nil, fmt.Errorf("no path found from %s to %s", start, end)
 }
+
+// RouterSolver 路由算法接口
+//type RouterSolver interface {
+//	Computing(start, end, pre string, logger *slog.Logger) ([]PathInfo, error)
+//}
