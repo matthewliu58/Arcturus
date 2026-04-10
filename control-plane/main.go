@@ -6,7 +6,7 @@ import (
 	api2 "control-plane/api"
 	"control-plane/info-agg"
 	rece "control-plane/receive-info"
-	"control-plane/routing"
+	"control-plane/routing/graph"
 	"control-plane/sync/etcd_client"
 	"control-plane/sync/etcd_server"
 	"control-plane/util"
@@ -61,7 +61,7 @@ func (h *SourceHandler) WithGroup(name string) slog.Handler {
 }
 
 func HandleRoutingWatchEvent(
-	r *routing.GraphManager,
+	r *graph.GraphManager,
 	eventType string,
 	key string,
 	val string,
@@ -252,7 +252,7 @@ func main() {
 	}
 
 	//获取全量前缀信息 然后初始化 routing map
-	r := routing.NewGraphManager(logger)
+	r := graph.NewGraphManager(logger)
 	nodeMap, err := etcd_client.GetPrefixAll(cli, "/routing/middle/", logPre, logger)
 	if err != nil {
 		logger.Warn("获取全量前缀信息失败", slog.String("pre", logPre), slog.Any("err", err))

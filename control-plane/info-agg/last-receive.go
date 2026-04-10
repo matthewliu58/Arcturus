@@ -9,15 +9,17 @@ import (
 )
 
 type GlobalStats struct {
-	mu    sync.RWMutex
-	nodes map[string]*rece.LastStats // key: nodeIP
-	agg   map[string]*rece.LastStatsValue
+	mu           sync.RWMutex
+	nodes        map[string]*rece.LastStats // key: nodeIP
+	agg          map[string]*rece.LastStatsValue
+	nodeLocation map[string][]string //key continent; val ips
 }
 
 func NewGlobalStats() *GlobalStats {
 	return &GlobalStats{
-		nodes: make(map[string]*rece.LastStats),
-		agg:   make(map[string]*rece.LastStatsValue),
+		nodes:        make(map[string]*rece.LastStats),
+		agg:          make(map[string]*rece.LastStatsValue),
+		nodeLocation: make(map[string][]string),
 	}
 }
 
@@ -28,6 +30,7 @@ func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 	}
 	g.mu.Lock()
 	g.nodes[node.IP] = node
+	g.AddNodeLocation(node.IP, node.Continent)
 	g.mu.Unlock()
 }
 
@@ -35,7 +38,50 @@ func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 func (g *GlobalStats) DelNode(nodeIP string) {
 	g.mu.Lock()
 	delete(g.nodes, nodeIP)
+	g.DelNodeLocation(nodeIP)
 	g.mu.Unlock()
+}
+
+// AddNodeLocation 添加节点 IP 到地理位置索引
+func (g *GlobalStats) AddNodeLocation(ip, continent string) {
+	if g.nodeLocation[continent] == nil {
+		g.nodeLocation[continent] = make([]string, 0)
+	}
+	// 避免重复
+	for _, existingIP := range g.nodeLocation[continent] {
+		if existingIP == ip {
+			return
+		}
+	}
+	g.nodeLocation[continent] = append(g.nodeLocation[continent], ip)
+}
+
+// DelNodeLocation 从地理位置索引删除节点 IP
+func (g *GlobalStats) DelNodeLocation(ip string) {
+	for continent, ips := range g.nodeLocation {
+		for i, existingIP := range ips {
+			if existingIP == ip {
+				g.nodeLocation[continent] = append(ips[:i], ips[i+1:]...)
+				return
+			}
+		}
+	}
+}
+
+// GetNodeLocation 获取指定 continent 的所有节点 IP
+// continent 为空返回所有
+func (g *GlobalStats) GetNodeLocation(continent string) []string {
+	if continent != "" {
+		result := make([]string, len(g.nodeLocation[continent]))
+		copy(result, g.nodeLocation[continent])
+		return result
+	}
+	// 返回所有
+	var result []string
+	for _, ips := range g.nodeLocation {
+		result = append(result, ips...)
+	}
+	return result
 }
 
 // GetAggMap 获取当前所有聚合好的数据（线程安全）

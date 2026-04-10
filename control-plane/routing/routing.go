@@ -2,6 +2,8 @@ package routing
 
 import (
 	"control-plane/info-agg"
+	"control-plane/routing/graph"
+	middle_mile "control-plane/routing/middle-mile"
 	"fmt"
 	"log/slog"
 	"math"
@@ -36,7 +38,7 @@ type EndPoints struct {
 }
 
 // 输入是client区域和cloud storage 区域
-func (g *GraphManager) Routing(endPoints EndPoints, pre string, logger *slog.Logger) RoutingInfo {
+func Routing(g *graph.GraphManager, endPoints EndPoints, pre string, logger *slog.Logger) RoutingInfo {
 
 	logger.Info("Routing", slog.String("pre", pre), slog.Any("endPoints", endPoints))
 
@@ -71,7 +73,8 @@ func (g *GraphManager) Routing(endPoints EndPoints, pre string, logger *slog.Log
 	var tempPaths []Path
 	minCost := math.Inf(1)
 	for _, sNode := range startNodes {
-		path, cost := g.Dijkstra(InNode(sNode.PublicIP), serverFull)
+		edges := g.GetEdges()
+		path, cost := middle_mile.Dijkstra(edges, sNode.PublicIP, serverFull)
 		if path == nil {
 			continue
 		}
@@ -119,8 +122,7 @@ func (g *GraphManager) Routing(endPoints EndPoints, pre string, logger *slog.Log
 
 	//计算速率
 	var paths []PathInfo
-	rate := ComputeAdmissionRate(Task{WeightU: 1, MinRate: 10, MaxRate: 20}, minCost, 1.0, 100, pre, g.logger)
-	paths = append(paths, PathInfo{Hops: merged, Rate: int64(rate)})
+	paths = append(paths, PathInfo{Hops: merged})
 	rout := RoutingInfo{Routing: paths}
 
 	logger.Info("routing result", slog.String("pre", pre), slog.Any("rout", rout))

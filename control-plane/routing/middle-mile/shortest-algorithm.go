@@ -1,7 +1,8 @@
-package routing
+package middle_mile
 
 import (
 	"container/heap"
+	"control-plane/routing/graph"
 	"math"
 )
 
@@ -39,16 +40,14 @@ func (pq *PriorityQueue) Pop() interface{} {
 }
 
 // Dijkstra
-func (g *GraphManager) Dijkstra(start, end string) ([]string, float64) {
+func Dijkstra(edges []*graph.Edge, start, end string) ([]string, float64) {
 
 	const (
 		alpha = 1.2
 	)
 
-	edges := g.GetEdges()
-
 	// 构建图和节点集合
-	graph := make(map[string][]*Edge)
+	graph := make(map[string][]*graph.Edge)
 	nodes := make(map[string]struct{})
 	for _, e := range edges {
 		graph[e.SourceIp] = append(graph[e.SourceIp], e)

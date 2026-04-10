@@ -3,6 +3,7 @@ package api
 import (
 	model "control-plane/receive-info"
 	"control-plane/routing"
+	"control-plane/routing/graph"
 	"control-plane/util"
 	"github.com/gin-gonic/gin"
 	"log/slog"
@@ -11,12 +12,12 @@ import (
 
 // UserRoutingAPIHandler 提供获取用户传输文件的路由信息
 type UserRoutingAPIHandler struct {
-	GM     *routing.GraphManager
+	GM     *graph.GraphManager
 	Logger *slog.Logger
 }
 
 // NewUserRoutingAPIHandler 初始化
-func NewUserRoutingAPIHandler(gm *routing.GraphManager, logger *slog.Logger) *UserRoutingAPIHandler {
+func NewUserRoutingAPIHandler(gm *graph.GraphManager, logger *slog.Logger) *UserRoutingAPIHandler {
 	return &UserRoutingAPIHandler{
 		GM:     gm,
 		Logger: logger,
@@ -69,7 +70,7 @@ func (h *UserRoutingAPIHandler) GetUserRoute(c *gin.Context) {
 }
 
 // InitUserRoutingRouter 初始化用户路由 API 路由
-func InitUserRoutingRouter(router *gin.Engine, gm *routing.GraphManager, logger *slog.Logger) *gin.Engine {
+func InitUserRoutingRouter(router *gin.Engine, gm *graph.GraphManager, logger *slog.Logger) *gin.Engine {
 	apiV1 := router.Group("/api/v1")
 	{
 		routingGroup := apiV1.Group("/routing")
