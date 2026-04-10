@@ -25,26 +25,26 @@ const (
 	CarouselGreedy = "carousel_greed"
 )
 
-type ComputingInterface interface {
+type ComputingMiddleInterface interface {
 	Computing(start, end, pre string, logger *slog.Logger) ([]routing.PathInfo, error)
 }
 
-type RoutingInterface struct {
-	Operate ComputingInterface
+type RoutingMiddleInterface struct {
+	Operate ComputingMiddleInterface
 }
 
-func InitInterface(g *graph.GraphManager, algorithm string, pre string, logger *slog.Logger) RoutingInterface {
+func InitMiddleInterface(g *graph.GraphManager, algorithm string, pre string, logger *slog.Logger) RoutingMiddleInterface {
 	switch algorithm {
 	case Shortest:
 		edges := g.GetEdges()
 		solver := middle_mile.NewDijkstraSolver(edges)
-		return RoutingInterface{Operate: solver}
+		return RoutingMiddleInterface{Operate: solver}
 	case CarouselGreedy:
 		edges := g.GetEdges()
 		solver := middle_mile.NewHeuristicSolver(edges)
-		return RoutingInterface{Operate: solver}
+		return RoutingMiddleInterface{Operate: solver}
 	default:
-		return RoutingInterface{}
+		return RoutingMiddleInterface{}
 	}
 }
 
@@ -52,7 +52,7 @@ func MiddleRouting(g *graph.GraphManager, endPoints EndPoints, algorithm, pre st
 
 	logger.Info("Routing", slog.String("pre", pre), slog.Any("endPoints", endPoints))
 
-	solver := InitInterface(g, algorithm, pre, logger)
+	solver := InitMiddleInterface(g, algorithm, pre, logger)
 	paths, err := solver.Operate.Computing(endPoints.Source.IP, endPoints.Dest.IP, pre, logger)
 	if err != nil {
 		logger.Warn("No routing", slog.String("pre", pre), slog.Any("err", err))

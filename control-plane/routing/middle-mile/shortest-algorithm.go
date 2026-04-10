@@ -136,8 +136,3 @@ func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) 
 	// 无法到达终点
 	return nil, fmt.Errorf("no path found from %s to %s", start, end)
 }
-
-// RouterSolver 路由算法接口
-//type RouterSolver interface {
-//	Computing(start, end, pre string, logger *slog.Logger) ([]PathInfo, error)
-//}
