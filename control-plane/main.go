@@ -254,6 +254,8 @@ func main() {
 	api2.InitNodeProbeRouter(router, cli, logger)
 	//client获取 bulk transfer path信息的接口
 	api2.InitUserRoutingRouter(router, r, logger)
+	//接收节点时延统计信息
+	api2.InitLastReceiveAPIRouter(router, cli, logger)
 
 	logger.Info("API服务启动成功", slog.String("pre", logPre), slog.String("port", ":7081"))
 	if err := router.Run(":7081"); err != nil {

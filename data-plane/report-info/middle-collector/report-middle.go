@@ -1,9 +1,8 @@
-package reporter
+package middle_collector
 
 import (
 	"bytes"
 	model "data-plane/report-info"
-	"data-plane/report-info/middle-collector"
 	"data-plane/util"
 	"encoding/json"
 	"fmt"
@@ -75,7 +74,7 @@ func (r *HTTPReporter) Report(controlHost, pre string, vmReport *model.VMReport)
 
 func ReportCycle(controlHost, pre string, logger *slog.Logger) {
 	// 1. 初始化采集器和上报器
-	vmCollector := middle_collector.NewVMCollector()
+	vmCollector := NewVMCollector()
 	httpReporter := NewHTTPReporter()
 
 	// 2. 启动定时上报任务
@@ -97,7 +96,7 @@ func ReportCycle(controlHost, pre string, logger *slog.Logger) {
 }
 
 // reportOnce 单次上报逻辑
-func reportOnce(controlHost string, collector *middle_collector.VMCollector, reporter *HTTPReporter, logger *slog.Logger) {
+func reportOnce(controlHost string, collector *VMCollector, reporter *HTTPReporter, logger *slog.Logger) {
 
 	pre := util.GenerateRandomLetters(5)
 

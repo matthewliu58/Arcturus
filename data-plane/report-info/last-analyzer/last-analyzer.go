@@ -14,22 +14,24 @@ import (
 
 // 日志记录结构 —— 只保留你要的：国家、省份、城市、ISP、节点
 type Record struct {
-	Ts       time.Time
-	ClientIP string
-	ConnRT   int
-	Country  string // 国家
-	Province string // 省份
-	City     string // 城市
-	ISP      string // 运营商
+	Ts        time.Time
+	ClientIP  string
+	ConnRT    int
+	Continent string
+	Country   string // 国家
+	Province  string // 省份
+	City      string // 城市
+	ISP       string // 运营商
 	//Node     string // 当前节点
 }
 
 // 调度统计 KEY —— 省份保留，无 Slot
 type Key struct {
-	Country  string
-	Province string
-	City     string
-	ISP      string
+	Continent string
+	Country   string
+	Province  string
+	City      string
+	ISP       string
 	//Node     string
 }
 
@@ -54,7 +56,8 @@ func AccessAnalyzer(pre string, logger *slog.Logger) {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		calculate(pre, logger)
+		delayStats := calculate(pre, logger)
+		SendLastStats(delayStats, pre, logger)
 	}
 }
 
@@ -134,7 +137,7 @@ func tailFile(path string, pre string, logger *slog.Logger) {
 	}
 }
 
-func calculate(pre string, logger *slog.Logger) map[Key]*Stats {
+func calculate(pre string, logger *slog.Logger) map[Key]Stats {
 	now := time.Now()
 	mu.Lock()
 	defer mu.Unlock()
@@ -148,34 +151,33 @@ func calculate(pre string, logger *slog.Logger) map[Key]*Stats {
 	records = valid
 
 	// 聚合维度：国家 + 省份 + ISP + 节点
-	agg := make(map[Key]*Stats)
-	var rts []int
+	agg := make(map[Key]Stats)
+	rts := make(map[Key][]int)
+
 	for _, r := range valid {
 		key := Key{
-			Country:  r.Country,
-			Province: r.Province,
-			City:     r.City,
-			ISP:      r.ISP,
+			Continent: util.GetContinentByCountry(r.Country),
+			Country:   r.Country,
+			Province:  r.Province,
+			City:      r.City,
+			ISP:       r.ISP,
 			//Node:     r.Node,
-		}
-		if agg[key] == nil {
-			agg[key] = &Stats{}
 		}
 		s := agg[key]
 		s.Count++
 		s.SumRT += r.ConnRT
-		rts = append(rts, r.ConnRT)
+		rts[key] = append(rts[key], r.ConnRT)
 	}
 
 	// 计算平均 & P95
-	for _, s := range agg {
+	for k, s := range agg {
 		s.AvgRT = float64(s.SumRT) / float64(s.Count)
-		sort.Ints(rts)
+		sort.Ints(rts[k])
 		p95Idx := int(float64(len(rts)) * 0.95)
 		if p95Idx >= len(rts) {
 			p95Idx = len(rts) - 1
 		}
-		s.P95RT = rts[p95Idx]
+		s.P95RT = rts[k][p95Idx]
 	}
 
 	logger.Info("调度统计完成", slog.String("pre", pre), slog.Int("有效记录数", len(valid)))

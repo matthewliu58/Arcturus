@@ -4,7 +4,7 @@ import (
 	"context"
 	"data-plane/probing"
 	last_analyzer "data-plane/report-info/last-analyzer"
-	"data-plane/report-info/reporter"
+	"data-plane/report-info/middle-collector"
 	"data-plane/util"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
@@ -91,7 +91,7 @@ func main() {
 
 	go last_analyzer.AccessAnalyzer(logPre, logger)
 
-	go reporter.ReportCycle(util.Config_.ControlHost, logPre, logger)
+	go middle_collector.ReportCycle(util.Config_.ControlHost, logPre, logger)
 
 	//启动探测逻辑
 	probing.StartProbePeriodically(context.Background(), util.Config_.ControlHost,
