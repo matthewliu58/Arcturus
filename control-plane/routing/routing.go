@@ -1,23 +1,19 @@
 package routing
 
 import (
-	"control-plane/info-agg"
 	"control-plane/routing/graph"
 	middle_mile "control-plane/routing/middle-mile"
-	"fmt"
 	"log/slog"
-	"math"
-	"strings"
 )
 
 type Path struct {
-	path []string
-	cost float64
+	Path []string
+	Cost float64
 }
 
 type PathInfo struct {
-	Hops string `json:"hops"`
-	Rate int64  `json:"rate"`
+	Hops []string `json:"hops"`
+	Rtt  float64  `json:"rtt"`
 	//Weight int64  `json:"weight"`
 }
 
@@ -26,10 +22,11 @@ type RoutingInfo struct {
 }
 
 type EndPoint struct {
-	IP       string `json:"ip"`
-	Provider string `json:"provider"`
-	Region   string `json:"region"`
-	ID       string `json:"id"`
+	IP        string `json:"ip"`
+	Provider  string `json:"provider"`
+	Continent string `json:"continent"`
+	Country   string `json:"country"`
+	City      string `json:"city"`
 }
 
 type EndPoints struct {
@@ -37,92 +34,44 @@ type EndPoints struct {
 	Dest   EndPoint `json:"dest"`
 }
 
+const (
+	Shortest = "shortest"
+)
+
+type ComputingInterface interface {
+	Computing(start, end, pre string, logger *slog.Logger) ([]string, float64)
+}
+
+type RoutingInterface struct {
+	Operate ComputingInterface
+}
+
+func InitInterface(g *graph.GraphManager, algorithm string, pre string, logger *slog.Logger) RoutingInterface {
+	switch algorithm {
+	case Shortest:
+		edges := g.GetEdges()
+		solver := middle_mile.NewDijkstraSolver(edges)
+		return RoutingInterface{Operate: solver}
+	default:
+		return RoutingInterface{}
+	}
+}
+
 // 输入是client区域和cloud storage 区域
-func Routing(g *graph.GraphManager, endPoints EndPoints, pre string, logger *slog.Logger) RoutingInfo {
+func MiddleRouting(g *graph.GraphManager, endPoints EndPoints, algorithm, pre string, logger *slog.Logger) RoutingInfo {
 
 	logger.Info("Routing", slog.String("pre", pre), slog.Any("endPoints", endPoints))
 
-	// 获取所有节点
-	allNodes := g.GetNodes()
-
-	// 根据大洲过滤 start 和 end 节点 && 展现寻找最优路径
-	var startNodes []*info_agg.NetworkTelemetry
-
-	// todo 是否要偏向同运营商？
-	for _, node := range allNodes {
-		//proxy部署client逻辑, 优先走自己
-		if node.PublicIP == endPoints.Source.IP {
-			startNodes = append(startNodes, node)
-			break
-		}
-		if node.Continent == endPoints.Source.Region {
-			startNodes = append(startNodes, node)
-		}
-	}
-
-	//todo 即使client所在区域没有覆盖也可以提供routing
-	if len(startNodes) == 0 {
-		logger.Warn("No nodes found for start continent", slog.String("pre", pre))
+	solver := InitInterface(g, algorithm, pre, logger)
+	path, cost := solver.Operate.Computing(endPoints.Source.IP, endPoints.Dest.IP, pre, logger)
+	if len(path) == 0 {
+		logger.Warn("No cloud node found", slog.String("pre", pre))
 		return RoutingInfo{}
 	}
-
-	serverFull := fmt.Sprintf("%s_%s_%s", endPoints.Dest.Provider, endPoints.Dest.Region, endPoints.Dest.ID)
-
-	// 遍历 start × end 节点组合，寻找最短路径
-	var bestPath []string
-	var tempPaths []Path
-	minCost := math.Inf(1)
-	for _, sNode := range startNodes {
-		edges := g.GetEdges()
-		path, cost := middle_mile.Dijkstra(edges, sNode.PublicIP, serverFull)
-		if path == nil {
-			continue
-		}
-		tempPaths = append(tempPaths, Path{path, cost})
-		if len(path) > 0 && cost < minCost {
-			minCost = cost
-			bestPath = path
-		}
-	}
-	logger.Info("All candidate paths", slog.String("pre", pre),
-		slog.String("paths", fmt.Sprintf("%+v", tempPaths)))
-
-	if len(bestPath) == 0 {
-		logger.Warn("No cloud node found", slog.String("pre", pre), slog.String("serverFull", serverFull))
-		return RoutingInfo{}
-	}
-
-	// 输出结果
-	if len(bestPath) == 0 {
-		logger.Warn("No path found between continents", slog.String("pre", pre),
-			slog.String("startContinent", endPoints.Source.Region),
-			slog.String("endContinent", serverFull))
-	} else {
-		logger.Info("Shortest path found", slog.String("pre", pre),
-			slog.String("startContinent", endPoints.Source.Region),
-			slog.String("endContinent", serverFull),
-			slog.Any("path", bestPath), slog.Any("totalRisk", minCost))
-	}
-
-	var hops []string
-	hopMap := make(map[string]string)
-	for _, h := range bestPath {
-		tempIP := strings.Split(h, "-")[0]
-		if _, ok := hopMap[tempIP]; !ok {
-			hops = append(hops, tempIP)
-			hopMap[tempIP] = tempIP
-		}
-	}
-	var hops_ []string
-	for i := 0; i < len(hops)-1; i++ { //去掉最后一个 后面替换成真实的ip:port
-		hops_ = append(hops_, hops[i]+":8090") //gateway port
-	}
-	merged := strings.Join(hops_, ",")
-	merged += "," + endPoints.Dest.IP
-
-	//计算速率
+	logger.Info("All candidate paths", slog.String("pre", pre), slog.Any("path", path), slog.Float64("cost", cost))
+	
 	var paths []PathInfo
-	paths = append(paths, PathInfo{Hops: merged})
+	paths = append(paths, PathInfo{path, cost})
 	rout := RoutingInfo{Routing: paths}
 
 	logger.Info("routing result", slog.String("pre", pre), slog.Any("rout", rout))

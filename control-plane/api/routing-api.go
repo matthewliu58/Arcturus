@@ -31,7 +31,6 @@ func (h *UserRoutingAPIHandler) GetUserRoute(c *gin.Context) {
 	if len(pre) <= 0 {
 		pre = util.GenerateRandomLetters(5)
 	}
-
 	h.Logger.Info("GetUserRoute", slog.String("pre", pre))
 
 	resp := model.ApiResponse{
@@ -40,28 +39,19 @@ func (h *UserRoutingAPIHandler) GetUserRoute(c *gin.Context) {
 		Data: nil,
 	}
 
-	// 解析 header 信息（如果有）
-	filename := c.GetHeader("X-File-Name")
-
 	// 解析 body JSON
 	var req routing.EndPoints
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Code = 400
 		resp.Msg = "请求体解析失败：" + err.Error()
 		c.JSON(http.StatusOK, resp)
-		h.Logger.Warn("PostUserRoute parse body failed",
-			slog.String("pre", pre), slog.Any("error", err))
+		h.Logger.Warn("PostUserRoute parse body failed", slog.String("pre", pre), slog.Any("error", err))
 		return
 	}
+	h.Logger.Info("UserRoute POST request", slog.String("pre", pre), slog.Any("endPoints", req))
 
-	h.Logger.Info("UserRoute POST request", slog.String("pre", pre),
-		slog.String("fileName", filename), slog.Any("endPoints", req))
-
-	//调用 GraphManager 获取最优路径 可以把 GetBestPath 改成支持从客户端到服务器
-	paths := h.GM.Routing(req, pre, h.Logger)
-
-	h.Logger.Info("UserRoute POST response", slog.String("pre", pre),
-		slog.Any("routing", paths))
+	paths := routing.MiddleRouting(h.GM, req, routing.Shortest, pre, h.Logger)
+	h.Logger.Info("UserRoute POST response", slog.String("pre", pre), slog.Any("routing", paths))
 
 	resp.Code = 200
 	resp.Msg = "成功获取路径"

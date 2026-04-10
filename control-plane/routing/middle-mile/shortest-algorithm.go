@@ -3,6 +3,7 @@ package middle_mile
 import (
 	"container/heap"
 	"control-plane/routing/graph"
+	"log/slog"
 	"math"
 )
 
@@ -39,18 +40,31 @@ func (pq *PriorityQueue) Pop() interface{} {
 	return item
 }
 
-// Dijkstra
-func Dijkstra(edges []*graph.Edge, start, end string) ([]string, float64) {
+type DijkstraSolver struct {
+	edges []*graph.Edge // 只读图
+	alpha float64
+}
 
-	const (
-		alpha = 1.2
-	)
+// 创建实例
+func NewDijkstraSolver(edges []*graph.Edge) *DijkstraSolver {
+	var g []*graph.Edge
+	for _, e := range edges {
+		g = append(g, e)
+	}
+	return &DijkstraSolver{
+		edges: g,
+		alpha: 1.2,
+	}
+}
+
+// Dijkstra
+func (d *DijkstraSolver) Computing(start, end string, pre string, logger *slog.Logger) ([]string, float64) {
 
 	// 构建图和节点集合
-	graph := make(map[string][]*graph.Edge)
+	graph_ := make(map[string][]*graph.Edge)
 	nodes := make(map[string]struct{})
-	for _, e := range edges {
-		graph[e.SourceIp] = append(graph[e.SourceIp], e)
+	for _, e := range d.edges {
+		graph_[e.SourceIp] = append(graph_[e.SourceIp], e)
 		nodes[e.SourceIp] = struct{}{}
 		nodes[e.DestinationIp] = struct{}{}
 	}
@@ -102,10 +116,10 @@ func Dijkstra(edges []*graph.Edge, start, end string) ([]string, float64) {
 		}
 
 		// 遍历当前节点的邻接边，更新最短路径
-		for _, e := range graph[currNode] {
+		for _, e := range graph_[currNode] {
 			nextNode := e.DestinationIp
 			// 计算新路径成本
-			newCost := currCost + e.EdgeWeight*alpha
+			newCost := currCost + e.EdgeWeight*d.alpha
 
 			// 如果新路径更优，更新距离并推入优先级队列
 			if newCost < dist[nextNode] {
