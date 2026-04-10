@@ -129,7 +129,7 @@ type LastStatsKey struct {
 // LastStatsValue 时延统计值
 type LastStatsValue struct {
 	Count int     `json:"count"`
-	SumRT int     `json:"sum_rt"`
+	SumRT float64 `json:"sum_rt"`
 	AvgRT float64 `json:"avg_rt"`
 	P95RT int     `json:"p95_rt"`
 }

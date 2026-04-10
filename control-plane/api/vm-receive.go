@@ -2,7 +2,6 @@ package api
 
 import (
 	model "control-plane/receive-info"
-	"control-plane/storage"
 	"control-plane/util"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
@@ -16,7 +15,7 @@ import (
 // ReportHandler 接收VM上报数据的Handler
 // 职责：解析上报请求、校验参数、调用存储层、返回统一响应
 type VmReceiveAPIHandler struct {
-	storage    storage.Storage // 注入文件存储实现（依赖倒置，解耦具体存储）
+	storage    util.Storage // 注入文件存储实现（依赖倒置，解耦具体存储）
 	logger     *slog.Logger
 	activityVM *util.SafeMap
 }
@@ -24,7 +23,7 @@ type VmReceiveAPIHandler struct {
 // NewReportHandler 初始化ReportHandler
 // 参数：存储层实现实例
 // 返回：初始化后的ReportHandler指针
-func NewVmReceiveAPIHandler(s storage.Storage, l *slog.Logger) *VmReceiveAPIHandler {
+func NewVmReceiveAPIHandler(s util.Storage, l *slog.Logger) *VmReceiveAPIHandler {
 	return &VmReceiveAPIHandler{storage: s, logger: l, activityVM: util.NewSafeMap()}
 }
 
@@ -134,7 +133,7 @@ func (h *VmReceiveAPIHandler) PostVMReceive(c *gin.Context) {
 }
 
 // NewRouter 初始化路由（无修改）
-func InitVmReceiveAPIRouter(router *gin.Engine, s *storage.FileStorage, logger *slog.Logger) *gin.Engine {
+func InitVmReceiveAPIRouter(router *gin.Engine, s *util.FileStorage, logger *slog.Logger) *gin.Engine {
 
 	r := router
 	// 上报接口

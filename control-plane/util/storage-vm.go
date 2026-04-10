@@ -1,4 +1,4 @@
-package storage
+package util
 
 import (
 	model "control-plane/receive-info"
@@ -30,7 +30,7 @@ type Storage interface {
 
 // -------------------------- 文件存储实现（全量重写） --------------------------
 type FileStorage struct {
-	storageDir     string        // 存储根目录
+	StorageDir     string        // 存储根目录
 	mu             sync.RWMutex  // 读写锁保证并发安全
 	cleanupTicker  *time.Ticker  // 定时清理过期文件的Ticker
 	expireDuration time.Duration // 文件过期时长（默认5分钟）
@@ -50,7 +50,7 @@ func NewFileStorage(storageDir string, expireMinutes int, pre string, l *slog.Lo
 	}
 
 	fs := &FileStorage{
-		storageDir:     storageDir,
+		StorageDir:     storageDir,
 		expireDuration: expireDur,
 		cleanupTicker:  time.NewTicker(1 * time.Minute), // 每分钟清理一次
 		l:              l,
@@ -76,7 +76,7 @@ func (fs *FileStorage) Put(report *model.VMReport, pre string) (string, error) {
 	// 生成唯一文件名（毫秒级时间戳避免冲突）
 	timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
 	fileName := fmt.Sprintf("%s_%s.json", report.VMID, timestamp)
-	filePath := filepath.Join(fs.storageDir, fileName)
+	filePath := filepath.Join(fs.StorageDir, fileName)
 	// 临时文件路径（防止写入失败损坏文件）
 	tmpFilePath := fmt.Sprintf("%s.tmp_%d", filePath, time.Now().UnixNano())
 
@@ -112,7 +112,7 @@ func (fs *FileStorage) Get(vmID, pre string) (*model.VMReport, error) {
 	defer fs.mu.RUnlock()
 
 	// 遍历目录下所有VMID相关的文件
-	files, err := os.ReadDir(fs.storageDir)
+	files, err := os.ReadDir(fs.StorageDir)
 	if err != nil {
 		return nil, fmt.Errorf("读取存储目录失败: %w", err)
 	}
@@ -158,7 +158,7 @@ func (fs *FileStorage) Get(vmID, pre string) (*model.VMReport, error) {
 	}
 
 	// 读取最新文件
-	filePath := filepath.Join(fs.storageDir, latestFile.Name())
+	filePath := filepath.Join(fs.StorageDir, latestFile.Name())
 	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("读取文件失败: %w", err)
@@ -202,7 +202,7 @@ func (fs *FileStorage) cleanupExpiredFiles(pre string) error {
 	fs.mu.RLock()
 	defer fs.mu.RUnlock()
 
-	files, err := os.ReadDir(fs.storageDir)
+	files, err := os.ReadDir(fs.StorageDir)
 	if err != nil {
 		return fmt.Errorf("读取目录失败: %w", err)
 	}
@@ -230,7 +230,7 @@ func (fs *FileStorage) cleanupExpiredFiles(pre string) error {
 
 		// 判断是否过期
 		if fileInfo.ModTime().Before(expireTime) {
-			filePath := filepath.Join(fs.storageDir, file.Name())
+			filePath := filepath.Join(fs.StorageDir, file.Name())
 			if err := os.Remove(filePath); err != nil {
 				fs.l.Error("删除过期文件失败", slog.String("pre", pre),
 					slog.String("filePath", filePath), slog.Any("err", err))
@@ -251,7 +251,7 @@ func (fs *FileStorage) GetAll(logPre string) ([]*model.VMReport, error) {
 	defer fs.mu.RUnlock()
 
 	// 复用你提供的：读取目录下所有文件
-	files, err := os.ReadDir(fs.storageDir)
+	files, err := os.ReadDir(fs.StorageDir)
 	if err != nil {
 		return nil, fmt.Errorf("读取目录失败: %w", err)
 	}
@@ -269,7 +269,7 @@ func (fs *FileStorage) GetAll(logPre string) ([]*model.VMReport, error) {
 		fileName := file.Name()
 
 		// 补充：读取文件内容
-		filePath := filepath.Join(fs.storageDir, fileName)
+		filePath := filepath.Join(fs.StorageDir, fileName)
 		data, err := os.ReadFile(filePath)
 		if err != nil {
 			fs.l.Warn("读取文件内容失败，跳过该文件", slog.String("pre", logPre),

@@ -1,4 +1,4 @@
-package storage
+package info_agg
 
 import (
 	"control-plane/receive-info"
@@ -10,6 +10,10 @@ import (
 	"log/slog"
 	"math"
 	"time"
+)
+
+const (
+	expireTime = 1 //小文件加速更看重performance 所以参考的周期更短
 )
 
 // 链路拥塞信息
@@ -29,8 +33,8 @@ type NetworkTelemetry struct {
 	LinksCongestion  map[string]LinkCongestionInfo `json:"links_congestion"` // 节点到其他节点的链路拥塞信息
 }
 
-func CalcClusterWeightedAvg(fs *FileStorage, interval time.Duration,
-	etcdClient *clientv3.Client, queue *util.FixedQueue, logPre string, logger *slog.Logger) {
+func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
+	etcdClient *clientv3.Client, logPre string, logger *slog.Logger) {
 
 	// 1. 内嵌定时器，直接创建
 	ticker := time.NewTicker(interval)
@@ -38,7 +42,7 @@ func CalcClusterWeightedAvg(fs *FileStorage, interval time.Duration,
 
 	// 2. 日志输出启动信息
 	logger.Info("CalcClusterWeightedAvg", slog.String("pre", logPre),
-		slog.Duration("interval", interval), slog.String("storageDir", fs.storageDir))
+		slog.Duration("interval", interval), slog.String("storageDir", fs.StorageDir))
 
 	// 临时链路统计结构体，补充json tag适配JSON解析/序列化
 	type linksCongestion struct {
@@ -146,10 +150,6 @@ func CalcClusterWeightedAvg(fs *FileStorage, interval time.Duration,
 		key := fmt.Sprintf("/routing/middle/%s", ip)
 		//etcd_client.PutKey(etcdClient, key, string(jsonData), logPre, logger)
 		_ = etcd_client.PutKeyWithLease(etcdClient, key, string(jsonData), int64(60*expireTime), pre, logger)
-
-		//放入queue 为自动化扩缩容做准备
-		queue.Push(result)
-		queue.Print(pre)
 
 		logger.Info("定时计算完成", slog.String("pre", pre), slog.String("data", string(jsonData)))
 	}

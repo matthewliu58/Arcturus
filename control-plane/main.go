@@ -4,8 +4,9 @@ import (
 	"bytes"
 	"context"
 	api2 "control-plane/api"
+	"control-plane/info-agg"
+	rece "control-plane/receive-info"
 	"control-plane/routing"
-	"control-plane/storage"
 	"control-plane/sync/etcd_client"
 	"control-plane/sync/etcd_server"
 	"control-plane/util"
@@ -87,7 +88,7 @@ func HandleRoutingWatchEvent(
 		slog.String("value", val),
 	)
 
-	var tel storage.NetworkTelemetry
+	var tel info_agg.NetworkTelemetry
 	if len(val) > 0 {
 		if err := json.Unmarshal([]byte(val), &tel); err != nil {
 			logger.Warn("解析节点JSON失败，跳过",
@@ -102,15 +103,58 @@ func HandleRoutingWatchEvent(
 	switch eventType {
 	case "CREATE", "UPDATE":
 		r.AddNode(&tel, logPre)
-		r.DumpGraph(logPre)
+		//r.DumpGraph(logPre)
 
 	case "DELETE":
 		r.RemoveNode(tel.PublicIP, logPre)
-		r.DumpGraph(logPre)
+		//r.DumpGraph(logPre)
 
 	default:
 		logger.Warn("[WATCH] UNKNOWN eventType",
 			slog.String("pre", logPre),
+			slog.String("eventType", eventType),
+			slog.String("key", key),
+		)
+	}
+}
+
+func HandleLastWatchEvent(
+	globalStats *info_agg.GlobalStats,
+	eventType string,
+	key string,
+	val string,
+	logger *slog.Logger,
+) {
+	pre := util.GenerateRandomLetters(5)
+
+	logger.Info("[LAST WATCH] event",
+		slog.String("pre", pre),
+		slog.String("eventType", eventType),
+		slog.String("key", key),
+	)
+
+	var lastStats rece.LastStats
+	if len(val) > 0 {
+		if err := json.Unmarshal([]byte(val), &lastStats); err != nil {
+			logger.Warn("解析 LastStats JSON 失败，跳过",
+				slog.String("pre", pre),
+				slog.String("key", key),
+				slog.Any("error", err),
+			)
+			return
+		}
+	}
+
+	switch eventType {
+	case "CREATE", "UPDATE":
+		globalStats.AddOrUpdateNode(&lastStats)
+
+	case "DELETE":
+		globalStats.DelNode(lastStats.IP)
+
+	default:
+		logger.Warn("[LAST WATCH] UNKNOWN eventType",
+			slog.String("pre", pre),
 			slog.String("eventType", eventType),
 			slog.String("key", key),
 		)
@@ -215,14 +259,14 @@ func main() {
 	} else {
 		logger.Info("获取全量前缀信息成功", slog.String("pre", logPre), slog.Any("nodeMap", nodeMap))
 		for k, nodeJson := range nodeMap {
-			var tel storage.NetworkTelemetry
+			var tel info_agg.NetworkTelemetry
 			if err := json.Unmarshal([]byte(nodeJson), &tel); err != nil {
 				logger.Warn("解析节点JSON失败，跳过", slog.String("pre", logPre),
 					slog.String("ip", k), slog.Any("err", err))
 				continue
 			}
 			r.AddNode(&tel, logPre)
-			r.DumpGraph(logPre)
+			//r.DumpGraph(logPre)
 		}
 	}
 
@@ -230,6 +274,29 @@ func main() {
 	etcd_client.WatchPrefix(cli, "/routing/middle/",
 		func(eventType, key, val string, logger *slog.Logger) {
 			HandleRoutingWatchEvent(r, eventType, key, val, logger)
+		}, logger)
+
+	// 初始化 GlobalStats 并监听 /routing/last/ 前缀
+	globalStats := info_agg.NewGlobalStats()
+	lastMap, err := etcd_client.GetPrefixAll(cli, "/routing/last/", logPre, logger)
+	if err != nil {
+		logger.Warn("获取全量 last 统计信息失败", slog.String("pre", logPre), slog.Any("err", err))
+	} else {
+		logger.Info("获取全量 last 统计信息成功", slog.String("pre", logPre), slog.Any("lastMap", lastMap))
+		for _, lastJson := range lastMap {
+			var lastStats rece.LastStats
+			if err := json.Unmarshal([]byte(lastJson), &lastStats); err != nil {
+				continue
+			}
+			globalStats.AddOrUpdateNode(&lastStats)
+		}
+	}
+	// 启动聚合 worker
+	globalStats.StartAggregateWorker(logger)
+	// 监听 /routing/last/ 前缀
+	etcd_client.WatchPrefix(cli, "/routing/last/",
+		func(eventType, key, val string, logger *slog.Logger) {
+			HandleLastWatchEvent(globalStats, eventType, key, val, logger)
 		}, logger)
 
 	//启动virtual queue逻辑
@@ -240,9 +307,8 @@ func main() {
 		slog.String("pre", logPre),
 		slog.String("storageDir", storageDir),
 	)
-	s, _ := storage.NewFileStorage(storageDir, 0, logPre, logger)
-	queue := util.NewFixedQueue(20, logger)
-	go storage.CalcClusterWeightedAvg(s, 30*time.Second, cli, queue, logPre, logger)
+	s, _ := util.NewFileStorage(storageDir, 0, logPre, logger)
+	go info_agg.CalcClusterWeightedAvg(s, 30*time.Second, cli, logPre, logger)
 
 	// 初始化Gin路由
 	router := gin.Default()

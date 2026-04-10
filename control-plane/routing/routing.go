@@ -1,7 +1,7 @@
 package routing
 
 import (
-	"control-plane/storage"
+	"control-plane/info-agg"
 	"fmt"
 	"log/slog"
 	"math"
@@ -44,7 +44,7 @@ func (g *GraphManager) Routing(endPoints EndPoints, pre string, logger *slog.Log
 	allNodes := g.GetNodes()
 
 	// 根据大洲过滤 start 和 end 节点 && 展现寻找最优路径
-	var startNodes []*storage.NetworkTelemetry
+	var startNodes []*info_agg.NetworkTelemetry
 
 	// todo 是否要偏向同运营商？
 	for _, node := range allNodes {

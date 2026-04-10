@@ -1,7 +1,7 @@
 package routing
 
 import (
-	"control-plane/storage"
+	"control-plane/info-agg"
 	"log/slog"
 	"math"
 	"strconv"
@@ -36,8 +36,8 @@ func (e *Edge) Weight() float64 {
 
 type GraphManager struct {
 	mu     sync.RWMutex
-	edges  map[string]*Edge                     // key: "source->destination"
-	nodes  map[string]*storage.NetworkTelemetry // storage.NetworkTelemetry
+	edges  map[string]*Edge                      // key: "source->destination"
+	nodes  map[string]*info_agg.NetworkTelemetry // info-agg.NetworkTelemetry
 	logger *slog.Logger
 }
 
@@ -45,12 +45,12 @@ type GraphManager struct {
 func NewGraphManager(logger *slog.Logger) *GraphManager {
 	return &GraphManager{
 		edges:  make(map[string]*Edge),
-		nodes:  make(map[string]*storage.NetworkTelemetry),
+		nodes:  make(map[string]*info_agg.NetworkTelemetry),
 		logger: logger,
 	}
 }
 
-func (g *GraphManager) GetNode(id string) (*storage.NetworkTelemetry, bool) {
+func (g *GraphManager) GetNode(id string) (*info_agg.NetworkTelemetry, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -58,11 +58,11 @@ func (g *GraphManager) GetNode(id string) (*storage.NetworkTelemetry, bool) {
 	return node, ok
 }
 
-func (g *GraphManager) GetNodes() []*storage.NetworkTelemetry {
+func (g *GraphManager) GetNodes() []*info_agg.NetworkTelemetry {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	nodes := make([]*storage.NetworkTelemetry, 0, len(g.nodes))
+	nodes := make([]*info_agg.NetworkTelemetry, 0, len(g.nodes))
 	for _, node := range g.nodes {
 		nodes = append(nodes, node)
 	}
@@ -105,7 +105,7 @@ func (g *GraphManager) GetEdge(edgeID string) *Edge {
 	return nil
 }
 
-func (g *GraphManager) AddNode(node *storage.NetworkTelemetry, logPre string) {
+func (g *GraphManager) AddNode(node *info_agg.NetworkTelemetry, logPre string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 

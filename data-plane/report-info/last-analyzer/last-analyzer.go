@@ -36,7 +36,7 @@ type LastStatsKey struct {
 // LastStatsValue 时延统计值
 type LastStatsValue struct {
 	Count int     `json:"count"`
-	SumRT int     `json:"sum_rt"`
+	SumRT float64 `json:"sum_rt"`
 	AvgRT float64 `json:"avg_rt"`
 	P95RT int     `json:"p95_rt"`
 }
@@ -168,7 +168,7 @@ func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue
 
 		s := agg[key] // 取指针，直接修改原数据
 		s.Count++
-		s.SumRT += r.ConnRT
+		s.SumRT += float64(r.ConnRT)
 		rts[key] = append(rts[key], r.ConnRT)
 	}
 
