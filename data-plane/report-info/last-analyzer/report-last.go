@@ -15,25 +15,18 @@ const (
 	lastReceiveURL = "http://127.0.0.1:7081/api/v1/last/receive"
 )
 
-// LastStats 节点统计信息 —— 外部客户到这个节点的时延统计
 type LastStats struct {
-	// DelayStats 外部客户到本节点的时延统计 map
-	DelayStats map[Key]Stats
-	// IP 节点 IP
-	IP string
-	// ISP 节点 ISP
-	ISP string
-	// Country 国家
-	Continent string
-	Country   string
-	// Province 省份
-	Province string
-	// City 城市
-	City string
+	DelayStats map[LastStatsKey]*LastStatsValue `json:"delay_stats"` // 外部客户到本节点的时延统计 map
+	IP         string                           `json:"ip"`          // 节点 IP
+	ISP        string                           `json:"isp"`         // 节点 ISP
+	Continent  string                           `json:"continent"`   // 节点所在大洲
+	Country    string                           `json:"country"`     // 国家
+	Province   string                           `json:"province"`    // 省份
+	City       string                           `json:"city"`        // 城市
 }
 
 // SendLastStats 上报节点统计信息到 control-plane
-func SendLastStats(delayStats map[Key]Stats, pre string, logger *slog.Logger) error {
+func SendLastStats(delayStats map[LastStatsKey]*LastStatsValue, pre string, logger *slog.Logger) error {
 
 	c := util.Config_.Node
 

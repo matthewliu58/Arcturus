@@ -25,21 +25,20 @@ type Record struct {
 	//Node     string // 当前节点
 }
 
-// 调度统计 KEY —— 省份保留，无 Slot
-type Key struct {
-	Continent string
-	Country   string
-	Province  string
-	City      string
-	ISP       string
-	//Node     string
+type LastStatsKey struct {
+	Continent string `json:"continent"`
+	Country   string `json:"country"`
+	Province  string `json:"province"`
+	City      string `json:"city"`
+	ISP       string `json:"isp"`
 }
 
-type Stats struct {
-	Count int
-	SumRT int
-	AvgRT float64
-	P95RT int
+// LastStatsValue 时延统计值
+type LastStatsValue struct {
+	Count int     `json:"count"`
+	SumRT int     `json:"sum_rt"`
+	AvgRT float64 `json:"avg_rt"`
+	P95RT int     `json:"p95_rt"`
 }
 
 var (
@@ -137,7 +136,7 @@ func tailFile(path string, pre string, logger *slog.Logger) {
 	}
 }
 
-func calculate(pre string, logger *slog.Logger) map[Key]Stats {
+func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue {
 	now := time.Now()
 	mu.Lock()
 	defer mu.Unlock()
@@ -150,20 +149,24 @@ func calculate(pre string, logger *slog.Logger) map[Key]Stats {
 	}
 	records = valid
 
-	// 聚合维度：国家 + 省份 + ISP + 节点
-	agg := make(map[Key]Stats)
-	rts := make(map[Key][]int)
+	agg := make(map[LastStatsKey]*LastStatsValue) // 改成存指针！
+	rts := make(map[LastStatsKey][]int)
 
 	for _, r := range valid {
-		key := Key{
+		key := LastStatsKey{
 			Continent: util.GetContinentByCountry(r.Country),
 			Country:   r.Country,
 			Province:  r.Province,
 			City:      r.City,
 			ISP:       r.ISP,
-			//Node:     r.Node,
 		}
-		s := agg[key]
+
+		// 不存在就初始化
+		if agg[key] == nil {
+			agg[key] = &LastStatsValue{}
+		}
+
+		s := agg[key] // 取指针，直接修改原数据
 		s.Count++
 		s.SumRT += r.ConnRT
 		rts[key] = append(rts[key], r.ConnRT)
@@ -171,13 +174,20 @@ func calculate(pre string, logger *slog.Logger) map[Key]Stats {
 
 	// 计算平均 & P95
 	for k, s := range agg {
+		// 平均
 		s.AvgRT = float64(s.SumRT) / float64(s.Count)
-		sort.Ints(rts[k])
-		p95Idx := int(float64(len(rts)) * 0.95)
-		if p95Idx >= len(rts) {
-			p95Idx = len(rts) - 1
+
+		// P95 正确计算
+		rtList := rts[k]
+		if len(rtList) == 0 {
+			continue
 		}
-		s.P95RT = rts[k][p95Idx]
+		sort.Ints(rtList)
+		p95Idx := int(float64(len(rtList)) * 0.95)
+		if p95Idx >= len(rtList) {
+			p95Idx = len(rtList) - 1
+		}
+		s.P95RT = rtList[p95Idx]
 	}
 
 	logger.Info("调度统计完成", slog.String("pre", pre), slog.Int("有效记录数", len(valid)))
