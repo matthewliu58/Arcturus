@@ -9,20 +9,6 @@ import (
 	"log/slog"
 )
 
-type EndPoint struct {
-	IP        string `json:"ip"`
-	Port      int    `json:"port"`
-	Provider  string `json:"provider"`
-	Continent string `json:"continent"`
-	Country   string `json:"country"`
-	City      string `json:"city"`
-}
-
-type EndPoints struct {
-	Source EndPoint `json:"source"`
-	Dest   EndPoint `json:"dest"`
-}
-
 const (
 	Shortest       = "shortest"
 	CarouselGreedy = "carousel_greed"
@@ -52,7 +38,7 @@ func InitMiddleInterface(g *graph.GraphManager, algorithm string, pre string, lo
 	}
 }
 
-func MiddleRouting(g *graph.GraphManager, endPoints EndPoints, algorithm, pre string, logger *slog.Logger) routing.RoutingInfo {
+func MiddleRouting(g *graph.GraphManager, endPoints routing.EndPoints, algorithm, pre string, logger *slog.Logger) routing.RoutingInfo {
 
 	logger.Info("MiddleRouting", slog.String("pre", pre), slog.Any("endPoints", endPoints))
 
@@ -71,17 +57,17 @@ func MiddleRouting(g *graph.GraphManager, endPoints EndPoints, algorithm, pre st
 }
 
 type ComputingLastInterface interface {
-	Computing(start, end, pre string, logger *slog.Logger) ([]routing.PathInfo, error)
+	Computing(endPoints routing.EndPoints, pre string, logger *slog.Logger) ([]routing.PathInfo, error)
 }
 
 type RoutingLastInterface struct {
-	Operate ComputingMiddleInterface
+	Operate ComputingLastInterface
 }
 
 func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats,
 	algorithm string, pre string, logger *slog.Logger) RoutingLastInterface {
 	switch algorithm {
-	case Shortest:
+	case Lyapunov:
 		nodes := g.GetNodes()
 		edgeAgg := a.GetAggMap()
 		nodeLocation := a.GetNodeLocation()
@@ -92,13 +78,13 @@ func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats,
 	}
 }
 
-func LastRouting(g *graph.GraphManager, a *agg.GlobalStats, endPoints EndPoints, algorithm,
+func LastRouting(g *graph.GraphManager, a *agg.GlobalStats, endPoints routing.EndPoints, algorithm,
 	pre string, logger *slog.Logger) routing.RoutingInfo {
 
 	logger.Info("LastRouting", slog.String("pre", pre), slog.Any("endPoints", endPoints))
 
 	solver := InitLastInterface(g, a, algorithm, pre, logger)
-	paths, err := solver.Operate.Computing(endPoints.Source.IP, endPoints.Dest.IP, pre, logger)
+	paths, err := solver.Operate.Computing(endPoints, pre, logger)
 	if err != nil {
 		logger.Warn("No routing", slog.String("pre", pre), slog.Any("err", err))
 		return routing.RoutingInfo{}

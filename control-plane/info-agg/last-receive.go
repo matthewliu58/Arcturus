@@ -10,15 +10,15 @@ import (
 
 type GlobalStats struct {
 	mu           sync.RWMutex
-	nodeLasts    map[string]*rece.LastStats // key: nodeIP
-	edgeAggs     map[string]*rece.LastStatsVal
+	nodeLast     map[string]*rece.LastStats // key: nodeIP
+	edgeAgg      map[string]*rece.LastStatsVal
 	nodeLocation map[string][]string //key continent; val ips
 }
 
 func NewGlobalStats() *GlobalStats {
 	return &GlobalStats{
-		nodeLasts:    make(map[string]*rece.LastStats),
-		edgeAggs:     make(map[string]*rece.LastStatsVal),
+		nodeLast:     make(map[string]*rece.LastStats),
+		edgeAgg:      make(map[string]*rece.LastStatsVal),
 		nodeLocation: make(map[string][]string),
 	}
 }
@@ -29,7 +29,7 @@ func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 		return
 	}
 	g.mu.Lock()
-	g.nodeLasts[node.IP] = node
+	g.nodeLast[node.IP] = node
 	g.AddNodeLocation(node.IP, node.Continent)
 	g.mu.Unlock()
 }
@@ -37,7 +37,7 @@ func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 // DelNode 删除下线节点
 func (g *GlobalStats) DelNode(nodeIP string) {
 	g.mu.Lock()
-	delete(g.nodeLasts, nodeIP)
+	delete(g.nodeLast, nodeIP)
 	g.DelNodeLocation(nodeIP)
 	g.mu.Unlock()
 }
@@ -86,8 +86,8 @@ func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsVal {
 	defer g.mu.RUnlock()
 
 	// 复制一份返回，避免外部修改内部数据
-	result := make(map[string]*rece.LastStatsVal, len(g.edgeAggs))
-	for k, v := range g.edgeAggs {
+	result := make(map[string]*rece.LastStatsVal, len(g.edgeAgg))
+	for k, v := range g.edgeAgg {
 		// 复制值对象，防止外部篡改
 		valCopy := *v
 		result[k] = &valCopy
@@ -101,7 +101,7 @@ func (g *GlobalStats) GetAggValue(key string) *rece.LastStatsVal {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	val, ok := g.edgeAggs[key]
+	val, ok := g.edgeAgg[key]
 	if !ok {
 		return &rece.LastStatsVal{} // 不存在返回空值，不崩溃
 	}
@@ -125,27 +125,27 @@ func (g *GlobalStats) StartAggregateWorker(logger *slog.Logger) {
 // 重新计算所有地理维度聚合
 func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	g.mu.RLock()
-	nodeList := make([]*rece.LastStats, 0, len(g.nodeLasts))
-	for _, n := range g.nodeLasts {
+	nodeList := make([]*rece.LastStats, 0, len(g.nodeLast))
+	for _, n := range g.nodeLast {
 		nodeList = append(nodeList, n)
 	}
 	g.mu.RUnlock()
 
-	newAggs := make(map[string]*rece.LastStatsVal)
+	newAgg := make(map[string]*rece.LastStatsVal)
 
 	for _, node := range nodeList {
 		for userKey, val := range node.DelayStats {
 
-			g.merge(newAggs, userKey.City, node.IP, val)
-			g.merge(newAggs, userKey.City, node.City, val)
-			g.merge(newAggs, userKey.Country, node.Country, val)
-			g.merge(newAggs, userKey.Continent, node.Continent, val)
+			g.merge(newAgg, userKey.City, node.IP, val)
+			g.merge(newAgg, userKey.City, node.City, val)
+			g.merge(newAgg, userKey.Country, node.Country, val)
+			g.merge(newAgg, userKey.Continent, node.Continent, val)
 		}
 	}
-	logger.Info("rebuildAggregate", slog.String("pre", pre), slog.Any("newAggs", newAggs))
+	logger.Info("rebuildAggregate", slog.String("pre", pre), slog.Any("newAgg", newAgg))
 
 	g.mu.Lock()
-	g.edgeAggs = newAggs
+	g.edgeAgg = newAgg
 	g.mu.Unlock()
 }
 

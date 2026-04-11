@@ -8,28 +8,15 @@ import (
 // VMReport 数据平面上报给控制平面的核心结构体（全量字段）
 type VMReport struct {
 	// 基础标识（必选）
-	VMID        string    `json:"vm_id"`        // VM唯一标识（UUID/主机名+MAC，全局唯一）
-	CollectTime time.Time `json:"collect_time"` // 采集时间（UTC时区，格式：2025-12-20T10:00:00Z）
-	ReportID    string    `json:"report_id"`    // 单条上报记录ID（UUID，数据平面生成/控制平面补全）
-
-	// CPU信息（必选）
-	CPU CPUInfo `json:"cpu"`
-
-	// 内存信息（必选）
-	Memory MemoryInfo `json:"memory"`
-
-	// 磁盘信息（可选，默认采集根分区/系统盘）
-	Disk DiskInfo `json:"disk,omitempty"`
-
-	// 网络信息（必选，外网IP为核心字段）
-	Network NetworkInfo `json:"network"`
-
-	// 系统基础信息（可选）
-	OS OSInfo `json:"os,omitempty"`
-
-	// 进程信息（可选）
-	Process ProcessInfo `json:"process,omitempty"`
-
+	VMID            string               `json:"vm_id"`             // VM唯一标识（UUID/主机名+MAC，全局唯一）
+	CollectTime     time.Time            `json:"collect_time"`      // 采集时间（UTC时区，格式：2025-12-20T10:00:00Z）
+	ReportID        string               `json:"report_id"`         // 单条上报记录ID（UUID，数据平面生成/控制平面补全）
+	CPU             CPUInfo              `json:"cpu"`               // CPU信息（必选）
+	Memory          MemoryInfo           `json:"memory"`            // 内存信息（必选）
+	Disk            DiskInfo             `json:"disk,omitempty"`    // 磁盘信息（可选，默认采集根分区/系统盘）
+	Network         NetworkInfo          `json:"network"`           // 网络信息（必选，外网IP为核心字段）
+	OS              OSInfo               `json:"os,omitempty"`      // 系统基础信息（可选）
+	Process         ProcessInfo          `json:"process,omitempty"` // 进程信息（可选）
 	LinksCongestion []LinkCongestionInfo `json:"links_congestion"`
 }
 
@@ -38,7 +25,7 @@ type CPUInfo struct {
 	PhysicalCore int     `json:"physical_core"`        // 物理核数（如2，无则填0）
 	LogicalCore  int     `json:"logical_core"`         // 逻辑核数（如4，无则填0）
 	Usage        float64 `json:"usage"`                // CPU整体使用率（%，保留1位小数，如25.3）
-	Load1Min     float64 `json:"load_1min,omitempty"` // 1分钟系统负载均值（可选，如0.8）
+	Load1Min     float64 `json:"load_1min,omitempty"`  // 1分钟系统负载均值（可选，如0.8）
 	LoadDelta    float64 `json:"load_delta,omitempty"` // 负载绝对变化量
 }
 

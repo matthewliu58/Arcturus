@@ -3,8 +3,9 @@ package api
 import (
 	agg "control-plane/info-agg"
 	model "control-plane/receive-info"
-	"control-plane/routing"
+	routing1 "control-plane/routing"
 	"control-plane/routing/graph"
+	routing2 "control-plane/routing/routing"
 	"control-plane/util"
 	"github.com/gin-gonic/gin"
 	"log/slog"
@@ -44,7 +45,7 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 	}
 
 	// 解析 body JSON
-	var req routing.EndPoints
+	var req routing2.EndPoints
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Code = 400
 		resp.Msg = "请求体解析失败：" + err.Error()
@@ -63,7 +64,7 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 	req.Dest.IP = ip.IP + ":" + strconv.Itoa(ip.Port)
 	h.Logger.Info("GetMiddleRoute request", slog.String("pre", pre), slog.Any("endPoints", req))
 
-	paths := routing.MiddleRouting(h.GraphManager, req, routing.Shortest, pre, h.Logger)
+	paths := routing1.MiddleRouting(h.GraphManager, req, routing1.Shortest, pre, h.Logger)
 	h.Logger.Info("GetMiddleRoute response", slog.String("pre", pre), slog.Any("routing", paths))
 
 	resp.Code = 200
@@ -87,7 +88,7 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 	}
 
 	// 解析 body JSON
-	var req routing.EndPoints
+	var req routing2.EndPoints
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Code = 400
 		resp.Msg = "请求体解析失败：" + err.Error()
@@ -97,7 +98,7 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 	}
 	h.Logger.Info("GetLastRoute request", slog.String("pre", pre), slog.Any("endPoints", req))
 
-	paths := routing.LastRouting(h.GraphManager, h.GlobalStats, req, routing.Lyapunov, pre, h.Logger)
+	paths := routing1.LastRouting(h.GraphManager, h.GlobalStats, req, routing1.Lyapunov, pre, h.Logger)
 	h.Logger.Info("GetLastRoute response", slog.String("pre", pre), slog.Any("routing", paths))
 
 	resp.Code = 200
