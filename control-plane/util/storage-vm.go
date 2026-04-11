@@ -24,6 +24,8 @@ type Storage interface {
 	Get(vmID, pre string) (*model.VMReport, error)
 	// 新增：获取所有存储的VM上报数据
 	GetAll(logPre string) ([]*model.VMReport, error)
+	// 新增：获取最近写入的N个文件
+	GetRecent(n int, logPre string) ([]*model.VMReport, error)
 	// 新增：关闭存储（停止清理协程）
 	Close()
 }
@@ -290,5 +292,72 @@ func (fs *FileStorage) GetAll(logPre string) ([]*model.VMReport, error) {
 	}
 
 	// 直接返回原始VMReport切片
+	return reports, nil
+}
+
+// GetRecent 获取最近写入的 N 个文件，按修改时间倒序
+func (fs *FileStorage) GetRecent(n int, logPre string) ([]*model.VMReport, error) {
+	fs.mu.RLock()
+	defer fs.mu.RUnlock()
+
+	files, err := os.ReadDir(fs.StorageDir)
+	if err != nil {
+		return nil, fmt.Errorf("读取目录失败: %w", err)
+	}
+
+	// 收集文件信息及修改时间
+	type fileInfo struct {
+		entry    os.DirEntry
+		fileName string
+		modTime  time.Time
+	}
+	var fileInfos []fileInfo
+	for _, file := range files {
+		if file.IsDir() {
+			continue
+		}
+		info, err := file.Info()
+		if err != nil {
+			continue
+		}
+		fileInfos = append(fileInfos, fileInfo{
+			entry:    file,
+			fileName: file.Name(),
+			modTime:  info.ModTime(),
+		})
+	}
+
+	// 按修改时间倒序排序
+	for i := 0; i < len(fileInfos)-1; i++ {
+		for j := i + 1; j < len(fileInfos); j++ {
+			if fileInfos[j].modTime.After(fileInfos[i].modTime) {
+				fileInfos[i], fileInfos[j] = fileInfos[j], fileInfos[i]
+			}
+		}
+	}
+
+	// 取前 N 个
+	if n > len(fileInfos) {
+		n = len(fileInfos)
+	}
+
+	var reports []*model.VMReport
+	for i := 0; i < n; i++ {
+		filePath := filepath.Join(fs.StorageDir, fileInfos[i].fileName)
+		data, err := os.ReadFile(filePath)
+		if err != nil {
+			fs.l.Warn("读取文件失败，跳过", slog.String("pre", logPre),
+				slog.String("file", fileInfos[i].fileName))
+			continue
+		}
+		var report model.VMReport
+		if err := json.Unmarshal(data, &report); err != nil {
+			fs.l.Warn("JSON反序列化失败，跳过", slog.String("pre", logPre),
+				slog.String("file", fileInfos[i].fileName))
+			continue
+		}
+		reports = append(reports, &report)
+	}
+
 	return reports, nil
 }

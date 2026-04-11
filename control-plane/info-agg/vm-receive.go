@@ -1,7 +1,7 @@
 package info_agg
 
 import (
-	"control-plane/receive-info"
+	rece "control-plane/receive-info"
 	"control-plane/sync/etcd_client"
 	"control-plane/util"
 	"encoding/json"
@@ -18,19 +18,20 @@ const (
 
 // 链路拥塞信息
 type LinkCongestionInfo struct {
-	TargetIP       string                 `json:"target_ip"` // 目标节点 IP
-	Target         receive_info.ProbeTask `json:"target"`
-	PacketLoss     float64                `json:"packet_loss"`     // 丢包率，百分比
-	AverageLatency float64                `json:"average_latency"` // 平均延迟（毫秒）
+	TargetIP       string         `json:"target_ip"` // 目标节点 IP
+	Target         rece.ProbeTask `json:"target"`
+	PacketLoss     float64        `json:"packet_loss"`     // 丢包率，百分比
+	AverageLatency float64        `json:"average_latency"` // 平均延迟（毫秒）
 }
 
 // 节点遥测数据
 type NetworkTelemetry struct {
-	PublicIP         string                        `json:"public_ip"` // 节点公网 IP
-	Provider         string                        `json:"provider"`  // 云厂商
-	Continent        string                        `json:"continent"` // 所属大洲
-	CpuPressureScore float64                       `json:"cpu_pressure"`
-	LinksCongestion  map[string]LinkCongestionInfo `json:"links_congestion"` // 节点到其他节点的链路拥塞信息
+	PublicIP        string                        `json:"public_ip"` // 节点公网 IP
+	Provider        string                        `json:"provider"`  // 云厂商
+	Continent       string                        `json:"continent"` // 所属大洲
+	CpuPressure     float64                       `json:"cpu_pressure"`
+	Cpu             rece.CPUInfo                  `json:"cpu"`
+	LinksCongestion map[string]LinkCongestionInfo `json:"links_congestion"` // 节点到其他节点的链路拥塞信息
 }
 
 func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
@@ -46,10 +47,10 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 
 	// 临时链路统计结构体，补充json tag适配JSON解析/序列化
 	type linksCongestion struct {
-		TargetIP         string                 `json:"target_ip"`
-		PacketLosses     []float64              `json:"packet_losses"`     // 若为单个丢包率则用packet_loss，数组用packet_losses
-		AverageLatencies []float64              `json:"average_latencies"` // 单个延迟则用average_latency，数组用average_latencies
-		ProbeTask        receive_info.ProbeTask `json:"probe_task"`
+		TargetIP         string         `json:"target_ip"`
+		PacketLosses     []float64      `json:"packet_losses"`     // 若为单个丢包率则用packet_loss，数组用packet_losses
+		AverageLatencies []float64      `json:"average_latencies"` // 单个延迟则用average_latency，数组用average_latencies
+		ProbeTask        rece.ProbeTask `json:"probe_task"`
 	}
 
 	// 3. 无限循环，定时触发核心逻辑（复用GetAll()）
@@ -59,19 +60,22 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 
 		pre := util.GenerateRandomLetters(5)
 
-		// 4. 复用GetAll()获取所有VMReport数据
-		allReports, err := fs.GetAll(pre)
+		// 获取所有VMReport数据
+		allReports, err := fs.GetRecent(1, pre)
 		if err != nil {
-			logger.Warn("调用GetAll失败，跳过本次计算", slog.String("pre", pre), slog.Any("err", err))
+			logger.Warn("GetRecent report info failed", slog.String("pre", pre), slog.Any("err", err))
 			continue
 		}
 
 		// 5. 初始化统计变量，执行核心计算
 		var cupPressureAvg float64
+		var cpuAvg rece.CPUInfo
 		totalLinksCong := make(map[string]linksCongestion)
 
 		// 6. 遍历GetAll()结果，累加统计值
 		for _, report := range allReports {
+
+			cpuAvg = report.CPU
 
 			//cpu pressure
 			cupPressureAvg += CalculateCPUPressureScore(report.CPU)
@@ -127,11 +131,12 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 
 		// 填充结果结构体
 		result := NetworkTelemetry{
-			CpuPressureScore: cupPressureAvg,
-			LinksCongestion:  linkMap,
-			PublicIP:         util.Config_.Node.IP.Public,
-			Provider:         util.Config_.Node.Provider,
-			Continent:        util.Config_.Node.Continent,
+			CpuPressure:     cupPressureAvg,
+			LinksCongestion: linkMap,
+			Cpu:             cpuAvg,
+			PublicIP:        util.Config_.Node.IP.Public,
+			Provider:        util.Config_.Node.Provider,
+			Continent:       util.Config_.Node.Continent,
 		}
 
 		// 4. 结构体序列化为JSON（Etcd存储二进制数据，JSON格式易解析）
@@ -155,7 +160,7 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 	}
 }
 
-func CalculateCPUPressureScore(cpu receive_info.CPUInfo) float64 {
+func CalculateCPUPressureScore(cpu rece.CPUInfo) float64 {
 	logical := float64(cpu.LogicalCore)
 	if logical <= 0 {
 		logical = 1

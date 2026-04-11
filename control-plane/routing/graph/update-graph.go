@@ -9,17 +9,12 @@ import (
 )
 
 type Edge struct {
-	SourceIp string `json:"source_ip"` // A 节点名/ID
-	//SourceProvider         string       `json:"source_provider"`       // A 节点云服务商 // 节点额外信息
-	//SourceContinent        string       `json:"source_continent"`      // A 节点大区
-	DestinationIp string `json:"destination_ip"` // B 节点名/ID
-	//DestinationProvider    string       `json:"destination_provider"`  // B 节点云服务商
-	//DestinationContinent   string       `json:"destination_continent"` // B 节点大区
-	EdgeWeight             float64      `json:"edge_weight"` // 综合权重，用于最短路径计算
-	DestinationCpuPressure float64      `json:"destination_cpu_pressure"`
-	Latency                float64      `json:"latency"` // A->B 时延
-	Loss                   float64      `json:"loss"`    //A->B 丢包率
-	mu                     sync.RWMutex // 保护动态字段（BandwidthPrice, Latency, CacheUsageRatio, EdgeWeight）
+	mu            sync.RWMutex
+	SourceIp      string  `json:"source_ip"`      // A 节点名/ID
+	DestinationIp string  `json:"destination_ip"` // B 节点名/ID
+	EdgeWeight    float64 `json:"edge_weight"`    // 综合权重，用于最短路径计算
+	Latency       float64 `json:"latency"`        // A->B 时延
+	Loss          float64 `json:"loss"`           //A->B 丢包率
 }
 
 func (e *Edge) UpdateWeight(newWeight float64) {
@@ -134,7 +129,7 @@ func (g *GraphManager) AddNode(node *agg.NetworkTelemetry, logPre string) {
 				g.logger.Warn("out node not found", slog.String("pre", logPre), slog.String("out", out))
 				continue
 			}
-			r = EdgeRisk(outNode.CpuPressureScore, v.PacketLoss, v.AverageLatency, logPre, g.logger)
+			r = EdgeRisk(outNode.CpuPressure, v.PacketLoss, v.AverageLatency, logPre, g.logger)
 		}
 
 		oldLine, ok := g.edges[newLine]
@@ -144,9 +139,7 @@ func (g *GraphManager) AddNode(node *agg.NetworkTelemetry, logPre string) {
 			g.edges[newLine] = &Edge{
 				SourceIp:      in,
 				DestinationIp: out,
-				//SourceProvider:  node.Provider,
-				//SourceContinent: node.Continent,
-				EdgeWeight: r,
+				EdgeWeight:    r,
 			}
 		}
 	}
