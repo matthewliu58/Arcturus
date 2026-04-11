@@ -25,7 +25,7 @@ type LinkCongestionInfo struct {
 }
 
 // 节点遥测数据
-type NetworkTelemetry struct {
+type Telemetry struct {
 	PublicIP        string                        `json:"public_ip"` // 节点公网 IP
 	Provider        string                        `json:"provider"`  // 云厂商
 	Continent       string                        `json:"continent"` // 所属大洲
@@ -130,7 +130,7 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 		}
 
 		// 填充结果结构体
-		result := NetworkTelemetry{
+		result := Telemetry{
 			CpuPressure:     cupPressureAvg,
 			LinksCongestion: linkMap,
 			Cpu:             cpuAvg,

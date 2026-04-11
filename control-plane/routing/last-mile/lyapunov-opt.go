@@ -9,12 +9,12 @@ import (
 
 type LyapunovSolver struct {
 	edgeAggs     map[string]*rece.LastStatsValue
-	nodes        map[string]*agg.NetworkTelemetry
+	nodes        map[string]*agg.Telemetry
 	nodeLocation map[string][]string
 }
 
 // 创建实例
-func NewLyapunovSolver(edgeAggs map[string]*rece.LastStatsValue, nodes map[string]*agg.NetworkTelemetry,
+func NewLyapunovSolver(edgeAggs map[string]*rece.LastStatsValue, nodes map[string]*agg.Telemetry,
 	nodeLocation map[string][]string) *LyapunovSolver {
 	return &LyapunovSolver{
 		edgeAggs:     edgeAggs,

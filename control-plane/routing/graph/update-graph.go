@@ -31,8 +31,8 @@ func (e *Edge) Weight() float64 {
 
 type GraphManager struct {
 	mu     sync.RWMutex
-	edges  map[string]*Edge                 // key: "source->destination"
-	nodes  map[string]*agg.NetworkTelemetry // info-agg.NetworkTelemetry
+	edges  map[string]*Edge          // key: "source->destination"
+	nodes  map[string]*agg.Telemetry // info-agg.NetworkTelemetry
 	logger *slog.Logger
 }
 
@@ -40,12 +40,12 @@ type GraphManager struct {
 func NewGraphManager(logger *slog.Logger) *GraphManager {
 	return &GraphManager{
 		edges:  make(map[string]*Edge),
-		nodes:  make(map[string]*agg.NetworkTelemetry),
+		nodes:  make(map[string]*agg.Telemetry),
 		logger: logger,
 	}
 }
 
-func (g *GraphManager) GetNode(id string) (*agg.NetworkTelemetry, bool) {
+func (g *GraphManager) GetNode(id string) (*agg.Telemetry, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -53,11 +53,11 @@ func (g *GraphManager) GetNode(id string) (*agg.NetworkTelemetry, bool) {
 	return node, ok
 }
 
-func (g *GraphManager) GetNodes() map[string]*agg.NetworkTelemetry {
+func (g *GraphManager) GetNodes() map[string]*agg.Telemetry {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	nodes := make(map[string]*agg.NetworkTelemetry)
+	nodes := make(map[string]*agg.Telemetry)
 	for k, node := range g.nodes {
 		nodes[k] = node
 	}
@@ -100,7 +100,7 @@ func (g *GraphManager) GetEdge(edgeID string) *Edge {
 	return nil
 }
 
-func (g *GraphManager) AddNode(node *agg.NetworkTelemetry, logPre string) {
+func (g *GraphManager) AddNode(node *agg.Telemetry, logPre string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 

@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	api2 "control-plane/api"
-	"control-plane/info-agg"
+	agg "control-plane/info-agg"
 	rece "control-plane/receive-info"
 	"control-plane/routing/graph"
-	"control-plane/sync/etcd_client"
-	"control-plane/sync/etcd_server"
+	_client "control-plane/sync/etcd_client"
+	_server "control-plane/sync/etcd_server"
 	"control-plane/util"
 	"encoding/json"
 	"log/slog"
@@ -88,7 +88,7 @@ func HandleRoutingWatchEvent(
 		slog.String("value", val),
 	)
 
-	var tel info_agg.NetworkTelemetry
+	var tel agg.Telemetry
 	if len(val) > 0 {
 		if err := json.Unmarshal([]byte(val), &tel); err != nil {
 			logger.Warn("解析节点JSON失败，跳过",
@@ -119,7 +119,7 @@ func HandleRoutingWatchEvent(
 }
 
 func HandleLastWatchEvent(
-	globalStats *info_agg.GlobalStats,
+	globalStats *agg.GlobalStats,
 	eventType string,
 	key string,
 	val string,
@@ -211,7 +211,7 @@ func main() {
 		// 清理残留数据
 		_ = os.RemoveAll(uu.DataDir)
 		// 启动 etcd server
-		etcdServer, err := etcd_server.StartEmbeddedEtcd(uu.ServerList, uu.ServerIP,
+		etcdServer, err := _server.StartEmbeddedEtcd(uu.ServerList, uu.ServerIP,
 			uu.DataDir, nodeName, logPre, logger)
 		if err != nil {
 			logger.Error("Failed to start embedded etcd",
@@ -231,7 +231,7 @@ func main() {
 			slog.Any("serverIps", serverIps))
 		return
 	}
-	cli, err := etcd_client.NewEtcdClient(serverIps, 5*time.Second)
+	cli, err := _client.NewEtcdClient(serverIps, 5*time.Second)
 	if err != nil {
 		logger.Error("Failed to connect to etcd", slog.String("pre", logPre), slog.Any("err", err))
 		return
@@ -252,13 +252,13 @@ func main() {
 
 	//获取全量前缀信息 然后初始化 routing map
 	r := graph.NewGraphManager(logger)
-	nodeMap, err := etcd_client.GetPrefixAll(cli, "/routing/middle/", logPre, logger)
+	nodeMap, err := _client.GetPrefixAll(cli, "/routing/middle/", logPre, logger)
 	if err != nil {
 		logger.Warn("获取全量前缀信息失败", slog.String("pre", logPre), slog.Any("err", err))
 	} else {
 		logger.Info("获取全量前缀信息成功", slog.String("pre", logPre), slog.Any("nodeMap", nodeMap))
 		for k, nodeJson := range nodeMap {
-			var tel info_agg.NetworkTelemetry
+			var tel agg.Telemetry
 			if err := json.Unmarshal([]byte(nodeJson), &tel); err != nil {
 				logger.Warn("解析节点JSON失败，跳过", slog.String("pre", logPre),
 					slog.String("ip", k), slog.Any("err", err))
@@ -270,14 +270,14 @@ func main() {
 	}
 
 	// 监听 /routing/ 前缀 更新routing map
-	etcd_client.WatchPrefix(cli, "/routing/middle/",
+	_client.WatchPrefix(cli, "/routing/middle/",
 		func(eventType, key, val string, logger *slog.Logger) {
 			HandleRoutingWatchEvent(r, eventType, key, val, logger)
 		}, logger)
 
 	// 初始化 GlobalStats 并监听 /routing/last/ 前缀
-	globalStats := info_agg.NewGlobalStats()
-	lastMap, err := etcd_client.GetPrefixAll(cli, "/routing/last/", logPre, logger)
+	globalStats := agg.NewGlobalStats()
+	lastMap, err := _client.GetPrefixAll(cli, "/routing/last/", logPre, logger)
 	if err != nil {
 		logger.Warn("获取全量 last 统计信息失败", slog.String("pre", logPre), slog.Any("err", err))
 	} else {
@@ -293,7 +293,7 @@ func main() {
 	// 启动聚合 worker
 	globalStats.StartAggregateWorker(logger)
 	// 监听 /routing/last/ 前缀
-	etcd_client.WatchPrefix(cli, "/routing/last/",
+	_client.WatchPrefix(cli, "/routing/last/",
 		func(eventType, key, val string, logger *slog.Logger) {
 			HandleLastWatchEvent(globalStats, eventType, key, val, logger)
 		}, logger)
@@ -307,7 +307,7 @@ func main() {
 		slog.String("storageDir", storageDir),
 	)
 	s, _ := util.NewFileStorage(storageDir, 0, logPre, logger)
-	go info_agg.CalcClusterWeightedAvg(s, 10*time.Second, cli, logPre, logger)
+	go agg.CalcClusterWeightedAvg(s, 10*time.Second, cli, logPre, logger)
 
 	// 初始化Gin路由
 	router := gin.Default()
