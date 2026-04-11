@@ -1,7 +1,7 @@
 package api
 
 import (
-	info_agg "control-plane/info-agg"
+	agg "control-plane/info-agg"
 	model "control-plane/receive-info"
 	"control-plane/routing"
 	"control-plane/routing/graph"
@@ -15,12 +15,12 @@ import (
 // UserRoutingAPIHandler 提供获取用户传输文件的路由信息
 type UserRoutingAPIHandler struct {
 	GraphManager *graph.GraphManager
-	GlobalStats  *info_agg.GlobalStats
+	GlobalStats  *agg.GlobalStats
 	Logger       *slog.Logger
 }
 
 // NewUserRoutingAPIHandler 初始化
-func NewUserRoutingAPIHandler(gm *graph.GraphManager, gs *info_agg.GlobalStats, logger *slog.Logger) *UserRoutingAPIHandler {
+func NewUserRoutingAPIHandler(gm *graph.GraphManager, gs *agg.GlobalStats, logger *slog.Logger) *UserRoutingAPIHandler {
 	return &UserRoutingAPIHandler{
 		GraphManager: gm,
 		GlobalStats:  gs,
@@ -107,7 +107,7 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 }
 
 // InitUserRoutingRouter 初始化用户路由 API 路由
-func InitUserRoutingRouter(router *gin.Engine, gm *graph.GraphManager, gs *info_agg.GlobalStats, logger *slog.Logger) *gin.Engine {
+func InitUserRoutingRouter(router *gin.Engine, gm *graph.GraphManager, gs *agg.GlobalStats, logger *slog.Logger) *gin.Engine {
 	apiV1 := router.Group("/api/v1")
 	{
 		routingGroup := apiV1.Group("/routing")

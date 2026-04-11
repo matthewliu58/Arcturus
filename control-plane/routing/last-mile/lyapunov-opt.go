@@ -8,17 +8,17 @@ import (
 )
 
 type LyapunovSolver struct {
-	edgeAggs     map[string]*rece.LastStatsValue
-	nodes        map[string]*agg.Telemetry
+	edgeAgg      map[string]*rece.LastStatsVal
+	nodeTel      map[string]*agg.Telemetry
 	nodeLocation map[string][]string
 }
 
 // 创建实例
-func NewLyapunovSolver(edgeAggs map[string]*rece.LastStatsValue, nodes map[string]*agg.Telemetry,
-	nodeLocation map[string][]string) *LyapunovSolver {
+func NewLyapunovSolver(edgeAgg map[string]*rece.LastStatsVal,
+	nodeTel map[string]*agg.Telemetry, nodeLocation map[string][]string) *LyapunovSolver {
 	return &LyapunovSolver{
-		edgeAggs:     edgeAggs,
-		nodes:        nodes,
+		edgeAgg:      edgeAgg,
+		nodeTel:      nodeTel,
 		nodeLocation: nodeLocation,
 	}
 }

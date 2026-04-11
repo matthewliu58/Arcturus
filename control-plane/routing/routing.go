@@ -83,9 +83,9 @@ func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats,
 	switch algorithm {
 	case Shortest:
 		nodes := g.GetNodes()
-		edgeAggs := a.GetAggMap()
+		edgeAgg := a.GetAggMap()
 		nodeLocation := a.GetNodeLocation()
-		solver := last.NewLyapunovSolver(edgeAggs, nodes, nodeLocation)
+		solver := last.NewLyapunovSolver(edgeAgg, nodes, nodeLocation)
 		return RoutingLastInterface{Operate: solver}
 	default:
 		return RoutingLastInterface{}

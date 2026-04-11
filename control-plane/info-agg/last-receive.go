@@ -10,15 +10,15 @@ import (
 
 type GlobalStats struct {
 	mu           sync.RWMutex
-	nodes        map[string]*rece.LastStats // key: nodeIP
-	edgeAggs     map[string]*rece.LastStatsValue
+	nodeLasts    map[string]*rece.LastStats // key: nodeIP
+	edgeAggs     map[string]*rece.LastStatsVal
 	nodeLocation map[string][]string //key continent; val ips
 }
 
 func NewGlobalStats() *GlobalStats {
 	return &GlobalStats{
-		nodes:        make(map[string]*rece.LastStats),
-		edgeAggs:     make(map[string]*rece.LastStatsValue),
+		nodeLasts:    make(map[string]*rece.LastStats),
+		edgeAggs:     make(map[string]*rece.LastStatsVal),
 		nodeLocation: make(map[string][]string),
 	}
 }
@@ -29,7 +29,7 @@ func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 		return
 	}
 	g.mu.Lock()
-	g.nodes[node.IP] = node
+	g.nodeLasts[node.IP] = node
 	g.AddNodeLocation(node.IP, node.Continent)
 	g.mu.Unlock()
 }
@@ -37,7 +37,7 @@ func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 // DelNode 删除下线节点
 func (g *GlobalStats) DelNode(nodeIP string) {
 	g.mu.Lock()
-	delete(g.nodes, nodeIP)
+	delete(g.nodeLasts, nodeIP)
 	g.DelNodeLocation(nodeIP)
 	g.mu.Unlock()
 }
@@ -81,12 +81,12 @@ func (g *GlobalStats) GetNodeLocation() map[string][]string {
 
 // GetAggMap 获取当前所有聚合好的数据（线程安全）
 // 返回：map[聚合key]统计值
-func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsValue {
+func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsVal {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
 	// 复制一份返回，避免外部修改内部数据
-	result := make(map[string]*rece.LastStatsValue, len(g.edgeAggs))
+	result := make(map[string]*rece.LastStatsVal, len(g.edgeAggs))
 	for k, v := range g.edgeAggs {
 		// 复制值对象，防止外部篡改
 		valCopy := *v
@@ -97,13 +97,13 @@ func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsValue {
 }
 
 // GetAggValue 根据 key 获取单个聚合结果
-func (g *GlobalStats) GetAggValue(key string) *rece.LastStatsValue {
+func (g *GlobalStats) GetAggValue(key string) *rece.LastStatsVal {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
 	val, ok := g.edgeAggs[key]
 	if !ok {
-		return &rece.LastStatsValue{} // 不存在返回空值，不崩溃
+		return &rece.LastStatsVal{} // 不存在返回空值，不崩溃
 	}
 
 	// 返回副本，安全
@@ -125,13 +125,13 @@ func (g *GlobalStats) StartAggregateWorker(logger *slog.Logger) {
 // 重新计算所有地理维度聚合
 func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	g.mu.RLock()
-	nodeList := make([]*rece.LastStats, 0, len(g.nodes))
-	for _, n := range g.nodes {
+	nodeList := make([]*rece.LastStats, 0, len(g.nodeLasts))
+	for _, n := range g.nodeLasts {
 		nodeList = append(nodeList, n)
 	}
 	g.mu.RUnlock()
 
-	newAggs := make(map[string]*rece.LastStatsValue)
+	newAggs := make(map[string]*rece.LastStatsVal)
 
 	for _, node := range nodeList {
 		for userKey, val := range node.DelayStats {
@@ -150,12 +150,12 @@ func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 }
 
 // 合并统计：多个节点数据累加，计算平均
-func (g *GlobalStats) merge(newAgg map[string]*rece.LastStatsValue, userKey, serverKey string, val *rece.LastStatsValue) {
+func (g *GlobalStats) merge(newAgg map[string]*rece.LastStatsVal, userKey, serverKey string, val *rece.LastStatsVal) {
 
 	key := userKey + "-" + serverKey
 
 	if newAgg[key] == nil {
-		newAgg[key] = &rece.LastStatsValue{}
+		newAgg[key] = &rece.LastStatsVal{}
 	}
 	t := newAgg[key]
 

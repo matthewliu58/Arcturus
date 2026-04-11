@@ -29,6 +29,8 @@ type Telemetry struct {
 	PublicIP        string                        `json:"public_ip"` // 节点公网 IP
 	Provider        string                        `json:"provider"`  // 云厂商
 	Continent       string                        `json:"continent"` // 所属大洲
+	Country         string                        `json:"country"`   // 国家
+	City            string                        `json:"city"`      // 城市
 	CpuPressure     float64                       `json:"cpu_pressure"`
 	Cpu             rece.CPUInfo                  `json:"cpu"`
 	LinksCongestion map[string]LinkCongestionInfo `json:"links_congestion"` // 节点到其他节点的链路拥塞信息
@@ -137,6 +139,8 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 			PublicIP:        util.Config_.Node.IP.Public,
 			Provider:        util.Config_.Node.Provider,
 			Continent:       util.Config_.Node.Continent,
+			Country:         util.Config_.Node.Country,
+			City:            util.Config_.Node.City,
 		}
 
 		// 4. 结构体序列化为JSON（Etcd存储二进制数据，JSON格式易解析）

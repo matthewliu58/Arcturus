@@ -128,7 +128,7 @@ type LastStatsKey struct {
 }
 
 // LastStatsValue 时延统计值
-type LastStatsValue struct {
+type LastStatsVal struct {
 	Count int     `json:"count"`
 	SumRT float64 `json:"sum_rt"`
 	AvgRT float64 `json:"avg_rt"`
@@ -137,11 +137,11 @@ type LastStatsValue struct {
 
 // LastStats 节点统计信息 —— 外部客户到这个节点的时延统计
 type LastStats struct {
-	DelayStats map[LastStatsKey]*LastStatsValue `json:"delay_stats"` // 外部客户到本节点的时延统计 map
-	IP         string                           `json:"ip"`          // 节点 IP
-	ISP        string                           `json:"isp"`         // 节点 ISP
-	Continent  string                           `json:"continent"`   // 节点所在大洲
-	Country    string                           `json:"country"`     // 国家
-	Province   string                           `json:"province"`    // 省份
-	City       string                           `json:"city"`        // 城市
+	DelayStats map[LastStatsKey]*LastStatsVal `json:"delay_stats"` // 外部客户到本节点的时延统计 map
+	IP         string                         `json:"ip"`          // 节点 IP
+	ISP        string                         `json:"isp"`         // 节点 ISP
+	Continent  string                         `json:"continent"`   // 节点所在大洲
+	Country    string                         `json:"country"`     // 国家
+	Province   string                         `json:"province"`    // 省份
+	City       string                         `json:"city"`        // 城市
 }
