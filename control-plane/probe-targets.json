@@ -1,6 +1,7 @@
 [
   {
-    "provider": "vultr",
+    "server_port":7771,
+    "provider": "Vultr",
     "ip": "76.223.1.167",
     "port": 80,
     "region": "Asia",

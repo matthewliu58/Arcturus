@@ -44,8 +44,8 @@ type LastStatsValue struct {
 var (
 	mu           sync.RWMutex
 	records      []Record
-	window       = 30 * time.Second
-	tickInterval = 30 * time.Second
+	window       = 15 * time.Second
+	tickInterval = 10 * time.Second
 )
 
 func AccessAnalyzer(pre string, logger *slog.Logger) {

@@ -22,7 +22,7 @@ const (
 )
 
 var (
-	CloudStorageMap map[string]CloudStorageTarget
+	CloudStorageMap map[int]CloudStorageTarget
 )
 
 // NodeProbeAPIHandler 提供获取节点探测任务的接口
@@ -32,14 +32,15 @@ type NodeProbeAPIHandler struct {
 }
 
 type CloudStorageTarget struct {
-	Provider string `json:"provider"`
-	IP       string `json:"ip"`
-	Port     int    `json:"port"`
-	Region   string `json:"region"`
-	ID       string `json:"id"`
+	ServerPort int    `json:"server_port"`
+	Provider   string `json:"provider"`
+	IP         string `json:"ip"`
+	Port       int    `json:"port"`
+	Region     string `json:"region"`
+	ID         string `json:"id"`
 }
 
-func LoadCloudStorageTargetsFromExeDir() (map[string]CloudStorageTarget, error) {
+func LoadCloudStorageTargetsFromExeDir() (map[int]CloudStorageTarget, error) {
 	// 1. 获取可执行文件路径
 	exePath, err := os.Executable()
 	if err != nil {
@@ -64,9 +65,9 @@ func LoadCloudStorageTargetsFromExeDir() (map[string]CloudStorageTarget, error) 
 		return nil, fmt.Errorf("unmarshal cloud storage targets failed: %w", err)
 	}
 
-	cloudStorageMap := make(map[string]CloudStorageTarget)
+	cloudStorageMap := make(map[int]CloudStorageTarget)
 	for _, v := range targets {
-		cloudStorageMap[v.IP] = v
+		cloudStorageMap[v.ServerPort] = v
 	}
 
 	return cloudStorageMap, nil

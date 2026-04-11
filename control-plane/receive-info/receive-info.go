@@ -34,10 +34,11 @@ type VMReport struct {
 
 // CPUInfo CPU维度信息
 type CPUInfo struct {
-	PhysicalCore int     `json:"physical_core"`       // 物理核数（如2，无则填0）
-	LogicalCore  int     `json:"logical_core"`        // 逻辑核数（如4，无则填0）
-	Usage        float64 `json:"usage"`               // CPU整体使用率（%，保留1位小数，如25.3）
-	Load1Min     float64 `json:"load_1min,omitempty"` // 1分钟系统负载均值（可选，如0.8）
+	PhysicalCore int     `json:"physical_core"`        // 物理核数（如2，无则填0）
+	LogicalCore  int     `json:"logical_core"`         // 逻辑核数（如4，无则填0）
+	Usage        float64 `json:"usage"`                // CPU整体使用率（%，保留1位小数，如25.3）
+	Load1Min     float64 `json:"load_1min,omitempty"`  // 1分钟系统负载均值（可选，如0.8）
+	LoadDelta    float64 `json:"load_delta,omitempty"` // 负载绝对变化量
 }
 
 // MemoryInfo 内存维度信息（单位：字节）

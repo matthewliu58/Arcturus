@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"time"
 
 	"log/slog"
@@ -56,7 +57,7 @@ func main() {
 		MaxAge:     30,    // 最多保留 30 天
 		Compress:   false, // 不需要压缩
 	}
-	
+
 	accessLog := &lumberjack.Logger{
 		Filename:   filepath.Join(logDir, "access.log"),
 		MaxSize:    128,
@@ -83,8 +84,10 @@ func main() {
 		return
 	}
 
-	// 启动 TCP server
-	go StartTCPServer(pre, accessLogger, logger)
+	for _, port := range config.Config_.ListenPorts {
+		// 启动 TCP server
+		go StartTCPServer(port, pre, accessLogger, logger)
+	}
 
 	// Gin
 	router := gin.Default()
@@ -100,14 +103,15 @@ func main() {
 }
 
 // StartTCPServer 不改动
-func StartTCPServer(pre string, access, logger *slog.Logger) error {
-	listener, err := net.Listen("tcp", ":7096")
+func StartTCPServer(port int, pre string, access, logger *slog.Logger) error {
+	port_ := ":" + strconv.Itoa(port)
+	listener, err := net.Listen("tcp", port_)
 	if err != nil {
 		return err
 	}
 	defer listener.Close()
 
-	logger.Info("tcp server started success", slog.String("pre", pre), slog.String("port", "7096"))
+	logger.Info("tcp server started success", slog.String("pre", pre), slog.String("port", port_))
 
 	for {
 		conn, err := listener.Accept()

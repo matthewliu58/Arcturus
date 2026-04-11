@@ -2,14 +2,26 @@ package middle_collector
 
 import (
 	model "data-plane/report-info"
+	"sync"
 	"time"
 
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/load"
 )
 
-// collectCPU 采集CPU信息
+const (
+	cpuWindow = 60 * time.Second // 有效采样窗口，必须大于采样周期(10s)
+)
+
+var (
+	lastCPU     model.CPUInfo
+	lastCPUTime time.Time
+	cpuMu       sync.Mutex
+)
+
 // collectCPU 采集CPU信息（兼容gopsutil v3+跨平台）
+// 两次调用之间计算 UsageDelta 和 LoadDelta 绝对变化量
+// 只有在有效采样窗口（10秒）内才计算变化量，避免冷启动冲击
 func collectCPU() (model.CPUInfo, error) {
 	// 1. 获取CPU核心数
 	cpuCounts, err := cpu.Counts(true) // 逻辑核数
@@ -38,10 +50,27 @@ func collectCPU() (model.CPUInfo, error) {
 		load1Min = loadStat.Load1
 	}
 
-	return model.CPUInfo{
+	cpuMu.Lock()
+	defer cpuMu.Unlock()
+
+	now := time.Now()
+	info := model.CPUInfo{
 		PhysicalCore: physicalCounts,
 		LogicalCore:  cpuCounts,
 		Usage:        usage,
-		Load1Min:     load1Min, // 1分钟负载均值
-	}, nil
+		Load1Min:     load1Min,
+	}
+
+	// 计算负载绝对变化量（捕捉瞬时冲击），仅在有效窗口内
+	elapsed := now.Sub(lastCPUTime)
+	if lastCPUTime.IsZero() || elapsed > cpuWindow {
+		// 冷启动或超时，不计算变化量，Delta 保持 0
+	} else {
+		info.LoadDelta = load1Min - lastCPU.Load1Min
+	}
+
+	lastCPU = info
+	lastCPUTime = now
+
+	return info, nil
 }

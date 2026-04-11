@@ -1,7 +1,7 @@
 package graph
 
 import (
-	"control-plane/info-agg"
+	agg "control-plane/info-agg"
 	"log/slog"
 	"math"
 	"strconv"
@@ -9,13 +9,13 @@ import (
 )
 
 type Edge struct {
-	SourceIp               string       `json:"source_ip"`             // A 节点名/ID
-	SourceProvider         string       `json:"source_provider"`       // A 节点云服务商 // 节点额外信息
-	SourceContinent        string       `json:"source_continent"`      // A 节点大区
-	DestinationIp          string       `json:"destination_ip"`        // B 节点名/ID
-	DestinationProvider    string       `json:"destination_provider"`  // B 节点云服务商
-	DestinationContinent   string       `json:"destination_continent"` // B 节点大区
-	EdgeWeight             float64      `json:"edge_weight"`           // 综合权重，用于最短路径计算
+	SourceIp string `json:"source_ip"` // A 节点名/ID
+	//SourceProvider         string       `json:"source_provider"`       // A 节点云服务商 // 节点额外信息
+	//SourceContinent        string       `json:"source_continent"`      // A 节点大区
+	DestinationIp string `json:"destination_ip"` // B 节点名/ID
+	//DestinationProvider    string       `json:"destination_provider"`  // B 节点云服务商
+	//DestinationContinent   string       `json:"destination_continent"` // B 节点大区
+	EdgeWeight             float64      `json:"edge_weight"` // 综合权重，用于最短路径计算
 	DestinationCpuPressure float64      `json:"destination_cpu_pressure"`
 	Latency                float64      `json:"latency"` // A->B 时延
 	Loss                   float64      `json:"loss"`    //A->B 丢包率
@@ -36,8 +36,8 @@ func (e *Edge) Weight() float64 {
 
 type GraphManager struct {
 	mu     sync.RWMutex
-	edges  map[string]*Edge                      // key: "source->destination"
-	nodes  map[string]*info_agg.NetworkTelemetry // info-agg.NetworkTelemetry
+	edges  map[string]*Edge                 // key: "source->destination"
+	nodes  map[string]*agg.NetworkTelemetry // info-agg.NetworkTelemetry
 	logger *slog.Logger
 }
 
@@ -45,12 +45,12 @@ type GraphManager struct {
 func NewGraphManager(logger *slog.Logger) *GraphManager {
 	return &GraphManager{
 		edges:  make(map[string]*Edge),
-		nodes:  make(map[string]*info_agg.NetworkTelemetry),
+		nodes:  make(map[string]*agg.NetworkTelemetry),
 		logger: logger,
 	}
 }
 
-func (g *GraphManager) GetNode(id string) (*info_agg.NetworkTelemetry, bool) {
+func (g *GraphManager) GetNode(id string) (*agg.NetworkTelemetry, bool) {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
@@ -58,13 +58,13 @@ func (g *GraphManager) GetNode(id string) (*info_agg.NetworkTelemetry, bool) {
 	return node, ok
 }
 
-func (g *GraphManager) GetNodes() []*info_agg.NetworkTelemetry {
+func (g *GraphManager) GetNodes() map[string]*agg.NetworkTelemetry {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	nodes := make([]*info_agg.NetworkTelemetry, 0, len(g.nodes))
-	for _, node := range g.nodes {
-		nodes = append(nodes, node)
+	nodes := make(map[string]*agg.NetworkTelemetry)
+	for k, node := range g.nodes {
+		nodes[k] = node
 	}
 
 	return nodes
@@ -105,7 +105,7 @@ func (g *GraphManager) GetEdge(edgeID string) *Edge {
 	return nil
 }
 
-func (g *GraphManager) AddNode(node *info_agg.NetworkTelemetry, logPre string) {
+func (g *GraphManager) AddNode(node *agg.NetworkTelemetry, logPre string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
@@ -142,11 +142,11 @@ func (g *GraphManager) AddNode(node *info_agg.NetworkTelemetry, logPre string) {
 			oldLine.EdgeWeight = r
 		} else {
 			g.edges[newLine] = &Edge{
-				SourceIp:        in,
-				DestinationIp:   out,
-				SourceProvider:  node.Provider,
-				SourceContinent: node.Continent,
-				EdgeWeight:      r,
+				SourceIp:      in,
+				DestinationIp: out,
+				//SourceProvider:  node.Provider,
+				//SourceContinent: node.Continent,
+				EdgeWeight: r,
 			}
 		}
 	}

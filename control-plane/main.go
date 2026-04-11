@@ -247,8 +247,7 @@ func main() {
 			slog.Any("err", err.Error()))
 		return
 	} else {
-		logger.Info("Load cloud storage targets success", slog.String("pre", logPre),
-			slog.Any("targets", api2.CloudStorageMap))
+		logger.Info("Load cloud storage targets success", slog.String("pre", logPre), slog.Any("targets", api2.CloudStorageMap))
 	}
 
 	//获取全量前缀信息 然后初始化 routing map
@@ -308,7 +307,7 @@ func main() {
 		slog.String("storageDir", storageDir),
 	)
 	s, _ := util.NewFileStorage(storageDir, 0, logPre, logger)
-	go info_agg.CalcClusterWeightedAvg(s, 30*time.Second, cli, logPre, logger)
+	go info_agg.CalcClusterWeightedAvg(s, 10*time.Second, cli, logPre, logger)
 
 	// 初始化Gin路由
 	router := gin.Default()
@@ -319,7 +318,7 @@ func main() {
 	//下发探测任务 & 探测结果从 vm上报接口走
 	api2.InitNodeProbeRouter(router, cli, logger)
 	//client获取 bulk transfer path信息的接口
-	api2.InitUserRoutingRouter(router, r, logger)
+	api2.InitUserRoutingRouter(router, r, globalStats, logger)
 	//接收节点时延统计信息
 	api2.InitLastReceiveAPIRouter(router, cli, logger)
 
