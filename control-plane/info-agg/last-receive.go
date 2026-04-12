@@ -136,10 +136,15 @@ func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	for _, node := range nodeList {
 		for userKey, val := range node.DelayStats {
 
-			g.merge(newAgg, userKey.City, node.IP, val)
-			g.merge(newAgg, userKey.City, node.City, val)
-			g.merge(newAgg, userKey.Country, node.Country, val)
-			g.merge(newAgg, userKey.Continent, node.Continent, val)
+			if userKey.Continent == node.Continent {
+				g.merge(newAgg, userKey.City, node.IP, val)
+				g.merge(newAgg, userKey.City, node.City, val)
+				g.merge(newAgg, userKey.Country, node.Country, val)
+				g.merge(newAgg, userKey.Continent, node.Continent, val)
+			} else {
+				g.merge(newAgg, userKey.Continent, "general", val)
+			}
+
 		}
 	}
 	logger.Info("rebuildAggregate", slog.String("pre", pre), slog.Any("newAgg", newAgg))

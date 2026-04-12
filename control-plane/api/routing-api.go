@@ -2,7 +2,7 @@ package api
 
 import (
 	agg "control-plane/info-agg"
-	model "control-plane/receive-info"
+	rece "control-plane/receive-info"
 	routing1 "control-plane/routing"
 	"control-plane/routing/graph"
 	routing2 "control-plane/routing/routing"
@@ -38,7 +38,7 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 	}
 	h.Logger.Info("GetMiddleRoute", slog.String("pre", pre))
 
-	resp := model.ApiResponse{
+	resp := rece.ApiResponse{
 		Code: 500,
 		Msg:  "服务端内部错误",
 		Data: nil,
@@ -81,7 +81,7 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 	}
 	h.Logger.Info("GetLastRoute", slog.String("pre", pre))
 
-	resp := model.ApiResponse{
+	resp := rece.ApiResponse{
 		Code: 500,
 		Msg:  "服务端内部错误",
 		Data: nil,
@@ -108,7 +108,8 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 }
 
 // InitUserRoutingRouter 初始化用户路由 API 路由
-func InitUserRoutingRouter(router *gin.Engine, gm *graph.GraphManager, gs *agg.GlobalStats, logger *slog.Logger) *gin.Engine {
+func InitUserRoutingRouter(router *gin.Engine, gm *graph.GraphManager,
+	gs *agg.GlobalStats, logger *slog.Logger) *gin.Engine {
 	apiV1 := router.Group("/api/v1")
 	{
 		routingGroup := apiV1.Group("/routing")
