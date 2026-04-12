@@ -6,6 +6,7 @@ import (
 	"control-plane/routing/routing"
 	"log/slog"
 	"sort"
+	"sync"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 
 	// CPU 负载阶梯（%）
 	CPULow  = 40.0
-	CPUMid  = 60.0 // 你要的安全线
+	CPUMid  = 60.0 // 安全线
 	CPUHigh = 80.0
 
 	// 均衡系数
@@ -108,7 +109,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 		}
 
 		// 计算最终 score
-		cpuPenalty := computeCPUPenalty(Qk)
+		cpuPenalty := computeCPUPenalty(nodeIp, Qk)
 		delayPenalty := computeDelayPenalty(delay)
 		score := w*cpuPenalty + defaultV*delayPenalty
 
@@ -193,7 +194,41 @@ func computeDelayPenalty(rt float64) float64 {
 	return 2.0 + (rt-LatencyWarning)/50.0
 }
 
-func computeCPUPenalty(Qk float64) float64 {
+var (
+	penaltyMap = make(map[string]bool)
+	penaltyMu  sync.RWMutex
+)
+
+// 内部自动加入 60% → 45% 滞回防震荡
+func computeCPUPenalty(nodeIP string, Qk float64) float64 {
+	const (
+		CPU_HIGH = 60.0 // 你原来的安全线
+		CPU_LOW  = 45.0 // 恢复线
+	)
+
+	// 1. 查当前是否在惩罚中
+	penaltyMu.RLock()
+	inPenalty := penaltyMap[nodeIP]
+	penaltyMu.RUnlock()
+
+	if Qk >= CPU_HIGH {
+		// 超过高线 → 标记惩罚
+		penaltyMu.Lock()
+		penaltyMap[nodeIP] = true
+		penaltyMu.Unlock()
+	} else if inPenalty && Qk > CPU_LOW {
+		// 惩罚中 && 没回落到45以下 → 继续惩罚
+	} else if inPenalty && Qk <= CPU_LOW {
+		// 回落到安全线 → 解除惩罚
+		penaltyMu.Lock()
+		penaltyMap[nodeIP] = false
+		penaltyMu.Unlock()
+	}
+
+	if inPenalty && Qk < CPU_HIGH {
+		Qk = CPU_HIGH
+	}
+
 	if Qk <= CPULow {
 		return 0.5
 	}
