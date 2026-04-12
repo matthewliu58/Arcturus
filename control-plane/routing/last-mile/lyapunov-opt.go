@@ -5,6 +5,7 @@ import (
 	rece "control-plane/receive-info"
 	"control-plane/routing/routing"
 	"log/slog"
+	"math"
 	"sort"
 	"sync"
 )
@@ -109,7 +110,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 		}
 
 		// 计算最终 score
-		cpuPenalty := computeCPUPenalty(nodeIp, Qk)
+		cpuPenalty := computeCPUPenalty(nodeIp, Qk+math.Abs(deltaK))
 		delayPenalty := computeDelayPenalty(delay)
 		score := w*cpuPenalty + defaultV*delayPenalty
 

@@ -66,7 +66,7 @@ func collectCPU() (model.CPUInfo, error) {
 	if lastCPUTime.IsZero() || elapsed > cpuWindow {
 		// 冷启动或超时，不计算变化量，Delta 保持 0
 	} else {
-		info.LoadDelta = load1Min - lastCPU.Load1Min
+		info.LoadDelta = usage - lastCPU.Usage
 	}
 
 	lastCPU = info

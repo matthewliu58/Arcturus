@@ -80,7 +80,7 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 			cpuAvg = report.CPU
 
 			//cpu pressure
-			cupPressureAvg += CalculateCPUPressureScore(report.CPU)
+			cupPressureAvg += report.CPU.Usage //CalculateCPUPressureScore(report.CPU)
 
 			for _, v := range report.LinksCongestion {
 				// 1. 不存在则初始化
