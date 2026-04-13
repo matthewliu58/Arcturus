@@ -3,6 +3,7 @@ package aggregator
 import (
 	"container/heap"
 	"context"
+	"data-proxy/config"
 	manager "data-proxy/tunnel-manager"
 	packet "data-proxy/tunnel-packet"
 	"data-proxy/util"
@@ -15,10 +16,8 @@ import (
 
 // 配置常量
 const (
-	DefaultBufferSize   = 5120
-	DefaultBatchTimeout = 10 * time.Millisecond
-	inputChanSize       = 100000
-	workerCount         = 8
+	inputChanSize = 100000
+	workerCount   = 8
 )
 
 // ------------------------------
@@ -95,7 +94,6 @@ type worker struct {
 // 全局 Aggregator
 // ------------------------------
 type Aggregator struct {
-	//BuffSize  int
 	inputChan chan *aggregatorMsg
 	workers   []*worker
 	wg        sync.WaitGroup
@@ -115,7 +113,6 @@ func NewAggregator(pre string, l *slog.Logger) *Aggregator {
 	l.Info("NewAggregator", "pre", pre)
 
 	agg := &Aggregator{
-		//BuffSize:  buffSize,
 		inputChan: make(chan *aggregatorMsg, inputChanSize),
 		workers:   make([]*worker, workerCount),
 	}
@@ -187,8 +184,8 @@ func (a *Aggregator) AddToBatch(
 func (w *worker) handleMsg(msg *aggregatorMsg) {
 	var toSend []*Batch
 
-	buffSize := DefaultBufferSize
-	batchTimeout := DefaultBatchTimeout
+	buffSize := config.Config_.Aggregator.BufferSize
+	batchTimeout := time.Duration(config.Config_.Aggregator.BatchTimeoutMs) * time.Millisecond
 
 	w.mu.Lock()
 

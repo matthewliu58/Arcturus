@@ -1,2 +1,9 @@
 port: "7095"
 listen_ports: [8001, 8002, 8003, 8004, 8005]
+rate_limit:
+  qps: 1000
+  burst: 2000
+  clean_interval: 5
+aggregator:
+  buffer_size: 5120
+  batch_timeout_ms: 10

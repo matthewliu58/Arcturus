@@ -7,7 +7,7 @@ import (
 	"data-proxy/config"
 	"data-proxy/disaggregator"
 	"data-proxy/tcp-server"
-	tunnel_manager "data-proxy/tunnel-manager"
+	manager "data-proxy/tunnel-manager"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
 	"log/slog"
@@ -100,15 +100,15 @@ func main() {
 	// 启动 backsourcer
 	backsourcer.GlobalBackSourcer = backsourcer.NewBackSourcer()
 
-	// 启动限流器（默认配置）
-	tcp_server.InitRateLimiter(tcp_server.DefaultRateLimit)
+	// 启动限流器
+	tcp_server.InitRateLimiter(config.Config_.RateLimit)
 
 	// 启动 tunnel manager
-	tunnel_manager.TunnelMgr = tunnel_manager.NewTunnelManager(pre, logger)
+	manager.TunnelMgr = manager.NewTunnelManager(pre, logger)
 
 	// 启动 quic listener（goroutine 运行，崩溃时通过 channel 通知 main）
 	go func() {
-		quicExit <- tunnel_manager.ListenAndServeQUIC(HandleQUICPacket, pre, logger)
+		quicExit <- manager.ListenAndServeQUIC(HandleQUICPacket, pre, logger)
 	}()
 
 	for _, port := range config.Config_.ListenPorts {
