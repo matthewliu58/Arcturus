@@ -1,6 +1,7 @@
 package util
 
 import (
+	"encoding/binary"
 	"math/rand"
 	"net"
 	"time"
@@ -25,8 +26,8 @@ func HopIPToNet(ipStr string) net.IP {
 	return ip.To4()
 }
 
-//func HopIPToNet(ip uint32) net.IP {
-//	b := make([]byte, 4)
-//	binary.BigEndian.PutUint32(b, ip)
-//	return b
-//}
+func Uint32ToIP(ipUint32 uint32) net.IP {
+	b := make([]byte, 4)
+	binary.BigEndian.PutUint32(b, ipUint32)
+	return net.IPv4(b[0], b[1], b[2], b[3]).To4()
+}

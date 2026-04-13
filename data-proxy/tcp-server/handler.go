@@ -2,10 +2,12 @@ package tcp_server
 
 import (
 	"data-proxy/aggregator"
+	"data-proxy/disaggregator"
 	"data-proxy/util"
 	"io"
 	"log/slog"
 	"net"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -104,14 +106,24 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 	// 3. 走聚合隧道：注册等待 chan 并阻塞
 	userID := util.GenShortReqID(clientIP)
 	nextHop := util.HopIPToNet(pathInfo.Hops[1])
-	routingKey := strings.Join(pathInfo.Hops, ",")
+
+	routingKey := ""
+	port_ := ""
+	for _, h := range pathInfo.Hops {
+		if strings.Contains(h, ":") {
+			h = h[strings.Index(h, ":"):]
+			port_ = h[:strings.Index(h, ":")]
+		}
+		routingKey = routingKey + "," + h
+	}
+	p64, _ := strconv.ParseUint(port_, 10, 16)
 
 	// 注册等待通道：本协程创建的 chan
-	waitCh, cleanup := aggregator.GlobalDisagg.Register(userID)
+	waitCh, cleanup := disaggregator.GlobalDisagg.Register(userID)
 	defer cleanup() // 函数退出自动注销
 
 	// 扔进聚合器
-	aggregator.GlobalAgg.AddToBatch(routingKey, pathInfo, nextHop, userID, data)
+	aggregator.GlobalAggRequest.AddToBatch(routingKey, uint16(p64), pathInfo, nextHop, userID, data)
 
 	// 阻塞等下行回复
 	select {

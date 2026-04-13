@@ -8,6 +8,7 @@ import (
 	"data-proxy/util"
 	"log/slog"
 	"net"
+	"strings"
 	"sync"
 	"time"
 )
@@ -24,6 +25,7 @@ const (
 // ------------------------------
 type aggregatorMsg struct {
 	routingKey  string
+	port        uint16
 	routingInfo util.PathInfo
 	nextHop     net.IP
 	userID      uint32
@@ -99,7 +101,8 @@ type Aggregator struct {
 // ------------------------------
 // 全局单例
 // ------------------------------
-var GlobalAgg *Aggregator
+var GlobalAggRequest *Aggregator
+var GlobalAggResponse *Aggregator
 
 // ------------------------------
 // NewAggregator
@@ -158,6 +161,7 @@ func (a *Aggregator) Start() {
 // ------------------------------
 func (a *Aggregator) AddToBatch(
 	routingKey string,
+	port uint16,
 	routingInfo util.PathInfo,
 	nextHop net.IP,
 	userID uint32,
@@ -165,6 +169,7 @@ func (a *Aggregator) AddToBatch(
 ) {
 	a.inputChan <- &aggregatorMsg{
 		routingKey:  routingKey,
+		port:        port,
 		routingInfo: routingInfo,
 		nextHop:     nextHop,
 		userID:      userID,
@@ -187,7 +192,16 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 			NextHop:    msg.nextHop,
 			pkt:        packet.NewPacket(),
 		}
-		//todo
+
+		for i, h := range msg.routingInfo.Hops {
+			if i == 3 && !strings.Contains(h, ":") {
+				continue
+			}
+			b.pkt.SetHopIP(i, util.HopIPToNet(h))
+		}
+		b.pkt.SetPort(msg.port)
+		b.pkt.SetHopPos(1)
+
 		w.batches[msg.routingKey] = b
 	}
 

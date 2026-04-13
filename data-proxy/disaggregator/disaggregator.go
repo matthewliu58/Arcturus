@@ -1,4 +1,4 @@
-package aggregator
+package disaggregator
 
 import (
 	"log/slog"

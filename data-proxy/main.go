@@ -3,17 +3,18 @@ package main
 import (
 	"context"
 	"data-proxy/aggregator"
+	"data-proxy/backsourcer"
 	"data-proxy/config"
+	"data-proxy/disaggregator"
 	"data-proxy/tcp-server"
 	tunnel_manager "data-proxy/tunnel-manager"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
+	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
-
-	"log/slog"
 )
 
 // QUIC 退出信号
@@ -85,19 +86,26 @@ func main() {
 		return
 	}
 
-	// 启动聚合器
-	aggregator.GlobalAgg = aggregator.NewAggregator(pre, logger)
-	aggregator.GlobalAgg.Start()
+	// 启动正向聚合器
+	aggregator.GlobalAggRequest = aggregator.NewAggregator(pre, logger)
+	aggregator.GlobalAggRequest.Start()
+
+	// 启动反向聚合器
+	aggregator.GlobalAggResponse = aggregator.NewAggregator(pre, logger)
+	aggregator.GlobalAggResponse.Start()
 
 	// 启动反聚合器
-	aggregator.GlobalDisagg = aggregator.NewDisaggregator(pre, logger)
+	disaggregator.GlobalDisagg = disaggregator.NewDisaggregator(pre, logger)
+
+	// 启动 backsourcer
+	backsourcer.GlobalBackSourcer = backsourcer.NewBackSourcer()
 
 	// 启动 tunnel manager
 	tunnel_manager.TunnelMgr = tunnel_manager.NewTunnelManager(pre, logger)
 
 	// 启动 quic listener（goroutine 运行，崩溃时通过 channel 通知 main）
 	go func() {
-		quicExit <- tunnel_manager.ListenAndServeQUIC(nil, pre, logger)
+		quicExit <- tunnel_manager.ListenAndServeQUIC(HandleQUICPacket, pre, logger)
 	}()
 
 	for _, port := range config.Config_.ListenPorts {
