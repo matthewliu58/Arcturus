@@ -1,14 +1,8 @@
 package server
 
 import (
-	"data-proxy/aggregator"
-	"data-proxy/disaggregator"
 	"data-proxy/util"
-	"io"
 	"log/slog"
-	"net"
-	"strconv"
-	"strings"
 	"sync"
 	"time"
 )
@@ -28,103 +22,24 @@ const (
 	proxyTimeout = 5 * time.Second  // 回源 / 等待超时
 )
 
-// handleConnection 不改动
-func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
-	defer func() { _ = conn.Close() }()
+type ServerFuncs interface {
+	StartServerWithMgr(port int, pre string, l *slog.Logger) error
+	StartServerRun(port int, access *slog.Logger, req string, l *slog.Logger)
+	StopServer(port int, req string, l *slog.Logger) error
+	//DirectOriginProxy(conn net.Conn, originAddr string, data []byte, reqID uint32, l *slog.Logger) bool
+}
 
-	clientAddr := conn.RemoteAddr().(*net.TCPAddr)
-	clientIP := clientAddr.IP.String()
+type ServerInterface struct {
+	Operate ServerFuncs
+}
 
-	// 限流检查
-	if globalRL != nil && !globalRL.Allow(port, clientIP) {
-		l.Warn("rate limit exceeded", slog.String("client_ip", clientIP), slog.Int("port", port))
-		return
-	}
+var ServerHandler ServerInterface
 
-	reqID := util.GenShortReqID(clientIP)
-	start := time.Now()
-
-	_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
-	data, err := io.ReadAll(conn)
-	rtMs := float64(time.Since(start).Microseconds()) / 1000
-
-	if err != nil {
-		l.Error("", slog.Any("req_id", reqID), slog.String("client_ip", clientIP), slog.Any("err", err))
-		return
-	}
-
-	a.Info("access", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
-		slog.Float64("conn_rt_ms", rtMs), slog.Int("data_len", len(data)))
-
-	routingMutex.RLock()
-	ri, hasRoute := routingMap[port]
-	routingMutex.RUnlock()
-
-	var routeInfo *util.RoutingInfo
-	if !hasRoute || time.Now().After(ri.deadline) {
-		go func() {
-			//todo get routing from control plane by an goroutine
-			routeInfo = &util.RoutingInfo{} //prot
-
-			// 更新缓存
-			routingMutex.Lock()
-			routingMap[port] = routingInfo{
-				info:     routeInfo,
-				deadline: time.Now().Add(routeTimeout),
-			}
-			routingMutex.Unlock()
-		}()
-	}
-	routeInfo = ri.info
-
-	if len(routeInfo.Routing) == 0 {
-		l.Error("no path in routing info", slog.Any("req_id", reqID))
-		return
-	}
-	pathInfo := routeInfo.Routing[0]
-
-	// 2. hops <= 2：本机直接回源
-	if len(pathInfo.Hops) <= 2 {
-		originAddr := pathInfo.Hops[len(pathInfo.Hops)-1]
-		if ok := ServerHandler.Operate.DirectOriginProxy(conn, originAddr, data, reqID, l); ok {
-			return
-		}
-	}
-
-	// 3. 走聚合隧道：注册等待 chan 并阻塞
-	userID := util.GenShortReqID(clientIP)
-	nextHop := util.HopIPToNet(pathInfo.Hops[1])
-
-	routingKey := ""
-	port_ := ""
-	for _, h := range pathInfo.Hops {
-		if strings.Contains(h, ":") {
-			h = h[strings.Index(h, ":"):]
-			port_ = h[:strings.Index(h, ":")]
-		}
-		routingKey = routingKey + "," + h
-	}
-	p64, _ := strconv.ParseUint(port_, 10, 16)
-
-	// 注册等待通道：本协程创建的 chan
-	waitCh, cleanup := disaggregator.GlobalDisagg.Register(userID)
-	defer cleanup() // 函数退出自动注销
-
-	// 扔进聚合器
-	aggregator.GlobalAggRequest.AddToBatch(false, routingKey, uint16(p64), pathInfo, nextHop, userID, data)
-
-	// 阻塞等下行回复
-	select {
-	case respData, ok := <-waitCh:
-		if !ok {
-			l.Error("wait chan closed", slog.Any("req_id", reqID))
-			return
-		}
-		// 写回客户端
-		_, _ = conn.Write(respData)
-		l.Info("aggregated proxy response sent", slog.Any("req_id", reqID))
-
-	case <-time.After(proxyTimeout):
-		l.Error("wait response timeout", slog.Any("req_id", reqID))
+func InitServerInterface(protocol string, pre string, logger *slog.Logger) ServerInterface {
+	switch protocol {
+	case "tcp":
+		return ServerInterface{Operate: NewTCPServer()}
+	default:
+		return ServerInterface{Operate: nil}
 	}
 }

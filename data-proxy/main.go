@@ -86,7 +86,7 @@ func main() {
 		return
 	}
 
-	protocol := "TCP"
+	protocol := "tcp"
 	// 启动 server
 	server.ServerHandler = server.InitServerInterface(protocol, pre, logger)
 	if server.ServerHandler.Operate == nil {

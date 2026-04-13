@@ -4,7 +4,6 @@ import (
 	"data-proxy/util"
 	"github.com/gin-gonic/gin"
 	"log/slog"
-	"net"
 	"net/http"
 	"strconv"
 	"sync"
@@ -20,7 +19,7 @@ var (
 var (
 	portMap     = make(map[int]bool)
 	portMutex   sync.RWMutex
-	listenerMap = make(map[int]net.Listener)
+	listenerMap = make(map[int]interface{})
 	listenerMu  sync.RWMutex
 )
 
