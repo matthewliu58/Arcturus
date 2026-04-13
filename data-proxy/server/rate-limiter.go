@@ -18,7 +18,7 @@ type IPLimiter struct {
 type PortLimiters struct {
 	limiters map[string]*IPLimiter
 	mu       sync.RWMutex
-	config   config.RateLimitConfig
+	config   config.RateLimit
 	stopCh   chan struct{}
 }
 
@@ -26,13 +26,13 @@ type PortLimiters struct {
 type GlobalRateLimiter struct {
 	portLimiters map[int]*PortLimiters
 	mu           sync.RWMutex
-	config       config.RateLimitConfig
+	config       config.RateLimit
 }
 
 var globalRL *GlobalRateLimiter
 
 // InitRateLimiter 初始化全局限流器
-func InitRateLimiter(cfg config.RateLimitConfig) {
+func InitRateLimiter(cfg config.RateLimit) {
 	globalRL = &GlobalRateLimiter{
 		portLimiters: make(map[int]*PortLimiters),
 		config:       cfg,
@@ -73,7 +73,7 @@ func (g *GlobalRateLimiter) GetLimiter(port int, ip string) *rate.Limiter {
 
 // cleanupLoop 定期清理过期的 limiter
 func (p *PortLimiters) cleanupLoop() {
-	ticker := time.NewTicker(time.Duration(p.config.CleanInt) * time.Minute)
+	ticker := time.NewTicker(time.Duration(p.config.CleanInterval) * time.Minute)
 	defer ticker.Stop()
 
 	for {
@@ -82,7 +82,7 @@ func (p *PortLimiters) cleanupLoop() {
 			p.mu.Lock()
 			now := time.Now()
 			for ip, il := range p.limiters {
-				if now.Sub(il.lastSeen) > time.Duration(p.config.CleanInt)*time.Minute {
+				if now.Sub(il.lastSeen) > time.Duration(p.config.CleanInterval)*time.Minute {
 					delete(p.limiters, ip)
 				}
 			}
