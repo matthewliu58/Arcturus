@@ -1,0 +1,92 @@
+package tunnel_manager
+
+import (
+	"context"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/binary"
+	"encoding/pem"
+	"errors"
+	"io"
+	"log/slog"
+	"math/big"
+	"net"
+
+	"data-proxy/tunnel-packet"
+	"github.com/quic-go/quic-go"
+)
+
+func ListenAndServeQUIC(handler func(remoteAddr string, data []byte), pre string, l *slog.Logger) error {
+	tlsConfig := GenerateTLSConfig()
+	addr := net.JoinHostPort("0.0.0.0", QUIC_PORT)
+
+	ln, err := quic.ListenAddr(addr, tlsConfig, &quic.Config{})
+	if err != nil {
+		return err
+	}
+	l.Info("QUIC 监听已启动", slog.String("pre", pre), slog.String("addr", addr))
+
+	for {
+		conn, err := ln.Accept(context.Background())
+		if err != nil {
+			return err
+		}
+		go handleConn(conn, handler, pre, l)
+	}
+}
+
+func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte), pre string, l *slog.Logger) {
+
+	defer conn.CloseWithError(0, "exit")
+	remote := conn.RemoteAddr().String()
+	l.Info("接入", slog.String("pre", pre), slog.String("remote", remote))
+
+	for {
+		stream, err := conn.AcceptUniStream(context.Background())
+		if err != nil {
+			l.Info("断开", slog.String("pre", pre), slog.String("remote", remote))
+			return
+		}
+
+		// 先读 20 字节包头
+		headerBuf := make([]byte, tunnel_packet.HeaderSize)
+		_, err = io.ReadFull(stream, headerBuf)
+		if err != nil {
+			continue
+		}
+
+		// 从包头解析 PayloadLen
+		payloadLen := binary.BigEndian.Uint16(headerBuf[17:19])
+		totalLen := tunnel_packet.HeaderSize + int(payloadLen)
+
+		// 按实际大小分配
+		buf := make([]byte, totalLen)
+		copy(buf, headerBuf)
+
+		// 读取 payload
+		_, err = io.ReadFull(stream, buf[tunnel_packet.HeaderSize:])
+		if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
+			continue
+		}
+
+		handler(remote, buf)
+	}
+}
+
+// 自签名证书（QUIC 必须）
+// GenerateTLSConfig 生成服务端证书
+func GenerateTLSConfig() *tls.Config {
+	key, _ := rsa.GenerateKey(rand.Reader, 2048)
+	template := &x509.Certificate{SerialNumber: big.NewInt(1)}
+	certDER, _ := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+	pemKey := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(key)})
+	pemCert := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+
+	tlsCert, _ := tls.X509KeyPair(pemCert, pemKey)
+	return &tls.Config{
+		Certificates: []tls.Certificate{tlsCert},
+		NextProtos:   []string{"tunnel-quic"},
+	}
+}
