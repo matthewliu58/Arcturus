@@ -100,6 +100,9 @@ func main() {
 	// 启动 backsourcer
 	backsourcer.GlobalBackSourcer = backsourcer.NewBackSourcer()
 
+	// 启动限流器（默认配置）
+	tcp_server.InitRateLimiter(tcp_server.DefaultRateLimit)
+
 	// 启动 tunnel manager
 	tunnel_manager.TunnelMgr = tunnel_manager.NewTunnelManager(pre, logger)
 

@@ -36,7 +36,7 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 
 		if isLastHop {
 			// 源站：交给 backsourcer
-			_, subs, err := tunnel_packet.Parse(pkt)
+			_, subs, err := tunnel_packet.Parse(pkt, len(pkt))
 			if err != nil || len(subs) == 0 {
 				return
 			}
@@ -74,7 +74,7 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 
 		if isLastHop {
 			// 到目的地：交给 disaggregator
-			_, subs, err := tunnel_packet.Parse(pkt)
+			_, subs, err := tunnel_packet.Parse(pkt, len(pkt))
 			if err != nil || len(subs) == 0 {
 				return
 			}

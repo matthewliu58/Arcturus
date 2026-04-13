@@ -34,6 +34,13 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 
 	clientAddr := conn.RemoteAddr().(*net.TCPAddr)
 	clientIP := clientAddr.IP.String()
+
+	// 限流检查
+	if globalRL != nil && !globalRL.Allow(port, clientIP) {
+		l.Warn("rate limit exceeded", slog.String("client_ip", clientIP), slog.Int("port", port))
+		return
+	}
+
 	reqID := util.GenShortReqID(clientIP)
 	start := time.Now()
 

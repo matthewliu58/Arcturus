@@ -11,7 +11,6 @@ import (
 // 包头结构：24字节
 // b[0]: HopPos(1) + b[1:17]: HopIP(16) + b[17:19]: PayloadLen(2) + b[19:21]: Port(2) + b[21:24]: padding(3)
 const (
-	BufferSize = 5120
 	HeaderSize = 24
 	MaxHops    = 4 // 总跳数固定 4 跳 (0~3)
 )
@@ -20,8 +19,8 @@ var ErrInvalidHeader = errors.New("invalid packet header: length too short")
 
 // Packet 多级代理合并分包总包结构
 type Packet struct {
-	Buf []byte // 固定 5K 内存
-
+	Buf        []byte    // 缓冲区
+	BuffSize   int       // 外部传入的缓冲区大小
 	HopPos     byte      // 当前所在跳数 0~3
 	HopIP      [4]uint32 // 4 跳节点 IPv4
 	PayloadLen uint16    // 子报文总长度
@@ -37,9 +36,9 @@ type SubPacket struct {
 }
 
 // NewPacket 创建一个预分配 5K 的空包
-func NewPacket() *Packet {
+func NewPacket(buffSizes int) *Packet {
 	return &Packet{
-		Buf: make([]byte, BufferSize),
+		Buf: make([]byte, buffSizes),
 		wp:  HeaderSize,
 	}
 }
@@ -86,7 +85,7 @@ func (p *Packet) SetPort(port uint16) {
 // AppendUserPacket 追加一个用户子包
 func (p *Packet) AppendUserPacket(userID uint32, data []byte) bool {
 	subSize := 4 + 2 + len(data)
-	if p.wp+subSize > BufferSize {
+	if p.wp+subSize > p.BuffSize {
 		return false
 	}
 
@@ -155,12 +154,12 @@ func ParseHeader(raw []byte) (*Packet, error) {
 }
 
 // Parse 解析整包 + 所有子包
-func Parse(raw []byte) (*Packet, []SubPacket, error) {
+func Parse(raw []byte, bufferSize int) (*Packet, []SubPacket, error) {
 	if len(raw) < HeaderSize {
 		return nil, nil, fmt.Errorf("raw data too short")
 	}
 
-	p := NewPacket()
+	p := NewPacket(bufferSize)
 	copy(p.Buf, raw)
 
 	b := p.Buf[:HeaderSize]
@@ -176,7 +175,7 @@ func Parse(raw []byte) (*Packet, []SubPacket, error) {
 
 	// 解析 payload
 	payloadEnd := HeaderSize + int(p.PayloadLen)
-	if payloadEnd > len(raw) || payloadEnd > BufferSize {
+	if payloadEnd > len(raw) || payloadEnd > bufferSize {
 		return nil, nil, fmt.Errorf("invalid payload length")
 	}
 	payload := p.Buf[HeaderSize:payloadEnd]

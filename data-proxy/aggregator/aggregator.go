@@ -15,9 +15,10 @@ import (
 
 // 配置常量
 const (
-	BatchTimeout  = 10 * time.Millisecond
-	inputChanSize = 100000
-	workerCount   = 8
+	DefaultBufferSize   = 5120
+	DefaultBatchTimeout = 10 * time.Millisecond
+	inputChanSize       = 100000
+	workerCount         = 8
 )
 
 // ------------------------------
@@ -36,6 +37,7 @@ type aggregatorMsg struct {
 // Batch 结构体
 // ------------------------------
 type Batch struct {
+	BuffSize   int
 	RoutingKey string
 	NextHop    net.IP
 	pkt        *packet.Packet
@@ -93,6 +95,7 @@ type worker struct {
 // 全局 Aggregator
 // ------------------------------
 type Aggregator struct {
+	//BuffSize  int
 	inputChan chan *aggregatorMsg
 	workers   []*worker
 	wg        sync.WaitGroup
@@ -112,6 +115,7 @@ func NewAggregator(pre string, l *slog.Logger) *Aggregator {
 	l.Info("NewAggregator", "pre", pre)
 
 	agg := &Aggregator{
+		//BuffSize:  buffSize,
 		inputChan: make(chan *aggregatorMsg, inputChanSize),
 		workers:   make([]*worker, workerCount),
 	}
@@ -183,6 +187,9 @@ func (a *Aggregator) AddToBatch(
 func (w *worker) handleMsg(msg *aggregatorMsg) {
 	var toSend []*Batch
 
+	buffSize := DefaultBufferSize
+	batchTimeout := DefaultBatchTimeout
+
 	w.mu.Lock()
 
 	b := w.batches[msg.routingKey]
@@ -190,7 +197,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		b = &Batch{
 			RoutingKey: msg.routingKey,
 			NextHop:    msg.nextHop,
-			pkt:        packet.NewPacket(),
+			pkt:        packet.NewPacket(buffSize),
 		}
 
 		for i, h := range msg.routingInfo.Hops {
@@ -210,7 +217,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		// 包满了：先加入待发送列表
 		toSend = append(toSend, b)
 		// 重置包
-		b.pkt = packet.NewPacket()
+		b.pkt = packet.NewPacket(buffSize)
 		b.inHeap = false
 		// 把当前这条重新加进去
 		b.pkt.AppendUserPacket(msg.userID, msg.data)
@@ -220,7 +227,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 	if !b.inHeap {
 		heap.Push(&w.heap, &HeapItem{
 			batch:    b,
-			deadline: time.Now().Add(BatchTimeout),
+			deadline: time.Now().Add(batchTimeout),
 		})
 		b.inHeap = true
 	}
@@ -229,7 +236,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 
 	// 锁外统一发送
 	for _, b := range toSend {
-		w.flush(b)
+		w.flush(b, buffSize)
 	}
 }
 
@@ -257,14 +264,14 @@ func (w *worker) checkTimeout() {
 
 	// 锁外发送
 	for _, b := range toSend {
-		w.flush(b)
+		w.flush(b, b.BuffSize)
 	}
 }
 
 // ------------------------------
 // flush
 // ------------------------------
-func (w *worker) flush(b *Batch) {
+func (w *worker) flush(b *Batch, buffSize int) {
 	if b.closed || b.pkt == nil || b.pkt.PayloadLen == 0 {
 		return
 	}
@@ -278,5 +285,5 @@ func (w *worker) flush(b *Batch) {
 	}()
 
 	// 重置
-	b.pkt = packet.NewPacket()
+	b.pkt = packet.NewPacket(buffSize)
 }
