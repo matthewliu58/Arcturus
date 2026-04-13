@@ -15,11 +15,11 @@ import (
 const (
 	BatchTimeout  = 10 * time.Millisecond
 	inputChanSize = 100000
-	workerCount   = 8 // 多个处理协程，可调整
+	workerCount   = 8
 )
 
 // ------------------------------
-// 消息结构（你原来的）
+// 消息结构
 // ------------------------------
 type aggregatorMsg struct {
 	routingKey string
@@ -29,18 +29,18 @@ type aggregatorMsg struct {
 }
 
 // ------------------------------
-// Batch 结构体（你原来的 + inHeap 标记）
+// Batch 结构体
 // ------------------------------
 type Batch struct {
 	RoutingKey string
 	NextHop    net.IP
 	pkt        *packet.Packet
 	closed     bool
-	inHeap     bool // 标记是否在堆中，O(1) 判断
+	inHeap     bool
 }
 
 // ------------------------------
-// 最小堆（你原来的不动）
+// 最小堆
 // ------------------------------
 type HeapItem struct {
 	batch    *Batch
@@ -76,7 +76,7 @@ func (h *MinHeap) Pop() any {
 }
 
 // ------------------------------
-// 每个 Worker 独立一套：map + heap
+// Worker 结构体
 // ------------------------------
 type worker struct {
 	batches map[string]*Batch
@@ -86,7 +86,7 @@ type worker struct {
 }
 
 // ------------------------------
-// 全局 Aggregator（你原来的结构风格）
+// 全局 Aggregator
 // ------------------------------
 type Aggregator struct {
 	inputChan chan *aggregatorMsg
@@ -100,7 +100,7 @@ type Aggregator struct {
 var GlobalAgg *Aggregator
 
 // ------------------------------
-// NewAggregator 创建多协程聚合器
+// NewAggregator
 // ------------------------------
 func NewAggregator(l *slog.Logger) *Aggregator {
 	agg := &Aggregator{
@@ -120,37 +120,36 @@ func NewAggregator(l *slog.Logger) *Aggregator {
 }
 
 // ------------------------------
-// Start 启动所有 worker + 超时调度
+// Start
 // ------------------------------
 func (a *Aggregator) Start() {
-	// 启动 workerCount 个协程，共同消费同一个管道
-	for i := 0; i < workerCount; i++ {
-		w := a.workers[i]
-		a.wg.Add(1)
+	for _, w := range a.workers {
+		//w := w
 
-		go func(w *worker) {
+		// 消息处理协程
+		a.wg.Add(1)
+		go func() {
 			defer a.wg.Done()
 			for msg := range a.inputChan {
 				w.handleMsg(msg)
 			}
-		}(w)
+		}()
 
-		// 每个 worker 自己一个超时检查协程
+		// 超时检查协程
 		a.wg.Add(1)
-		go func(w *worker) {
+		go func() {
 			defer a.wg.Done()
 			ticker := time.NewTicker(1 * time.Millisecond)
 			defer ticker.Stop()
-
 			for range ticker.C {
 				w.checkTimeout()
 			}
-		}(w)
+		}()
 	}
 }
 
 // ------------------------------
-// AddToBatch 用户接口：只扔管道，不关心哪个协程处理
+// AddToBatch
 // ------------------------------
 func (a *Aggregator) AddToBatch(
 	routingKey string,
@@ -167,13 +166,13 @@ func (a *Aggregator) AddToBatch(
 }
 
 // ------------------------------
-// 单个 worker 处理消息（你原来的逻辑不动）
+// handleMsg
 // ------------------------------
 func (w *worker) handleMsg(msg *aggregatorMsg) {
-	w.mu.Lock()
-	defer w.mu.Unlock()
+	var toSend []*Batch
 
-	// 取或创建 Batch
+	w.mu.Lock()
+
 	b := w.batches[msg.routingKey]
 	if b == nil {
 		b = &Batch{
@@ -184,11 +183,14 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		w.batches[msg.routingKey] = b
 	}
 
-	// 尝试追加子包
 	ok := b.pkt.AppendUserPacket(msg.userID, msg.data)
 	if !ok {
-		w.flush(b)
+		// 包满了：先加入待发送列表
+		toSend = append(toSend, b)
+		// 重置包
 		b.pkt = packet.NewPacket()
+		b.inHeap = false
+		// 把当前这条重新加进去
 		b.pkt.AppendUserPacket(msg.userID, msg.data)
 	}
 
@@ -200,15 +202,24 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		})
 		b.inHeap = true
 	}
+
+	w.mu.Unlock()
+
+	// 锁外统一发送
+	for _, b := range toSend {
+		w.flush(b)
+	}
 }
 
+// ------------------------------
+// checkTimeout
+// ------------------------------
 func (w *worker) checkTimeout() {
+	var toSend []*Batch
+
 	w.mu.Lock()
 
 	now := time.Now()
-	var toSend []*Batch
-
-	// 1. 只把超时的 batch 摘出来，不做任何发送
 	for w.heap.Len() > 0 {
 		item := w.heap[0]
 		if item.deadline.After(now) {
@@ -220,27 +231,30 @@ func (w *worker) checkTimeout() {
 		toSend = append(toSend, item.batch)
 	}
 
-	w.mu.Unlock() //立刻解锁
+	w.mu.Unlock()
 
-	// 2. 锁已经释放，再批量发送，完全不阻塞新消息
+	// 锁外发送
 	for _, b := range toSend {
 		w.flush(b)
 	}
 }
 
+// ------------------------------
+// flush
+// ------------------------------
 func (w *worker) flush(b *Batch) {
-	if b.pkt == nil || b.pkt.PayloadLen == 0 {
+	if b.closed || b.pkt == nil || b.pkt.PayloadLen == 0 {
 		return
 	}
 
 	b.pkt.SerializeHead()
 	buf := b.pkt.Buf[:b.pkt.TotalBytes()]
 
-	// 异步 QUIC 发送，完全无锁
-	go func(ip net.IP, data []byte) {
-		_ = manager.TunnelMgr.SendPacket(context.Background(), ip, data, "", w.logger)
-	}(b.NextHop, buf)
+	// 异步发送，不阻塞任何逻辑
+	go func() {
+		_ = manager.TunnelMgr.SendPacket(context.Background(), b.NextHop, buf, "", w.logger)
+	}()
 
-	// 重置包
+	// 重置
 	b.pkt = packet.NewPacket()
 }
