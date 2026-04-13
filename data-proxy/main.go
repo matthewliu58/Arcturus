@@ -6,7 +6,7 @@ import (
 	"data-proxy/backsourcer"
 	"data-proxy/config"
 	"data-proxy/disaggregator"
-	"data-proxy/tcp-server"
+	"data-proxy/server"
 	manager "data-proxy/tunnel-manager"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -101,7 +101,7 @@ func main() {
 	backsourcer.GlobalBackSourcer = backsourcer.NewBackSourcer()
 
 	// 启动限流器
-	tcp_server.InitRateLimiter(config.Config_.RateLimit)
+	server.InitRateLimiter(config.Config_.RateLimit)
 
 	// 启动 tunnel manager
 	manager.TunnelMgr = manager.NewTunnelManager(pre, logger)
@@ -113,11 +113,11 @@ func main() {
 
 	for _, port := range config.Config_.ListenPorts {
 		// 启动 TCP server（先创建 listener，再启动 goroutine）
-		if err = tcp_server.StartTCPServerWithMgr(port, pre, accessLogger, logger); err != nil {
+		if err = server.StartServerWithMgr(port, pre, accessLogger, logger); err != nil {
 			logger.Error("TCP server start failed", slog.String("pre", pre), "err", err)
 			return
 		}
-		go tcp_server.StartTCPServerRun(port, pre, accessLogger, logger)
+		go server.StartServerRun(port, pre, accessLogger, logger)
 	}
 
 	// Gin
@@ -127,7 +127,7 @@ func main() {
 	})
 
 	// TCP Server 管理接口
-	tcp_server.TCPServerManager(router)
+	server.ServerManager(router)
 
 	// Gin 用 goroutine 运行
 	go func() {

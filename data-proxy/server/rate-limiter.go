@@ -1,4 +1,4 @@
-package tcp_server
+package server
 
 import (
 	"data-proxy/config"
