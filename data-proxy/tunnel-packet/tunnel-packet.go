@@ -8,10 +8,11 @@ import (
 	"net"
 )
 
+// 固定配置：19字节包头，4跳，无填充
 const (
-	BufferSize = 5120 // 固定 5K 缓冲区
-	HeaderSize = 20   // 包头长度 20 字节 (1 + 4*4 + 2 + 1 padding)
-	MaxHops    = 4    // 总跳数固定 4 跳
+	BufferSize = 5120
+	HeaderSize = 19 // 1 (HopPos) + 4*4 (4个IP) + 2 (PayloadLen) = 19 字节
+	MaxHops    = 4  // 总跳数固定 4 跳 (0~3)
 )
 
 var ErrInvalidHeader = errors.New("invalid packet header: length too short")
@@ -41,7 +42,7 @@ func NewPacket() *Packet {
 	}
 }
 
-// SetHopIP 设置第 n 跳 IP（0=第一跳，1=第二跳，2=第三跳）
+// SetHopIP 设置第 n 跳 IP
 func (p *Packet) SetHopIP(hopIdx int, ip net.IP) {
 	if hopIdx < 0 || hopIdx >= MaxHops {
 		return
@@ -53,7 +54,7 @@ func (p *Packet) SetHopIP(hopIdx int, ip net.IP) {
 	p.HopIP[hopIdx] = binary.BigEndian.Uint32(ip4)
 }
 
-// SetHopPos 手动设置当前跳数（你要的函数）
+// SetHopPos 手动设置当前跳数
 func (p *Packet) SetHopPos(pos byte) {
 	if pos >= 0 && pos < MaxHops {
 		p.HopPos = pos
@@ -84,13 +85,16 @@ func (p *Packet) AppendUserPacket(userID uint32, data []byte) bool {
 func (p *Packet) SerializeHead() {
 	b := p.Buf[:HeaderSize]
 
+	// 0 字节：跳数
 	b[0] = p.HopPos
 
+	// 1~17 字节：4个IP
 	binary.BigEndian.PutUint32(b[1:5], p.HopIP[0])
 	binary.BigEndian.PutUint32(b[5:9], p.HopIP[1])
 	binary.BigEndian.PutUint32(b[9:13], p.HopIP[2])
 	binary.BigEndian.PutUint32(b[13:17], p.HopIP[3])
 
+	// 17~19 字节： payload 长度 (正确偏移！)
 	binary.BigEndian.PutUint16(b[17:19], p.PayloadLen)
 }
 
@@ -99,31 +103,19 @@ func (p *Packet) TotalBytes() int {
 	return HeaderSize + int(p.PayloadLen)
 }
 
-// GetHeader 返回裸包头 15 字节
-//func (p *Packet) GetHeader() []byte {
-//	if len(p.Buf) < HeaderSize {
-//		return nil
-//	}
-//	return p.Buf[:HeaderSize]
-//}
-
-// ParseHeader 只解析包头（19字节），不解析payload
-// 专门用于转发层：快速获取 HopPos / 下一跳IP / 总长
+// ParseHeader 只解析包头（19字节），转发层专用 🔥
 func ParseHeader(raw []byte) (*Packet, error) {
-	// 包头都不够长，直接返回
 	if len(raw) < HeaderSize {
 		return nil, ErrInvalidHeader
 	}
 
 	p := &Packet{
-		Buf: make([]byte, HeaderSize), // 只存头，不分配5K
+		Buf: make([]byte, HeaderSize),
 	}
-	// 只拷贝前19字节
 	copy(p.Buf, raw[:HeaderSize])
 
 	b := p.Buf[:HeaderSize]
 
-	// 只解析包头字段
 	p.HopPos = b[0]
 	p.HopIP[0] = binary.BigEndian.Uint32(b[1:5])
 	p.HopIP[1] = binary.BigEndian.Uint32(b[5:9])
@@ -131,14 +123,13 @@ func ParseHeader(raw []byte) (*Packet, error) {
 	p.HopIP[3] = binary.BigEndian.Uint32(b[13:17])
 	p.PayloadLen = binary.BigEndian.Uint16(b[17:19])
 
-	// 不解析 payload
 	return p, nil
 }
 
-// Parse 从收到的字节流解析整包和所有子包
+// Parse 解析整包 + 所有子包
 func Parse(raw []byte) (*Packet, []SubPacket, error) {
 	if len(raw) < HeaderSize {
-		return nil, nil, fmt.Errorf("raw data length %d < header size %d", len(raw), HeaderSize)
+		return nil, nil, fmt.Errorf("raw data too short")
 	}
 
 	p := NewPacket()
@@ -146,6 +137,7 @@ func Parse(raw []byte) (*Packet, []SubPacket, error) {
 
 	b := p.Buf[:HeaderSize]
 
+	// 解析包头
 	p.HopPos = b[0]
 	p.HopIP[0] = binary.BigEndian.Uint32(b[1:5])
 	p.HopIP[1] = binary.BigEndian.Uint32(b[5:9])
@@ -153,9 +145,10 @@ func Parse(raw []byte) (*Packet, []SubPacket, error) {
 	p.HopIP[3] = binary.BigEndian.Uint32(b[13:17])
 	p.PayloadLen = binary.BigEndian.Uint16(b[17:19])
 
+	// 解析 payload
 	payloadEnd := HeaderSize + int(p.PayloadLen)
 	if payloadEnd > len(raw) || payloadEnd > BufferSize {
-		return nil, nil, fmt.Errorf("invalid payload length: %d (raw: %d, buffer: %d)", p.PayloadLen, len(raw), BufferSize)
+		return nil, nil, fmt.Errorf("invalid payload length")
 	}
 	payload := p.Buf[HeaderSize:payloadEnd]
 
