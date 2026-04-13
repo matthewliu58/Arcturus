@@ -1,6 +1,7 @@
 package backsourcer
 
 import (
+	"log/slog"
 	"net"
 	"sync"
 	"time"
@@ -40,7 +41,8 @@ type BackSourcer struct {
 var GlobalBackSourcer *BackSourcer
 
 // NewBackSourcer 默认使用 TCP 协议
-func NewBackSourcer() *BackSourcer {
+func NewBackSourcer(protocol string, pre string, l *slog.Logger) *BackSourcer {
+	l.Info("backsourcer init", slog.String("protocol", protocol), slog.String("pre", pre))
 	return NewBackSourcerWithProtocol(NewTCPProtocol(dialTimeout, ioTimeout))
 }
 

@@ -85,29 +85,10 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 
 	// 2. hops <= 2：本机直接回源
 	if len(pathInfo.Hops) <= 2 {
-		// 最后一跳就是源站
 		originAddr := pathInfo.Hops[len(pathInfo.Hops)-1]
-		originConn, err := net.DialTimeout("tcp", originAddr, proxyTimeout)
-		if err != nil {
-			l.Error("dial origin failed", slog.Any("req_id", reqID), slog.Any("err", err))
+		if ok := ServerHandler.Operate.DirectOriginProxy(conn, originAddr, data, reqID, l); ok {
 			return
 		}
-		defer originConn.Close()
-
-		// 发给源站
-		_, _ = originConn.Write(data)
-		// 读回包
-		_ = originConn.SetReadDeadline(time.Now().Add(proxyTimeout))
-		resp, err := io.ReadAll(originConn)
-		if err != nil {
-			l.Error("read origin resp failed", slog.Any("req_id", reqID), slog.Any("err", err))
-			return
-		}
-
-		// 写回客户端
-		_, _ = conn.Write(resp)
-		l.Info("direct origin proxy done", slog.Any("req_id", reqID))
-		return
 	}
 
 	// 3. 走聚合隧道：注册等待 chan 并阻塞

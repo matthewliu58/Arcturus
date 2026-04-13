@@ -1,13 +1,23 @@
 package server
 
 import (
+	"io"
 	"log/slog"
 	"net"
 	"strconv"
+	"time"
 )
 
+type TCPServer struct {
+}
+
+// NewTCPProtocol 创建 TCP 协议实例
+func NewTCPServer() *TCPServer {
+	return &TCPServer{}
+}
+
 // StartTCPServerWithMgr 创建 listener 并注册到管理器（不出错即可返回）
-func StartServerWithMgr(port int, pre string, access, l *slog.Logger) error {
+func (t *TCPServer) StartServerWithMgr(port int, pre string, l *slog.Logger) error {
 	port_ := ":" + strconv.Itoa(port)
 	listener, err := net.Listen("tcp", port_)
 	if err != nil {
@@ -27,7 +37,7 @@ func StartServerWithMgr(port int, pre string, access, l *slog.Logger) error {
 }
 
 // StartTCPServerRun 从 map 获取 listener，开始 accept 循环（阻塞）
-func StartServerRun(port int, pre string, access, l *slog.Logger) {
+func (t *TCPServer) StartServerRun(port int, access *slog.Logger, req string, l *slog.Logger) {
 	listenerMu.RLock()
 	listener, _ := listenerMap[port]
 	listenerMu.RUnlock()
@@ -43,7 +53,7 @@ func StartServerRun(port int, pre string, access, l *slog.Logger) {
 }
 
 // StopTCPServer 停止指定端口的 TCP server
-func StopServer(port int) error {
+func (t *TCPServer) StopServer(port int, req string, l *slog.Logger) error {
 	listenerMu.Lock()
 	defer listenerMu.Unlock()
 
@@ -59,4 +69,30 @@ func StopServer(port int) error {
 	portMutex.Unlock()
 
 	return err
+}
+
+// directOriginProxy hops <= 2 时，本机直接回源
+// 返回是否成功处理（成功返回 true，失败返回 false）
+func (t *TCPServer) DirectOriginProxy(conn net.Conn, originAddr string, data []byte, reqID uint32, l *slog.Logger) bool {
+	originConn, err := net.DialTimeout("tcp", originAddr, proxyTimeout)
+	if err != nil {
+		l.Error("dial origin failed", slog.Any("req_id", reqID), slog.Any("err", err))
+		return false
+	}
+	defer originConn.Close()
+
+	// 发给源站
+	_, _ = originConn.Write(data)
+	// 读回包
+	_ = originConn.SetReadDeadline(time.Now().Add(proxyTimeout))
+	resp, err := io.ReadAll(originConn)
+	if err != nil {
+		l.Error("read origin resp failed", slog.Any("req_id", reqID), slog.Any("err", err))
+		return false
+	}
+
+	// 写回客户端
+	_, _ = conn.Write(resp)
+	l.Info("direct origin proxy done", slog.Any("req_id", reqID))
+	return true
 }

@@ -27,19 +27,19 @@ const (
 
 // LyapunovSolver 李雅普诺夫漂移调度核心
 type LyapunovSolver struct {
-	globalStats  *agg.GlobalStats // 直接持有 stats，才能获取 nodeLast + edgeAgg
+	edgeAgg      map[string]*rece.LastStatsVal
 	nodeTel      map[string]*agg.Telemetry
 	nodeLocation map[string][]string
 }
 
 // NewLyapunovSolver 创建实例
 func NewLyapunovSolver(
-	globalStats *agg.GlobalStats,
+	edgeAgg map[string]*rece.LastStatsVal,
 	nodeTel map[string]*agg.Telemetry,
 	nodeLocation map[string][]string,
 ) *LyapunovSolver {
 	return &LyapunovSolver{
-		globalStats:  globalStats,
+		edgeAgg:      edgeAgg,
 		nodeTel:      nodeTel,
 		nodeLocation: nodeLocation,
 	}
@@ -167,8 +167,8 @@ func (l *LyapunovSolver) GetNodeRT(source routing.EndPoint, nodeIP string, pre s
 
 	// 3. 依次查找
 	for _, key := range keys {
-		val := l.globalStats.GetAggValue(key)
-		if val.Count > 0 {
+		val, ok := l.edgeAgg[key]
+		if ok {
 			return val
 		}
 	}
@@ -179,7 +179,7 @@ func (l *LyapunovSolver) GetNodeRT(source routing.EndPoint, nodeIP string, pre s
 // getAggFallback 兜底
 func (l *LyapunovSolver) getAggFallback(cont, serverKey string) *rece.LastStatsVal {
 	key := cont + "-" + serverKey
-	return l.globalStats.GetAggValue(key)
+	return l.edgeAgg[key]
 }
 
 func computeDelayPenalty(rt float64) float64 {

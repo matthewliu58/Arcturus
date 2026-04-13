@@ -1,6 +1,7 @@
 package server
 
 import (
+	"data-proxy/util"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net"
@@ -24,13 +25,17 @@ var (
 )
 
 // TCPServerManager HTTP 接口管理 TCP server
-func ServerManager(r *gin.Engine) {
+func ServerManager(r *gin.Engine, l *slog.Logger) {
 	r.POST("/tcp/start", func(c *gin.Context) {
+
+		req := util.GenerateRandomLetters(5)
+
 		portStr := c.Query("port")
 		if portStr == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "port is required"})
 			return
 		}
+		l.Info("server-manager add", slog.String("req", req), slog.String("portStr", portStr))
 
 		port, err := strconv.Atoi(portStr)
 		if err != nil {
@@ -49,14 +54,14 @@ func ServerManager(r *gin.Engine) {
 		}
 
 		// 启动 TCP server（先创建 listener，失败则返回错误）
-		err = StartServerWithMgr(port, "server-manager", accessLogger, logger)
+		err = ServerHandler.Operate.StartServerWithMgr(port, req, logger)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		// 成功后再用 goroutine 运行
-		go StartServerRun(port, "server-manager", accessLogger, logger)
+		go ServerHandler.Operate.StartServerRun(port, accessLogger, req, logger)
 
 		c.JSON(http.StatusOK, gin.H{"message": "tcp server started", "port": port})
 	})
@@ -72,19 +77,22 @@ func ServerManager(r *gin.Engine) {
 	})
 
 	r.DELETE("/tcp/stop", func(c *gin.Context) {
+
+		req := util.GenerateRandomLetters(5)
+
 		portStr := c.Query("port")
 		if portStr == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "port is required"})
 			return
 		}
+		l.Info("server-manager del", slog.String("req", req), slog.String("portStr", portStr))
 
 		port, err := strconv.Atoi(portStr)
 		if err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid port"})
 			return
 		}
-
-		err = StopServer(port)
+		err = ServerHandler.Operate.StopServer(port, req, l)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
