@@ -5,7 +5,6 @@ import (
 	"context"
 	manager "data-proxy/tunnel-manager"
 	packet "data-proxy/tunnel-packet"
-	"data-proxy/util"
 	"log/slog"
 	"net"
 	"sync"
@@ -14,15 +13,28 @@ import (
 
 // 配置常量
 const (
-	BatchTimeout = 10 * time.Millisecond // 10ms 超时强制发送
+	BatchTimeout  = 10 * time.Millisecond
+	inputChanSize = 100000 // 管道大小，根据并发调整
 )
+
+// ------------------------------
+// 从用户协程 → 聚合协程 的消息结构
+// ------------------------------
+type aggregatorMsg struct {
+	routingKey string
+	nextHop    net.IP
+	userID     uint32
+	data       []byte
+	//pre        string
+	//l          *slog.Logger
+}
 
 // ------------------------------
 // Batch：同一个路由的攒包对象
 // ------------------------------
 type Batch struct {
-	RoutingKey string // 唯一标识：下一跳IP字符串
-	NextHop    net.IP // 下一跳真实IP
+	RoutingKey string
+	NextHop    net.IP
 	pkt        *packet.Packet
 	closed     bool
 }
@@ -64,23 +76,27 @@ func (h *MinHeap) Pop() any {
 }
 
 // ------------------------------
-// 全局聚合器（你要的大 map + 堆）
+// 全局聚合器
 // ------------------------------
 type Aggregator struct {
 	mu      sync.Mutex
-	batches map[string]*Batch // 大 map：key=路由，value=攒包对象
-	heap    MinHeap           // 最小堆：管理超时
+	batches map[string]*Batch
+	heap    MinHeap
+
+	// 你要的管道：用户只写，agg 协程只读
+	inputChan chan *aggregatorMsg
 
 	wg sync.WaitGroup
 }
 
 // ------------------------------
-// NewAggregator：初始化
+// NewAggregator
 // ------------------------------
 func NewAggregator() *Aggregator {
 	return &Aggregator{
-		batches: make(map[string]*Batch),
-		heap:    make(MinHeap, 0),
+		batches:   make(map[string]*Batch),
+		heap:      make(MinHeap, 0),
+		inputChan: make(chan *aggregatorMsg, inputChanSize),
 	}
 }
 
@@ -90,9 +106,21 @@ func NewAggregator() *Aggregator {
 var GlobalAgg = NewAggregator()
 
 // ------------------------------
-// StartScheduler：启动超时调度器（单协程）
+// StartScheduler：启动两个循环
+// 1. 从管道拉消息
+// 2. 超时检查
 // ------------------------------
 func (a *Aggregator) StartScheduler(l *slog.Logger) {
+	// 协程1：只从管道消费消息
+	a.wg.Add(1)
+	go func() {
+		defer a.wg.Done()
+		for msg := range a.inputChan {
+			a.handleMsg(msg, l)
+		}
+	}()
+
+	// 协程2：超时调度
 	a.wg.Add(1)
 	go func() {
 		defer a.wg.Done()
@@ -102,17 +130,14 @@ func (a *Aggregator) StartScheduler(l *slog.Logger) {
 		for range ticker.C {
 			a.mu.Lock()
 			now := time.Now()
+			//pre := util.GenerateRandomLetters(5)
+			pre := ""
 
-			pre := util.GenerateRandomLetters(5)
-
-			// 超时的全部发掉
 			for a.heap.Len() > 0 {
 				item := a.heap[0]
 				if item.deadline.After(now) {
 					break
 				}
-
-				// 弹出并发送
 				heap.Pop(&a.heap)
 				a.flushLocked(item.batch, pre, l)
 			}
@@ -123,41 +148,52 @@ func (a *Aggregator) StartScheduler(l *slog.Logger) {
 }
 
 // ------------------------------
-// AddToBatch：用户消息扔进来聚合
+// 用户侧接口：只往管道发，不做任何逻辑
 // ------------------------------
 func (a *Aggregator) AddToBatch(
 	routingKey string,
 	nextHop net.IP,
 	userID uint32,
-	data []byte, pre string, l *slog.Logger,
+	data []byte,
+// pre string,
+// l *slog.Logger,
 ) {
+	// 只投递到管道
+	a.inputChan <- &aggregatorMsg{
+		routingKey: routingKey,
+		nextHop:    nextHop,
+		userID:     userID,
+		data:       data,
+		//pre:        pre,
+		//l:          l,
+	}
+}
+
+// ------------------------------
+// 真正处理消息：只有 agg 协程会调用
+// ------------------------------
+func (a *Aggregator) handleMsg(msg *aggregatorMsg, l *slog.Logger) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 
-	// 1. 从大 map 里拿当前路由的攒包对象
-	b := a.batches[routingKey]
+	b := a.batches[msg.routingKey]
 	if b == nil {
-		// 没有就新建
 		b = &Batch{
-			RoutingKey: routingKey,
-			NextHop:    nextHop,
+			RoutingKey: msg.routingKey,
+			NextHop:    msg.nextHop,
 			pkt:        packet.NewPacket(),
 		}
-		a.batches[routingKey] = b
+		a.batches[msg.routingKey] = b
 	}
 
-	// 2. 尝试写入子包
-	ok := b.pkt.AppendUserPacket(userID, data)
+	ok := b.pkt.AppendUserPacket(msg.userID, msg.data)
 	if !ok {
-		// 写满了 → 先发掉
-		a.flushLocked(b, pre, l)
-		// 新建空包继续写
+		a.flushLocked(b, "", l)
 		b.pkt = packet.NewPacket()
-		b.pkt.AppendUserPacket(userID, data)
+		b.pkt.AppendUserPacket(msg.userID, msg.data)
 	}
 
-	// 3. 如果堆里还没有这个 batch，就加入堆（10ms 超时）
-	// 确保一个 batch 只在堆里出现一次
+	// 检查是否已经在堆里
 	inHeap := false
 	for _, item := range a.heap {
 		if item.batch == b {
@@ -174,22 +210,19 @@ func (a *Aggregator) AddToBatch(
 }
 
 // ------------------------------
-// flushLocked：发送当前大包（必须加锁调用）
+// flushLocked 不变
 // ------------------------------
 func (a *Aggregator) flushLocked(b *Batch, pre string, l *slog.Logger) {
 	if b.closed || b.pkt == nil || b.pkt.PayloadLen == 0 {
 		return
 	}
 
-	// 序列化包头
 	b.pkt.SerializeHead()
 	sendBuf := b.pkt.Buf[:b.pkt.TotalBytes()]
 
-	// 异步通过 QUIC tunnel 发出去
 	go func(ip net.IP, buf []byte, pre string, l *slog.Logger) {
 		_ = manager.TunnelMgr.SendPacket(context.Background(), ip, buf, pre, l)
 	}(b.NextHop, sendBuf, pre, l)
 
-	// 重置空包
 	b.pkt = packet.NewPacket()
 }
