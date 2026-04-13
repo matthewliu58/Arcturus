@@ -17,6 +17,7 @@ import (
 const (
 	inputChanSize = 100000
 	workerCount   = 8
+	batchMaxAge   = 60 * time.Second // batch 存活最大时间
 )
 
 // ------------------------------
@@ -85,10 +86,11 @@ func (h *MinHeap) Pop() any {
 // Worker 结构体
 // ------------------------------
 type worker struct {
-	batches map[string]*Batch //todo 数据老化
+	batches map[string]*Batch
 	heap    MinHeap
-	mu      sync.Mutex
+	mu      sync.RWMutex
 	logger  *slog.Logger
+	stopCh  chan struct{}
 }
 
 // ------------------------------
@@ -123,6 +125,7 @@ func NewAggregator(pre string, l *slog.Logger) *Aggregator {
 			batches: make(map[string]*Batch),
 			heap:    make(MinHeap, 0),
 			logger:  l.With("worker", i),
+			stopCh:  make(chan struct{}),
 		}
 	}
 
@@ -155,6 +158,22 @@ func (a *Aggregator) Start() {
 				w.checkTimeout()
 			}
 		}()
+
+		// 老化检查协程：每 10 秒清理超时的 batch
+		a.wg.Add(1)
+		go func(w *worker) {
+			defer a.wg.Done()
+			ticker := time.NewTicker(10 * time.Second)
+			defer ticker.Stop()
+			for {
+				select {
+				case <-ticker.C:
+					w.evictStaleBatches()
+				case <-w.stopCh:
+					return
+				}
+			}
+		}(w)
 	}
 }
 
@@ -296,4 +315,43 @@ func (w *worker) flush(b *Batch, buffSize int) {
 	// 重置
 	b.pkt = packet.NewPacket(buffSize)
 	b.createTime = time.Now()
+}
+
+// ------------------------------
+// evictStaleBatches 清理超时的 batch
+// ------------------------------
+func (w *worker) evictStaleBatches() {
+	now := time.Now()
+
+	// 1. 极短锁：只复制所有 key
+	w.mu.RLock()
+	keys := make([]string, 0, len(w.batches))
+	for key := range w.batches {
+		keys = append(keys, key)
+	}
+	w.mu.RUnlock()
+
+	// 2. 无锁遍历，逐个判断 + 逐个删除
+	for _, key := range keys {
+		// 瞬间加锁，只检查这一个
+		w.mu.RLock()
+		b, exists := w.batches[key]
+		w.mu.RUnlock()
+
+		if !exists {
+			continue
+		}
+
+		// 判断过期
+		if now.Sub(b.createTime) <= batchMaxAge {
+			continue
+		}
+
+		w.mu.Lock()
+		delete(w.batches, key)
+		w.mu.Unlock()
+
+		// 日志放外面！不占锁！
+		w.logger.Info("evict stale batch", "routingKey", key)
+	}
 }
