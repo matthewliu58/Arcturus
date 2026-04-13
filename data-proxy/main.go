@@ -113,7 +113,7 @@ func main() {
 
 	for _, port := range config.Config_.ListenPorts {
 		// 启动 TCP server（先创建 listener，再启动 goroutine）
-		if err := tcp_server.StartTCPServerWithMgr(port, pre, accessLogger, logger); err != nil {
+		if err = tcp_server.StartTCPServerWithMgr(port, pre, accessLogger, logger); err != nil {
 			logger.Error("TCP server start failed", slog.String("pre", pre), "err", err)
 			return
 		}
@@ -133,14 +133,14 @@ func main() {
 	go func() {
 		port := "7095"
 		logger.Info("Listening", slog.String("pre", pre), "port", port)
-		if err := router.Run(":" + port); err != nil {
+		if err = router.Run(":" + port); err != nil {
 			logger.Error("Gin Run failed", slog.String("pre", pre), "err", err)
 		}
 	}()
 
 	// 等待退出信号：QUIC 崩溃会导致程序退出
 	select {
-	case err := <-quicExit:
+	case err = <-quicExit:
 		if err != nil {
 			logger.Error("QUIC server crashed, exiting", slog.String("pre", pre), "err", err)
 		}
