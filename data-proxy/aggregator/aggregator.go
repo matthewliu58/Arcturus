@@ -9,7 +9,6 @@ import (
 	"data-proxy/util"
 	"log/slog"
 	"net"
-	"strings"
 	"sync"
 	"time"
 )
@@ -198,9 +197,6 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		}
 
 		for i, h := range msg.routingInfo.Hops {
-			if i == 3 && !strings.Contains(h, ":") {
-				continue
-			}
 			b.pkt.SetHopIP(i, util.HopIPToNet(h))
 		}
 		b.pkt.SetPort(msg.port)

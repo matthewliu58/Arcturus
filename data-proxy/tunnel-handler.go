@@ -4,8 +4,8 @@ import (
 	"context"
 	"data-proxy/backsourcer"
 	"data-proxy/disaggregator"
-	"data-proxy/tunnel-manager"
-	"data-proxy/tunnel-packet"
+	tunnel_manager "data-proxy/tunnel-manager"
+	tunnel_packet "data-proxy/tunnel-packet"
 	"data-proxy/util"
 	"log/slog"
 	"net"
@@ -27,9 +27,9 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 	if header.Port != 0 {
 		// === 去程：访问源站 ===
 		// 判断下一个 hop 是不是源站（pos >= 2 或 下一个 IP 是 0）
-		isLastHop := header.HopPos >= 2
-		if int(header.HopPos)+1 < tunnel_packet.MaxHops {
-			if header.HopIP[header.HopPos+1] == 0 {
+		isLastHop := header.HopPos == 2
+		if int(header.HopPos)+2 < tunnel_packet.MaxHops {
+			if header.HopIP[header.HopPos+2] == 0 {
 				isLastHop = true
 			}
 		}
@@ -65,7 +65,7 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 	} else {
 		// === 返程：返回给用户 ===
 		// 判断是不是到目的地了（下一个是 0 或 pos >= 3）
-		isLastHop := header.HopPos >= 3
+		isLastHop := header.HopPos == 3
 		if int(header.HopPos)+1 < tunnel_packet.MaxHops {
 			if header.HopIP[header.HopPos+1] == 0 {
 				isLastHop = true
