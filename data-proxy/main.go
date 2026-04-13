@@ -114,7 +114,8 @@ func StartTCPServer(port int, pre string, access, logger *slog.Logger) error {
 	logger.Info("tcp server started success", slog.String("pre", pre), slog.String("port", port_))
 
 	for {
-		conn, err := listener.Accept()
+		var conn net.Conn
+		conn, err = listener.Accept()
 		if err != nil {
 			logger.Error("accept failed", slog.Any("err", err))
 			continue
