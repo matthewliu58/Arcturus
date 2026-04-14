@@ -9,7 +9,6 @@ import (
 	"math"
 )
 
-// Priority Queue
 type PQNode struct {
 	node  string
 	cost  float64
@@ -43,11 +42,10 @@ func (pq *PriorityQueue) Pop() interface{} {
 }
 
 type DijkstraSolver struct {
-	edges []*graph.Edge // 只读图
+	edges []*graph.Edge
 	alpha float64
 }
 
-// 创建实例
 func NewDijkstraSolver(edges []*graph.Edge) *DijkstraSolver {
 	var g []*graph.Edge
 	for _, e := range edges {
@@ -59,10 +57,8 @@ func NewDijkstraSolver(edges []*graph.Edge) *DijkstraSolver {
 	}
 }
 
-// Computing 执行最短路径计算
 func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
 
-	// 构建图和节点集合
 	graph_ := make(map[string][]*graph.Edge)
 	nodes := make(map[string]struct{})
 	for _, e := range d.edges {
@@ -71,7 +67,6 @@ func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) 
 		nodes[e.DestinationIp] = struct{}{}
 	}
 
-	// 校验起点和终点是否存在
 	if _, ok := nodes[start]; !ok {
 		return nil, fmt.Errorf("start node %s not found", start)
 	}
@@ -79,7 +74,6 @@ func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) 
 		return nil, fmt.Errorf("end node %s not found", end)
 	}
 
-	// 初始化距离映射和前驱节点映射
 	dist := make(map[string]float64)
 	prev := make(map[string]string)
 	for node := range nodes {
@@ -87,7 +81,6 @@ func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) 
 	}
 	dist[start] = 0
 
-	// 初始化优先级队列
 	pq := &PriorityQueue{}
 	heap.Init(pq)
 	heap.Push(pq, &PQNode{
@@ -95,7 +88,6 @@ func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) 
 		cost: 0,
 	})
 
-	// 处理优先级队列
 	for pq.Len() > 0 {
 		u := heap.Pop(pq).(*PQNode)
 		currNode := u.node
@@ -105,7 +97,6 @@ func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) 
 			continue
 		}
 
-		// 到达终点，回溯路径并返回
 		if currNode == end {
 			var path []string
 			for node := end; node != ""; node = prev[node] {
@@ -117,7 +108,6 @@ func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) 
 			return []routing.PathInfo{{Hops: path, Rtt: currCost}}, nil
 		}
 
-		// 遍历当前节点的邻接边，更新最短路径
 		for _, e := range graph_[currNode] {
 			nextNode := e.DestinationIp
 			newCost := currCost + e.EdgeWeight*d.alpha
@@ -133,6 +123,5 @@ func (d *DijkstraSolver) Computing(start, end, pre string, logger *slog.Logger) 
 		}
 	}
 
-	// 无法到达终点
 	return nil, fmt.Errorf("no path found from %s to %s", start, end)
 }
