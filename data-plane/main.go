@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
+	last "data-plane/last-analyzer"
+	middle "data-plane/middle-collector"
 	"data-plane/probing"
-	last "data-plane/report-info/last-analyzer"
-	middle "data-plane/report-info/middle-collector"
 	"data-plane/util"
 	"github.com/gin-gonic/gin"
 	"log/slog"

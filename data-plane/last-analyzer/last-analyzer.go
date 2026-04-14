@@ -12,17 +12,16 @@ import (
 	"time"
 )
 
-// 日志记录结构 —— 只保留你要的：国家、省份、城市、ISP、节点
 type Record struct {
 	Ts        time.Time
 	ClientIP  string
 	ConnRT    int
 	Continent string
-	Country   string // 国家
-	Province  string // 省份
-	City      string // 城市
-	ISP       string // 运营商
-	//Node     string // 当前节点
+	Country   string
+	Province  string
+	City      string
+	ISP       string
+	//Node     string
 }
 
 type LastStatsKey struct {
@@ -33,7 +32,6 @@ type LastStatsKey struct {
 	ISP       string `json:"isp"`
 }
 
-// LastStatsValue 时延统计值
 type LastStatsValue struct {
 	Count int     `json:"count"`
 	SumRT float64 `json:"sum_rt"`
@@ -118,15 +116,15 @@ func tailFile(path string, pre string, logger *slog.Logger) {
 				ClientIP: ip,
 				ConnRT:   rt,
 				Country:  ipInfo.Country,
-				Province: ipInfo.Province, // 省份保留
+				Province: ipInfo.Province,
 				City:     ipInfo.City,
 				ISP:      ipInfo.ISP,
-				//Node:     util.Config_.NodeName, // 节点名
+				//Node:     util.Config_.NodeName,
 			})
 			mu.Unlock()
 
 		} else {
-			logger.Error("log rotated, reconnecting", slog.String("pre", pre))
+			logger.Error("Log rotated, reconnecting", slog.String("pre", pre))
 			f.Close()
 			time.Sleep(500 * time.Millisecond)
 			f = openFile()
@@ -149,7 +147,7 @@ func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue
 	}
 	records = valid
 
-	agg := make(map[LastStatsKey]*LastStatsValue) // 改成存指针！
+	agg := make(map[LastStatsKey]*LastStatsValue)
 	rts := make(map[LastStatsKey][]int)
 
 	for _, r := range valid {
@@ -161,23 +159,20 @@ func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue
 			ISP:       r.ISP,
 		}
 
-		// 不存在就初始化
 		if agg[key] == nil {
 			agg[key] = &LastStatsValue{}
 		}
 
-		s := agg[key] // 取指针，直接修改原数据
+		s := agg[key]
 		s.Count++
 		s.SumRT += float64(r.ConnRT)
 		rts[key] = append(rts[key], r.ConnRT)
 	}
 
-	// 计算平均 & P95
 	for k, s := range agg {
-		// 平均
+
 		s.AvgRT = float64(s.SumRT) / float64(s.Count)
 
-		// P95 正确计算
 		rtList := rts[k]
 		if len(rtList) == 0 {
 			continue
@@ -190,18 +185,18 @@ func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue
 		s.P95RT = rtList[p95Idx]
 	}
 
-	logger.Info("调度统计完成", slog.String("pre", pre), slog.Int("有效记录数", len(valid)))
+	logger.Info("Schedule statistics completed", slog.String("pre", pre), slog.Int("valid_records", len(valid)))
 	for key, s := range agg {
-		logger.Info("用户时延统计",
+		logger.Info("User latency statistics",
 			slog.String("pre", pre),
-			"国家", key.Country,
-			"省份", key.Province,
-			"city", key.City,
-			"运营商", key.ISP,
-			//"节点", key.Node,
-			"平均RT(ms)", s.AvgRT,
-			"P95RT(ms)", s.P95RT,
-			"请求数", s.Count,
+			slog.String("country", key.Country),
+			slog.String("province", key.Province),
+			slog.String("city", key.City),
+			slog.String("isp", key.ISP),
+			//slog.String("node", key.Node),
+			slog.Float64("avg_rt_ms", s.AvgRT),
+			slog.Any("p95_rt_ms", s.P95RT),
+			slog.Any("count", s.Count),
 		)
 	}
 	return agg
