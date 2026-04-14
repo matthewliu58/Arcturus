@@ -7,10 +7,11 @@ import (
 	"control-plane/routing/graph"
 	routing2 "control-plane/routing/routing"
 	"control-plane/util"
-	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 type UserRoutingAPIHandler struct {
@@ -37,14 +38,14 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 
 	resp := rece.ApiResponse{
 		Code: 500,
-		Msg:  "服务端内部错误",
+		Msg:  "Internal server error",
 		Data: nil,
 	}
 
 	var req routing2.EndPoints
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Code = 400
-		resp.Msg = "请求体解析失败：" + err.Error()
+		resp.Msg = "Request body parsing failed: " + err.Error()
 		c.JSON(http.StatusOK, resp)
 		h.Logger.Warn("GetMiddleRoute parse body failed", slog.String("pre", pre), slog.Any("error", err))
 		return
@@ -52,7 +53,7 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 	ip, ok := CloudStorageMap[req.Dest.Port]
 	if !ok {
 		resp.Code = 400
-		resp.Msg = "请求体解析失败：未找到对应端口"
+		resp.Msg = "Request body parsing failed: No corresponding port found"
 		c.JSON(http.StatusOK, resp)
 		h.Logger.Warn("GetMiddleRoute failed", slog.String("pre", pre))
 		return
@@ -64,7 +65,7 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 	h.Logger.Info("GetMiddleRoute response", slog.String("pre", pre), slog.Any("routing", paths))
 
 	resp.Code = 200
-	resp.Msg = "成功获取路径"
+	resp.Msg = "Successfully obtained path"
 	resp.Data = paths
 	c.JSON(http.StatusOK, resp)
 }
@@ -79,14 +80,14 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 
 	resp := rece.ApiResponse{
 		Code: 500,
-		Msg:  "服务端内部错误",
+		Msg:  "Internal server error",
 		Data: nil,
 	}
 
 	var req routing2.EndPoints
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Code = 400
-		resp.Msg = "请求体解析失败：" + err.Error()
+		resp.Msg = "Request body parsing failed: " + err.Error()
 		c.JSON(http.StatusOK, resp)
 		h.Logger.Warn("GetLastRoute failed", slog.String("pre", pre), slog.Any("error", err))
 		return
@@ -97,7 +98,7 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 	h.Logger.Info("GetLastRoute response", slog.String("pre", pre), slog.Any("routing", paths))
 
 	resp.Code = 200
-	resp.Msg = "成功获取路径"
+	resp.Msg = "Successfully obtained path"
 	resp.Data = paths
 	c.JSON(http.StatusOK, resp)
 }

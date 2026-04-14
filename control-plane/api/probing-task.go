@@ -7,12 +7,13 @@ import (
 	"control-plane/util"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	clientv3 "go.etcd.io/etcd/client/v3"
 	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
+
+	"github.com/gin-gonic/gin"
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 const (
@@ -78,7 +79,7 @@ func NewNodeProbeAPIHandler(cli *clientv3.Client, logger *slog.Logger) *NodeProb
 func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 	resp := model.ApiResponse{
 		Code: 500,
-		Msg:  "服务端内部错误",
+		Msg:  "Internal server error",
 		Data: nil,
 	}
 
@@ -87,7 +88,7 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 	nodeMap, err := etcd_client.GetPrefixAll(h.etcdClient, "/routing/", pre, h.logger)
 	if err != nil {
 		resp.Code = 500
-		resp.Msg = "获取节点信息失败：" + err.Error()
+		resp.Msg = "Failed to get node information: " + err.Error()
 		c.JSON(http.StatusOK, resp)
 		h.logger.Error(resp.Msg)
 		return
@@ -98,7 +99,7 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 	for k, nodeJson := range nodeMap {
 		var telemetry aggregator.Telemetry
 		if err := json.Unmarshal([]byte(nodeJson), &telemetry); err != nil {
-			h.logger.Warn("解析节点JSON失败，跳过", slog.String("pre", pre),
+			h.logger.Warn("Failed to parse node JSON, skipping", slog.String("pre", pre),
 				slog.String("ip", k), slog.Any("error", err))
 			continue
 		}
@@ -128,7 +129,7 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 	}
 
 	resp.Code = 200
-	resp.Msg = "成功获取节点探测任务"
+	resp.Msg = "Successfully obtained node probe tasks"
 	resp.Data = tasks
 	c.JSON(http.StatusOK, resp)
 }

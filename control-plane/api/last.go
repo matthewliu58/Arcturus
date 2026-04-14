@@ -9,6 +9,7 @@ import (
 	"control-plane/receive-info"
 	"control-plane/sync/etcd_client"
 	"control-plane/util"
+
 	"github.com/gin-gonic/gin"
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
@@ -32,14 +33,14 @@ func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 
 	resp := receive_info.ApiResponse{
 		Code: 500,
-		Msg:  "服务端内部错误",
+		Msg:  "Internal server error",
 		Data: nil,
 	}
 
 	var req receive_info.ApiResponse
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Code = 400
-		resp.Msg = "请求格式错误：" + err.Error()
+		resp.Msg = "Request format error: " + err.Error()
 		c.JSON(http.StatusOK, resp)
 		h.logger.Error(resp.Msg, slog.String("pre", pre))
 		return
@@ -48,7 +49,7 @@ func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 	reqDataBytes, err := json.Marshal(req.Data)
 	if err != nil {
 		resp.Code = 400
-		resp.Msg = "请求 Data 字段格式错误：" + err.Error()
+		resp.Msg = "Request Data field format error: " + err.Error()
 		c.JSON(http.StatusOK, resp)
 		h.logger.Error(resp.Msg, slog.String("pre", pre))
 		return
@@ -57,7 +58,7 @@ func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 	var lastStats receive_info.LastStats
 	if err := json.Unmarshal(reqDataBytes, &lastStats); err != nil {
 		resp.Code = 400
-		resp.Msg = "Data 字段解析失败：" + err.Error()
+		resp.Msg = "Data field parsing failed: " + err.Error()
 		c.JSON(http.StatusOK, resp)
 		h.logger.Error(resp.Msg, slog.String("pre", pre))
 		return
@@ -66,13 +67,13 @@ func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 	ip := util.Config_.Node.IP.Public
 	key := fmt.Sprintf("/routing/last/%s", ip)
 	if err = etcd_client.PutKeyWithLease(h.etcdCli, key, string(reqDataBytes), int64(60*lastExpireTime), pre, h.logger); err != nil {
-		h.logger.Error("存储 LastStats 到 etcd 失败", slog.String("pre", pre), slog.Any("error", err))
+		h.logger.Error("Failed to store LastStats to etcd", slog.String("pre", pre), slog.Any("error", err))
 	}
 
 	h.logger.Info("LastStats received", slog.String("pre", pre), slog.String("ip", ip), slog.String("key", key))
 
 	resp.Code = 200
-	resp.Msg = "LastStats 上报成功"
+	resp.Msg = "LastStats reported successfully"
 	resp.Data = lastStats
 
 	c.JSON(http.StatusOK, resp)

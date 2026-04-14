@@ -6,9 +6,10 @@ import (
 	"control-plane/util"
 	"encoding/json"
 	"fmt"
-	clientv3 "go.etcd.io/etcd/client/v3"
 	"log/slog"
 	"time"
+
+	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
 const (
@@ -128,11 +129,11 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 
 		jsonData, err := json.MarshalIndent(result, "", "  ")
 		if err != nil {
-			logger.Warn("结构体JSON序列化失败，跳过本次发送",
+			logger.Warn("Struct JSON serialization failed, skipping this send",
 				slog.String("pre", pre), slog.Any("err", err))
 			continue
 		}
-		logger.Info("结构体JSON序列化成功", slog.String("pre", pre),
+		logger.Info("Struct JSON serialization successful", slog.String("pre", pre),
 			slog.Any("data", string(jsonData)))
 
 		ip := util.Config_.Node.IP.Public
@@ -140,6 +141,6 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 		//etcd_client.PutKey(etcdClient, key, string(jsonData), logPre, logger)
 		_ = etcd_client.PutKeyWithLease(etcdClient, key, string(jsonData), int64(60*expireTime), pre, logger)
 
-		logger.Info("定时计算完成", slog.String("pre", pre), slog.String("data", string(jsonData)))
+		logger.Info("Scheduled calculation completed", slog.String("pre", pre), slog.String("data", string(jsonData)))
 	}
 }

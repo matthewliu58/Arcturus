@@ -15,7 +15,7 @@ const (
 	LatencyNormal  = 100.0
 	LatencyWarning = 150.0
 	CPULow         = 40.0
-	CPUMid         = 60.0 // 安全线
+	CPUMid         = 60.0
 	CPUHigh        = 80.0
 	defaultV       = 0.5
 )
