@@ -161,21 +161,16 @@ func main() {
 	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
 		panic("无法创建日志目录: " + err.Error())
 	}
-
 	logFilePath := filepath.Join(logDir, "app.log")
-
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		panic("无法打开日志文件: " + err.Error())
 	}
-
 	baseHandler := slog.NewTextHandler(logFile, &slog.HandlerOptions{
 		Level:     slog.LevelInfo,
 		AddSource: true,
 	})
-
 	logger := slog.New(&SourceHandler{handler: baseHandler})
-
 	slog.SetDefault(logger)
 
 	util.Config_, err = util.ReadYamlConfig(logger)
@@ -235,7 +230,7 @@ func main() {
 		logger.Info("获取全量前缀信息成功", slog.String("pre", pre), slog.Any("nodeMap", nodeMap))
 		for k, nodeJson := range nodeMap {
 			var tel agg.Telemetry
-			if err := json.Unmarshal([]byte(nodeJson), &tel); err != nil {
+			if err = json.Unmarshal([]byte(nodeJson), &tel); err != nil {
 				logger.Warn("解析节点JSON失败，跳过", slog.String("pre", pre),
 					slog.String("ip", k), slog.Any("err", err))
 				continue
@@ -258,7 +253,7 @@ func main() {
 		logger.Info("获取全量 last 统计信息成功", slog.String("pre", pre), slog.Any("lastMap", lastMap))
 		for _, lastJson := range lastMap {
 			var lastStats rece.LastStats
-			if err := json.Unmarshal([]byte(lastJson), &lastStats); err != nil {
+			if err = json.Unmarshal([]byte(lastJson), &lastStats); err != nil {
 				continue
 			}
 			globalStats.AddOrUpdateNode(&lastStats)
@@ -290,7 +285,7 @@ func main() {
 	api2.InitLastReceiveAPIRouter(router, cli, logger)
 
 	logger.Info("API服务启动成功", slog.String("pre", pre), slog.String("port", ":7081"))
-	if err := router.Run(":7081"); err != nil {
+	if err = router.Run(":7081"); err != nil {
 		logger.Error("API服务启动失败", slog.String("pre", pre), slog.Any("err", err))
 		return
 	}
