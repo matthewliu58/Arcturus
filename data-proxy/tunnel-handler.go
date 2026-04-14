@@ -14,13 +14,17 @@ import (
 
 func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 	if len(pkt) < packet.HeaderSize {
+		l.Error("Invalid packet length", slog.Any("remoteAddr", remoteAddr), slog.Any("pktLen", len(pkt)))
 		return
 	}
 
 	header, err := packet.ParseHeader(pkt)
 	if err != nil {
+		l.Error("Failed to parse packet", slog.String("remoteAddr", remoteAddr), slog.Any("err", err))
 		return
 	}
+
+	l.Info("Received QUIC packet", slog.String("remoteAddr", remoteAddr), slog.Any("header", header))
 
 	if header.Port != 0 {
 		isLastHop := header.HopPos == 2
@@ -54,7 +58,7 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 			nextIP := util.Uint32ToIP(header.HopIP[header.HopPos+1])
 			packet.AdvanceRawHop(pkt)
 			if err = manager.TunnelMgr.SendPacket(context.Background(), nextIP, pkt, "quic", l); err != nil {
-				l.Error("去程转发失败", "err", err)
+				l.Error("Outbound forwarding failed", "err", err)
 			}
 		}
 	} else {
@@ -79,7 +83,7 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 			nextIP := util.Uint32ToIP(header.HopIP[header.HopPos+1])
 			packet.AdvanceRawHop(pkt)
 			if err = manager.TunnelMgr.SendPacket(context.Background(), nextIP, pkt, "quic", l); err != nil {
-				l.Error("返程转发失败", "err", err)
+				l.Error("Return forwarding failed", "err", err)
 			}
 		}
 	}
