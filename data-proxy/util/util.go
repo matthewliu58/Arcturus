@@ -8,11 +8,11 @@ import (
 )
 
 func GenerateRandomLetters(length int) string {
-	rand.Seed(time.Now().UnixNano())                                  // 使用当前时间戳作为随机数种子
-	letters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" // 字母范围（大小写）
+	rand.Seed(time.Now().UnixNano())
+	letters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	var result string
 	for i := 0; i < length; i++ {
-		result += string(letters[rand.Intn(len(letters))]) // 随机选择一个字母
+		result += string(letters[rand.Intn(len(letters))])
 	}
 	return result
 }
@@ -20,9 +20,8 @@ func GenerateRandomLetters(length int) string {
 func HopIPToNet(ipStr string) net.IP {
 	ip := net.ParseIP(ipStr)
 	if ip == nil {
-		return nil // 非法IP，按你的逻辑处理
+		return nil
 	}
-	// 取 4字节 IPv4 格式
 	return ip.To4()
 }
 

@@ -1,7 +1,5 @@
 port: "7095"
 
-# 每个端口明确写 协议 + 端口
-# 格式：tcp:8001、udp:8001、tcp:443、udp:443
 listen_ports:
   - tcp:8001
   - tcp:8002
