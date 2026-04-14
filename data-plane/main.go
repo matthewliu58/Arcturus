@@ -3,10 +3,9 @@ package main
 import (
 	"context"
 	"data-plane/probing"
-	last_analyzer "data-plane/report-info/last-analyzer"
-	"data-plane/report-info/middle-collector"
+	last "data-plane/report-info/last-analyzer"
+	middle "data-plane/report-info/middle-collector"
 	"data-plane/util"
-	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
@@ -21,21 +20,11 @@ type SourceHandler struct {
 }
 
 func (h *SourceHandler) Handle(ctx context.Context, r slog.Record) error {
-	// 采集调用日志的位置（跳过当前Handler的栈帧，取真实业务代码的位置）
 	fs := runtime.CallersFrames([]uintptr{r.PC})
 	frame, _ := fs.Next()
-
-	// 只保留文件名（去掉全路径）
 	fileName := filepath.Base(frame.File)
-
-	// 向日志记录中添加源位置字段
-	r.AddAttrs(
-		slog.String("file", fileName),          // 文件名
-		slog.Int("line", frame.Line),           // 行号
-		slog.String("func", frame.Func.Name()), // 函数名（可选）
-	)
-
-	// 交给底层TextHandler输出
+	r.AddAttrs(slog.String("file", fileName),
+		slog.Int("line", frame.Line), slog.String("func", frame.Func.Name()))
 	return h.handler.Handle(ctx, r)
 }
 
@@ -52,16 +41,12 @@ func (h *SourceHandler) WithGroup(name string) slog.Handler {
 }
 
 func main() {
+	pre := "main"
 
 	logDir := filepath.Join(".", "log")
-	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
-		panic("无法创建日志目录: " + err.Error())
-	}
+	_ = os.MkdirAll(logDir, os.ModePerm)
 	logFilePath := filepath.Join(logDir, "app.log")
-	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		panic("无法打开日志文件: " + err.Error())
-	}
+	logFile, _ := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
 	baseHandler := slog.NewTextHandler(logFile, &slog.HandlerOptions{
 		Level:     slog.LevelInfo,
@@ -70,37 +55,34 @@ func main() {
 	logger := slog.New(&SourceHandler{handler: baseHandler})
 	slog.SetDefault(logger)
 
-	logPre := "init"
+	var err error
 	util.Config_, err = util.ReadYamlConfig(logger)
 	if err != nil {
-		logger.Error("read config failed", slog.String("pre", logPre), slog.Any("err", err))
+		logger.Error("Read config failed", slog.String("pre", pre), slog.Any("err", err))
 		return
-	} else {
-		b, _ := json.Marshal(util.Config_)
-		logger.Info("读取配置文件成功", slog.String("pre", logPre),
-			slog.String("config", string(b)))
+	}
+	logger.Info("Successfully read the configuration file",
+		slog.String("pre", pre), slog.Any("config", util.Config_))
+
+	if err = util.InitIPInfo(pre, logger); err != nil {
+		logger.Warn("IP library initialization failed", slog.String("pre", pre), slog.Any("err", err))
 	}
 
-	if err := util.InitIPInfo(logPre, logger); err != nil {
-		logger.Warn("IP库初始化失败", slog.String("pre", logPre), slog.Any("err", err))
+	if err = util.LoadCountryContinent(pre, logger); err != nil {
+		logger.Warn("Failed to read country information file", slog.String("pre", pre), slog.Any("err", err))
 	}
 
-	if err := util.LoadCountryContinent(logPre, logger); err != nil {
-		logger.Warn("国家-洲信息初始化失败", slog.String("pre", logPre), slog.Any("err", err))
-	}
+	go last.AccessAnalyzer(pre, logger)
 
-	go last_analyzer.AccessAnalyzer(logPre, logger)
+	go middle.ReportCycle(util.Config_.ControlHost, pre, logger)
 
-	go middle_collector.ReportCycle(util.Config_.ControlHost, logPre, logger)
-
-	//启动探测逻辑
 	probing.StartProbePeriodically(context.Background(), util.Config_.ControlHost,
 		probing.Config{
 			Concurrency: 4,
 			Timeout:     2 * time.Second,
 			Interval:    5 * time.Second,
 			Attempts:    5,
-		}, logPre, logger)
+		}, pre, logger)
 
 	router := gin.Default()
 	router.GET("/health", func(c *gin.Context) {
@@ -108,35 +90,36 @@ func main() {
 	})
 	ipGroup := router.Group("/ip")
 	{
-		ipGroup.GET("/info", getIPInfoHandler)
+		ipGroup.GET("/info", getIPInfoHandler(logger))
 	}
 
-	logger.Info("API端口启动", slog.String("pre", logPre), slog.String("port", ":7082"))
-	if err := router.Run(":7082"); err != nil {
-		logger.Error("API服务启动失败", slog.String("pre", logPre), slog.Any("err", err))
+	logger.Info("API port started", slog.String("pre", pre), slog.String("port", ":7082"))
+	if err = router.Run(":7082"); err != nil {
+		logger.Error("Service startup failed", slog.String("pre", pre), slog.Any("err", err))
 		return
 	}
 }
 
 // getIPInfoHandler GET /ip/info?ip=1.1.1.1
-func getIPInfoHandler(c *gin.Context) {
-	ip := c.Query("ip")
-	if ip == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "ip parameter is required",
-		})
-		return
-	}
+func getIPInfoHandler(logger *slog.Logger) gin.HandlerFunc {
+	return func(c *gin.Context) {
 
-	// 调用你现有的 IP 解析函数
-	ipInfo, err := util.GetIPInfo(ip, "api_ip_info", slog.Default())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
-	}
+		ip := c.Query("ip")
+		if ip == "" {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"error": "ip parameter is required",
+			})
+			return
+		}
 
-	// 返回结果
-	c.JSON(http.StatusOK, ipInfo)
+		ipInfo, err := util.GetIPInfo("Get IP info", ip, logger)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"error": err.Error(),
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, ipInfo)
+	}
 }

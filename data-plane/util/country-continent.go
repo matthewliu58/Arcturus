@@ -7,17 +7,15 @@ import (
 	"path/filepath"
 )
 
-// 全局映射表
 var (
 	countryToContinent map[string]string
 )
 
-// LoadCountryContinent 加载 JSON 文件（全局只加载一次）
 func LoadCountryContinent(pre string, logger *slog.Logger) error {
 	var loadErr error
 
 	exePath, _ := os.Executable()
-	exeDir := filepath.Dir(exePath) // 程序所在目录
+	exeDir := filepath.Dir(exePath)
 	filePath := filepath.Join(exeDir, "country-continent.json")
 
 	data, err := os.ReadFile(filePath)
@@ -27,7 +25,7 @@ func LoadCountryContinent(pre string, logger *slog.Logger) error {
 	}
 
 	var m map[string]string
-	if err := json.Unmarshal(data, &m); err != nil {
+	if err = json.Unmarshal(data, &m); err != nil {
 		loadErr = err
 		return loadErr
 	}
@@ -39,9 +37,6 @@ func LoadCountryContinent(pre string, logger *slog.Logger) error {
 	return loadErr
 }
 
-// GetContinentByCountry
-// 输入：国家英文名  Malaysia / China / United States
-// 输出：Asia / Europe / North America ...
 func GetContinentByCountry(country string) string {
 	if continent, ok := countryToContinent[country]; ok {
 		return continent
