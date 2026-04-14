@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+
+
 GO_VERSION="1.21.3"
 GO_TAR="go${GO_VERSION}.linux-amd64.tar.gz"
 GO_URL="https://dl.google.com/go/${GO_TAR}"
