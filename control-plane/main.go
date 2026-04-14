@@ -67,7 +67,7 @@ func HandleRoutingWatchEvent(
 	if len(val) > 0 {
 		compact := new(bytes.Buffer)
 		if err := json.Compact(compact, []byte(val)); err != nil {
-			logger.Warn("压缩 JSON 失败",
+			logger.Warn("Failed to compress JSON",
 				slog.String("pre", pre),
 				slog.Any("err", err),
 			)
@@ -84,7 +84,7 @@ func HandleRoutingWatchEvent(
 	var tel agg.Telemetry
 	if len(val) > 0 {
 		if err := json.Unmarshal([]byte(val), &tel); err != nil {
-			logger.Warn("解析节点JSON失败，跳过",
+			logger.Warn("Failed to parse node JSON, skipping",
 				slog.String("pre", pre),
 				slog.String("ip", key),
 				slog.Any("error", err),
@@ -129,7 +129,7 @@ func HandleLastWatchEvent(
 	var lastStats rece.LastStats
 	if len(val) > 0 {
 		if err := json.Unmarshal([]byte(val), &lastStats); err != nil {
-			logger.Warn("解析 LastStats JSON 失败，跳过",
+			logger.Warn("Failed to parse LastStats JSON, skipping",
 				slog.String("pre", pre),
 				slog.String("key", key),
 				slog.Any("error", err),
@@ -159,12 +159,12 @@ func main() {
 
 	logDir := filepath.Join(".", "log")
 	if err := os.MkdirAll(logDir, os.ModePerm); err != nil {
-		panic("无法创建日志目录: " + err.Error())
+		panic("Failed to create log directory: " + err.Error())
 	}
 	logFilePath := filepath.Join(logDir, "app.log")
 	logFile, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		panic("无法打开日志文件: " + err.Error())
+		panic("Failed to open log file: " + err.Error())
 	}
 	baseHandler := slog.NewTextHandler(logFile, &slog.HandlerOptions{
 		Level:     slog.LevelInfo,
@@ -180,7 +180,7 @@ func main() {
 		return
 	}
 	uu := util.Config_
-	logger.Info("读取配置文件成功", slog.String("pre", pre), slog.Any("config", uu))
+	logger.Info("Successfully read config file", slog.String("pre", pre), slog.Any("config", uu))
 
 	if uu.ServerIP != "" {
 		nodeName := "etcd-" + strings.ReplaceAll(uu.ServerIP, ".", "-")
@@ -225,13 +225,13 @@ func main() {
 	r := graph.NewGraphManager(logger)
 	nodeMap, err := _client.GetPrefixAll(cli, "/routing/middle/", pre, logger)
 	if err != nil {
-		logger.Warn("获取全量前缀信息失败", slog.String("pre", pre), slog.Any("err", err))
+		logger.Warn("Failed to get full prefix information", slog.String("pre", pre), slog.Any("err", err))
 	} else {
-		logger.Info("获取全量前缀信息成功", slog.String("pre", pre), slog.Any("nodeMap", nodeMap))
+		logger.Info("Successfully got full prefix information", slog.String("pre", pre), slog.Any("nodeMap", nodeMap))
 		for k, nodeJson := range nodeMap {
 			var tel agg.Telemetry
 			if err = json.Unmarshal([]byte(nodeJson), &tel); err != nil {
-				logger.Warn("解析节点JSON失败，跳过", slog.String("pre", pre),
+				logger.Warn("Failed to parse node JSON, skipping", slog.String("pre", pre),
 					slog.String("ip", k), slog.Any("err", err))
 				continue
 			}
@@ -248,9 +248,9 @@ func main() {
 	globalStats := agg.NewGlobalStats()
 	lastMap, err := _client.GetPrefixAll(cli, "/routing/last/", pre, logger)
 	if err != nil {
-		logger.Warn("获取全量 last 统计信息失败", slog.String("pre", pre), slog.Any("err", err))
+		logger.Warn("Failed to get full last statistics", slog.String("pre", pre), slog.Any("err", err))
 	} else {
-		logger.Info("获取全量 last 统计信息成功", slog.String("pre", pre), slog.Any("lastMap", lastMap))
+		logger.Info("Successfully got full last statistics", slog.String("pre", pre), slog.Any("lastMap", lastMap))
 		for _, lastJson := range lastMap {
 			var lastStats rece.LastStats
 			if err = json.Unmarshal([]byte(lastJson), &lastStats); err != nil {
@@ -284,9 +284,9 @@ func main() {
 	api2.InitUserRoutingRouter(router, r, globalStats, logger)
 	api2.InitLastReceiveAPIRouter(router, cli, logger)
 
-	logger.Info("API服务启动成功", slog.String("pre", pre), slog.String("port", ":7081"))
+	logger.Info("API service started successfully", slog.String("pre", pre), slog.String("port", ":7081"))
 	if err = router.Run(":7081"); err != nil {
-		logger.Error("API服务启动失败", slog.String("pre", pre), slog.Any("err", err))
+		logger.Error("Failed to start API service", slog.String("pre", pre), slog.Any("err", err))
 		return
 	}
 }
