@@ -1,7 +1,7 @@
 package last_mile
 
 import (
-	agg "control-plane/info-agg"
+	agg "control-plane/aggregator"
 	rece "control-plane/receive-info"
 	"control-plane/routing/routing"
 	"log/slog"

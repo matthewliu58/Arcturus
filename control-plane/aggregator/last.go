@@ -1,4 +1,4 @@
-package info_agg
+package aggregator
 
 import (
 	rece "control-plane/receive-info"

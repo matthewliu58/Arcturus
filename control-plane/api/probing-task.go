@@ -1,7 +1,7 @@
 package api
 
 import (
-	"control-plane/info-agg"
+	"control-plane/aggregator"
 	model "control-plane/receive-info"
 	"control-plane/sync/etcd_client"
 	"control-plane/util"
@@ -107,7 +107,7 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 	//ip_, _ := util.GetPublicIP()
 	ip_ := util.Config_.Node.IP.Public
 	for k, nodeJson := range nodeMap {
-		var telemetry info_agg.Telemetry
+		var telemetry aggregator.Telemetry
 		if err := json.Unmarshal([]byte(nodeJson), &telemetry); err != nil {
 			h.logger.Warn("解析节点JSON失败，跳过", slog.String("pre", pre),
 				slog.String("ip", k), slog.Any("error", err))

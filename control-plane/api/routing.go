@@ -1,7 +1,7 @@
 package api
 
 import (
-	agg "control-plane/info-agg"
+	agg "control-plane/aggregator"
 	rece "control-plane/receive-info"
 	routing1 "control-plane/routing"
 	"control-plane/routing/graph"

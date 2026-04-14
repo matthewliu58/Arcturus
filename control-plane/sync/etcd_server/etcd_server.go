@@ -13,8 +13,7 @@ func StartEmbeddedEtcd(serverList []string, serverIP, dataDir, name, pre string,
 	cfg.Dir = dataDir
 	cfg.Name = name
 
-	// 当前节点 URL
-	clientAddr, _ := url.Parse("http://" + serverIP + ":2379") //也可以0.0.0.0
+	clientAddr, _ := url.Parse("http://" + serverIP + ":2379")
 	peerAddr, _ := url.Parse("http://" + serverIP + ":2380")
 
 	cfg.ListenClientUrls = []url.URL{*clientAddr}
@@ -22,7 +21,6 @@ func StartEmbeddedEtcd(serverList []string, serverIP, dataDir, name, pre string,
 	cfg.ListenPeerUrls = []url.URL{*peerAddr}
 	cfg.AdvertisePeerUrls = []url.URL{*peerAddr}
 
-	// 构造 InitialCluster 字符串
 	var clusterEntries []string
 	for _, ip := range serverList {
 		nodeName := "etcd-" + strings.ReplaceAll(ip, ".", "-") // etcd-192-168-1-10
@@ -31,7 +29,6 @@ func StartEmbeddedEtcd(serverList []string, serverIP, dataDir, name, pre string,
 	cfg.InitialCluster = strings.Join(clusterEntries, ",")
 	cfg.ClusterState = embed.ClusterStateFlagNew
 
-	// 启动 etcd
 	e, err := embed.StartEtcd(cfg)
 	if err != nil {
 		return nil, err

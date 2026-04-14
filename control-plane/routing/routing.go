@@ -1,7 +1,7 @@
 package routing
 
 import (
-	agg "control-plane/info-agg"
+	agg "control-plane/aggregator"
 	"control-plane/routing/graph"
 	last "control-plane/routing/last-mile"
 	middle "control-plane/routing/middle-mile"

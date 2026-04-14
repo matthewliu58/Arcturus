@@ -1,7 +1,7 @@
 package graph
 
 import (
-	agg "control-plane/info-agg"
+	agg "control-plane/aggregator"
 	"log/slog"
 	"math"
 	"strconv"
