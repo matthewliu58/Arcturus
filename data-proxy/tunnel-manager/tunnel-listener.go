@@ -14,7 +14,8 @@ import (
 	"math/big"
 	"net"
 
-	"data-proxy/tunnel-packet"
+	packet "data-proxy/tunnel-packet"
+
 	"github.com/quic-go/quic-go"
 )
 
@@ -26,7 +27,7 @@ func ListenAndServeQUIC(handler func(remoteAddr string, data []byte, l *slog.Log
 	if err != nil {
 		return err
 	}
-	l.Info("QUIC 监听已启动", slog.String("pre", pre), slog.String("addr", addr))
+	l.Info("QUIC listener started", slog.String("pre", pre), slog.String("addr", addr))
 
 	for {
 		conn, err := ln.Accept(context.Background())
@@ -41,32 +42,28 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 
 	defer conn.CloseWithError(0, "exit")
 	remote := conn.RemoteAddr().String()
-	l.Info("接入", slog.String("pre", pre), slog.String("remote", remote))
+	l.Info("Connected", slog.String("pre", pre), slog.String("remote", remote))
 
 	for {
 		stream, err := conn.AcceptUniStream(context.Background())
 		if err != nil {
-			l.Info("断开", slog.String("pre", pre), slog.String("remote", remote))
+			l.Info("Disconnected", slog.String("pre", pre), slog.String("remote", remote))
 			return
 		}
 
-		// 先读 20 字节包头
-		headerBuf := make([]byte, tunnel_packet.HeaderSize)
+		headerBuf := make([]byte, packet.HeaderSize)
 		_, err = io.ReadFull(stream, headerBuf)
 		if err != nil {
 			continue
 		}
 
-		// 从包头解析 PayloadLen
 		payloadLen := binary.BigEndian.Uint16(headerBuf[17:19])
-		totalLen := tunnel_packet.HeaderSize + int(payloadLen)
+		totalLen := packet.HeaderSize + int(payloadLen)
 
-		// 按实际大小分配
 		buf := make([]byte, totalLen)
 		copy(buf, headerBuf)
 
-		// 读取 payload
-		_, err = io.ReadFull(stream, buf[tunnel_packet.HeaderSize:])
+		_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
 		if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
 			continue
 		}

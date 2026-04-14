@@ -21,11 +21,11 @@ const (
 
 type TunnelManager struct {
 	mu      sync.RWMutex
-	tunnels map[string]*quic.Conn //todo 很久没数据是不是要删除
+	tunnels map[string]*quic.Conn // TODO: purge not triggered for a long time
 }
 
 func NewTunnelManager(pre string, l *slog.Logger) *TunnelManager {
-	l.Info("QUIC 管理器已启动", slog.String("pre", pre))
+	l.Info("QUIC manager started", slog.String("pre", pre))
 	return &TunnelManager{
 		tunnels: make(map[string]*quic.Conn),
 	}
@@ -34,7 +34,7 @@ func NewTunnelManager(pre string, l *slog.Logger) *TunnelManager {
 func (m *TunnelManager) SendPacket(
 	ctx context.Context,
 	remoteIP net.IP,
-//pkt *tunnel_packet.Packet,
+	//pkt *tunnel_packet.Packet,
 	data []byte, pre string, l *slog.Logger,
 ) error {
 	if remoteIP == nil {
@@ -115,7 +115,7 @@ func (m *TunnelManager) GetOrCreateTunnel(
 	}
 
 	m.tunnels[addr] = conn
-	l.Info("QUIC tunnel 已建立", slog.String("pre", pre), slog.String("addr", addr))
+	l.Info("QUIC tunnel established", slog.String("pre", pre), slog.String("addr", addr))
 	return conn, nil
 }
 
@@ -128,6 +128,6 @@ func (m *TunnelManager) CloseTunnel(remoteIP net.IP, pre string, l *slog.Logger)
 	if conn, ok := m.tunnels[addr]; ok {
 		_ = conn.CloseWithError(0, "connection failed")
 		delete(m.tunnels, addr)
-		l.Info("QUIC tunnel 已关闭", slog.String("pre", pre), slog.String("addr", addr))
+		l.Info("QUIC tunnel closed", slog.String("pre", pre), slog.String("addr", addr))
 	}
 }

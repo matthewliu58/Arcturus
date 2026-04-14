@@ -11,13 +11,16 @@ import (
 	"time"
 )
 
-type UDPServer struct{}
-
-func NewUDPServer() *UDPServer {
-	return &UDPServer{}
+type UDPServer struct {
+	protocol string
 }
 
-// StartServerWithMgr 初始化 UDP 监听并注册
+func NewUDPServer() *UDPServer {
+	return &UDPServer{
+		protocol: "udp",
+	}
+}
+
 func (u *UDPServer) StartServerWithMgr(port int, pre string, l *slog.Logger) error {
 	addr := &net.UDPAddr{Port: port}
 	conn, err := net.ListenUDP("udp", addr)
@@ -32,34 +35,31 @@ func (u *UDPServer) StartServerWithMgr(port int, pre string, l *slog.Logger) err
 	portMutex.Unlock()
 	listenerMu.Unlock()
 
-	l.Info("udp server started",
-		slog.String("pre", pre),
-		slog.Int("port", port),
-	)
+	l.Info("udp server started", slog.String("pre", pre),
+		slog.String("protocol", u.protocol), slog.Int("port", port))
 	return nil
 }
 
-// StartServerRun 启动 UDP 接收循环（阻塞）
 func (u *UDPServer) StartServerRun(port int, accessLogger *slog.Logger, req string, logger *slog.Logger) {
 	listenerMu.RLock()
 	conn, ok := listenerMap[port].(*net.UDPConn)
 	listenerMu.RUnlock()
 
 	if !ok || conn == nil {
-		logger.Error("udp listener not found", slog.Int("port", port))
+		logger.Error("udp listener not found", slog.String("req", req),
+			slog.String("protocol", u.protocol), slog.Int("port", port))
 		return
 	}
 
-	buf := make([]byte, 65535) // UDP 最大包
+	buf := make([]byte, 65535)
 
 	for {
 		n, clientAddr, err := conn.ReadFromUDP(buf)
 		if err != nil {
-			logger.Error("udp read failed", slog.Any("err", err))
+			logger.Error("udp read failed", slog.String("req", req), slog.Any("err", err))
 			continue
 		}
 
-		// 必须异步，否则 UDP 会丢包
 		go func() {
 			data := make([]byte, n)
 			copy(data, buf[:n])
@@ -68,7 +68,6 @@ func (u *UDPServer) StartServerRun(port int, accessLogger *slog.Logger, req stri
 	}
 }
 
-// StopServer 关闭 UDP
 func (u *UDPServer) StopServer(port int, req string, l *slog.Logger) error {
 	listenerMu.Lock()
 	defer listenerMu.Unlock()
@@ -85,11 +84,11 @@ func (u *UDPServer) StopServer(port int, req string, l *slog.Logger) error {
 	delete(portMap, port)
 	portMutex.Unlock()
 
-	l.Info("udp server stopped", slog.Int("port", port))
+	l.Info("udp server stopped", slog.String("req", req),
+		slog.String("protocol", u.protocol), slog.Int("port", port))
 	return err
 }
 
-// DirectOriginProxy UDP 直接回源
 func (u *UDPServer) DirectOriginProxy(
 	conn *net.UDPConn,
 	clientAddr *net.UDPAddr,
@@ -131,9 +130,6 @@ func (u *UDPServer) DirectOriginProxy(
 	return true
 }
 
-// ------------------------------
-// UDP 业务处理（和 TCP 完全对齐）
-// ------------------------------
 func handleUDPConnection(
 	conn *net.UDPConn,
 	clientAddr *net.UDPAddr,
@@ -144,7 +140,6 @@ func handleUDPConnection(
 ) {
 	clientIP := clientAddr.IP.String()
 
-	// 限流
 	if globalRL != nil && !globalRL.Allow(port, clientIP) {
 		logger.Warn("udp rate limited",
 			slog.String("client_ip", clientIP),
@@ -154,18 +149,18 @@ func handleUDPConnection(
 	}
 
 	reqID := util.GenShortReqID(clientIP)
-	start := time.Now()
+	//start := time.Now()
+	//rtMs := float64(time.Since(start).Microseconds()) / 1000
+	//accessLogger.Info("udp access",
+	//	slog.Any("req_id", reqID),
+	//	slog.String("client_ip", clientIP),
+	//	slog.Float64("rt_ms", rtMs),
+	//	slog.Int("data_len", len(data)),
+	//)
 
-	// 访问日志
-	rtMs := float64(time.Since(start).Microseconds()) / 1000
-	accessLogger.Info("udp access",
-		slog.Any("req_id", reqID),
-		slog.String("client_ip", clientIP),
-		slog.Float64("rt_ms", rtMs),
-		slog.Int("data_len", len(data)),
-	)
+	logger.Info("udp request received", slog.Any("req_id", reqID),
+		slog.Any("clientAddr", clientAddr), slog.Int("port", port))
 
-	// 路由
 	routingMutex.RLock()
 	ri, hasRoute := routingMap[port]
 	routingMutex.RUnlock()
@@ -182,24 +177,23 @@ func handleUDPConnection(
 	}
 	pathInfo := routeInfo.Routing[0]
 
-	// 直接回源
 	if len(pathInfo.Hops) <= 2 {
 		originAddr := pathInfo.Hops[len(pathInfo.Hops)-1]
 		if ok := NewUDPServer().DirectOriginProxy(
 			conn, clientAddr, originAddr, data, reqID, logger,
-		); ok {
-			return
+		); !ok {
+			logger.Error("udp direct proxy failed", slog.Any("req_id", reqID))
 		}
+		return
 	}
 
-	// 走聚合隧道
-	userID := util.GenShortReqID(clientIP)
 	nextHop := util.HopIPToNet(pathInfo.Hops[1])
 
 	var routingKey, portStr string
 	for _, h := range pathInfo.Hops {
 		if idx := strings.Index(h, ":"); idx != -1 {
 			portStr = h[idx+1:]
+			h = h[:idx]
 		}
 		routingKey += "," + h
 	}
@@ -207,7 +201,7 @@ func handleUDPConnection(
 	p64, _ := strconv.ParseUint(portStr, 10, 16)
 
 	// 注册等待通道
-	waitCh, cleanup := disaggregator.GlobalDisagg.Register(userID)
+	waitCh, cleanup := disaggregator.GlobalDisagg.Register(reqID)
 	defer cleanup()
 
 	// 入队
@@ -217,7 +211,7 @@ func handleUDPConnection(
 		uint16(p64),
 		pathInfo,
 		nextHop,
-		userID,
+		reqID,
 		data,
 	)
 

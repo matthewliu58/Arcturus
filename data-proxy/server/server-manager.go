@@ -9,13 +9,6 @@ import (
 	"sync"
 )
 
-// 外部声明（由 main.go 提供）
-var (
-	logger       *slog.Logger
-	accessLogger *slog.Logger
-)
-
-// 全局端口管理
 var (
 	portMap     = make(map[int]bool)
 	portMutex   sync.RWMutex
@@ -23,8 +16,7 @@ var (
 	listenerMu  sync.RWMutex
 )
 
-// TCPServerManager HTTP 接口管理 TCP server
-func ServerManager(r *gin.Engine, l *slog.Logger) {
+func ServerManager(r *gin.Engine, a, l *slog.Logger) {
 	r.POST("/tcp/start", func(c *gin.Context) {
 
 		req := util.GenerateRandomLetters(5)
@@ -49,7 +41,6 @@ func ServerManager(r *gin.Engine, l *slog.Logger) {
 			return
 		}
 
-		// 检查是否已启动
 		portMutex.RLock()
 		exists := portMap[port]
 		portMutex.RUnlock()
@@ -59,15 +50,14 @@ func ServerManager(r *gin.Engine, l *slog.Logger) {
 			return
 		}
 
-		// 启动 TCP server（先创建 listener，失败则返回错误）
-		err = ServerMap[protocol].Operate.StartServerWithMgr(port, req, logger)
+		err = ServerMap[protocol].Operate.StartServerWithMgr(port, req, l)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
 
 		// 成功后再用 goroutine 运行
-		go ServerMap[protocol].Operate.StartServerRun(port, accessLogger, req, logger)
+		go ServerMap[protocol].Operate.StartServerRun(port, a, req, l)
 
 		c.JSON(http.StatusOK, gin.H{"message": "tcp server started", "port": port})
 	})

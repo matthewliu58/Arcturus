@@ -118,7 +118,7 @@ func main() {
 		c.JSON(http.StatusOK, "success")
 	})
 
-	server.ServerManager(router, logger)
+	server.ServerManager(router, accessLogger, logger)
 
 	port := "7095"
 	logger.Info("Listening", slog.String("pre", pre), "port", port)

@@ -13,13 +13,13 @@ type routingInfo struct {
 }
 
 var (
-	routingMap   = make(map[int]routingInfo) //todo 很久没触发删除
+	routingMap   = make(map[int]routingInfo) // TODO: purge not triggered for a long time
 	routingMutex sync.RWMutex
 )
 
 const (
-	routeTimeout = 30 * time.Second // 路由缓存超时
-	proxyTimeout = 5 * time.Second  // 回源 / 等待超时
+	routeTimeout = 30 * time.Second
+	proxyTimeout = 5 * time.Second
 )
 
 type ServerFuncs interface {
