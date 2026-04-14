@@ -75,8 +75,6 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 	}
 }
 
-// 自签名证书（QUIC 必须）
-// GenerateTLSConfig 生成服务端证书
 func GenerateTLSConfig() *tls.Config {
 	key, _ := rsa.GenerateKey(rand.Reader, 2048)
 	template := &x509.Certificate{SerialNumber: big.NewInt(1)}

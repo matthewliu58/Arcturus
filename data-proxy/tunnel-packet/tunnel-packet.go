@@ -8,34 +8,29 @@ import (
 	"net"
 )
 
-// 包头结构：24字节
 // b[0]: HopPos(1) + b[1:17]: HopIP(16) + b[17:19]: PayloadLen(2) + b[19:21]: Port(2) + b[21:24]: padding(3)
 const (
 	HeaderSize = 24
-	MaxHops    = 4 // 总跳数固定 4 跳 (0~3)
+	MaxHops    = 4
 )
 
 var ErrInvalidHeader = errors.New("invalid packet header: length too short")
 
-// Packet 多级代理合并分包总包结构
 type Packet struct {
-	Buf        []byte    // 缓冲区
-	BuffSize   int       // 外部传入的缓冲区大小
-	HopPos     byte      // 当前所在跳数 0~3
-	HopIP      [4]uint32 // 4 跳节点 IPv4
-	PayloadLen uint16    // 子报文总长度
-	Port       uint16    // 目的端口
-
-	wp int // payload 内部写入游标
+	Buf        []byte
+	BuffSize   int
+	HopPos     byte
+	HopIP      [4]uint32
+	PayloadLen uint16
+	Port       uint16
+	wp         int
 }
 
-// SubPacket 单个用户子报文
 type SubPacket struct {
 	UserID uint32
 	Data   []byte
 }
 
-// NewPacket 创建一个预分配 5K 的空包
 func NewPacket(buffSizes int) *Packet {
 	return &Packet{
 		Buf: make([]byte, buffSizes),
@@ -43,7 +38,6 @@ func NewPacket(buffSizes int) *Packet {
 	}
 }
 
-// SetHopIP 设置第 n 跳 IP
 func (p *Packet) SetHopIP(hopIdx int, ip net.IP) {
 	if hopIdx < 0 || hopIdx >= MaxHops {
 		return
@@ -55,14 +49,12 @@ func (p *Packet) SetHopIP(hopIdx int, ip net.IP) {
 	p.HopIP[hopIdx] = binary.BigEndian.Uint32(ip4)
 }
 
-// SetHopPos 手动设置当前跳数
 func (p *Packet) SetHopPos(pos byte) {
 	if pos >= 0 && pos < MaxHops {
 		p.HopPos = pos
 	}
 }
 
-// AdvanceHop HopPos + 1，并写回 Buf
 func (p *Packet) AdvanceHop() {
 	if p.HopPos < MaxHops-1 {
 		p.HopPos++
@@ -70,19 +62,16 @@ func (p *Packet) AdvanceHop() {
 	}
 }
 
-// AdvanceRawHop 原始字节 HopPos + 1（直接操作字节数组）
 func AdvanceRawHop(pkt []byte) {
 	if len(pkt) >= HeaderSize && pkt[0] < MaxHops-1 {
 		pkt[0]++
 	}
 }
 
-// SetPort 设置目的端口
 func (p *Packet) SetPort(port uint16) {
 	p.Port = port
 }
 
-// AppendUserPacket 追加一个用户子包
 func (p *Packet) AppendUserPacket(userID uint32, data []byte) bool {
 	subSize := 4 + 2 + len(data)
 	if p.wp+subSize > p.BuffSize {
@@ -102,34 +91,23 @@ func (p *Packet) AppendUserPacket(userID uint32, data []byte) bool {
 	return true
 }
 
-// SerializeHead 将包头结构写回 Buf 前 24 字节
 func (p *Packet) SerializeHead() {
 	b := p.Buf[:HeaderSize]
 
-	// 0 字节：跳数
 	b[0] = p.HopPos
 
-	// 1~17 字节：4个IP
 	binary.BigEndian.PutUint32(b[1:5], p.HopIP[0])
 	binary.BigEndian.PutUint32(b[5:9], p.HopIP[1])
 	binary.BigEndian.PutUint32(b[9:13], p.HopIP[2])
 	binary.BigEndian.PutUint32(b[13:17], p.HopIP[3])
-
-	// 17~19 字节：payload 长度
 	binary.BigEndian.PutUint16(b[17:19], p.PayloadLen)
-
-	// 19~21 字节：端口
 	binary.BigEndian.PutUint16(b[19:21], p.Port)
-
-	// 21~24 字节：reserved padding
 }
 
-// TotalBytes 实际使用总长度
 func (p *Packet) TotalBytes() int {
 	return HeaderSize + int(p.PayloadLen)
 }
 
-// ParseHeader 只解析包头（24字节），转发层专用
 func ParseHeader(raw []byte) (*Packet, error) {
 	if len(raw) < HeaderSize {
 		return nil, ErrInvalidHeader
@@ -153,7 +131,6 @@ func ParseHeader(raw []byte) (*Packet, error) {
 	return p, nil
 }
 
-// Parse 解析整包 + 所有子包
 func Parse(raw []byte, bufferSize int) (*Packet, []SubPacket, error) {
 	if len(raw) < HeaderSize {
 		return nil, nil, fmt.Errorf("raw data too short")
@@ -164,7 +141,6 @@ func Parse(raw []byte, bufferSize int) (*Packet, []SubPacket, error) {
 
 	b := p.Buf[:HeaderSize]
 
-	// 解析包头
 	p.HopPos = b[0]
 	p.HopIP[0] = binary.BigEndian.Uint32(b[1:5])
 	p.HopIP[1] = binary.BigEndian.Uint32(b[5:9])
@@ -173,7 +149,6 @@ func Parse(raw []byte, bufferSize int) (*Packet, []SubPacket, error) {
 	p.PayloadLen = binary.BigEndian.Uint16(b[17:19])
 	p.Port = binary.BigEndian.Uint16(b[19:21])
 
-	// 解析 payload
 	payloadEnd := HeaderSize + int(p.PayloadLen)
 	if payloadEnd > len(raw) || payloadEnd > bufferSize {
 		return nil, nil, fmt.Errorf("invalid payload length")
