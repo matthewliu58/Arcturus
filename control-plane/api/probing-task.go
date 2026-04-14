@@ -25,7 +25,6 @@ var (
 	CloudStorageMap map[int]CloudStorageTarget
 )
 
-// NodeProbeAPIHandler 提供获取节点探测任务的接口
 type NodeProbeAPIHandler struct {
 	etcdClient *clientv3.Client
 	logger     *slog.Logger
@@ -41,27 +40,23 @@ type CloudStorageTarget struct {
 }
 
 func LoadCloudStorageTargetsFromExeDir() (map[int]CloudStorageTarget, error) {
-	// 1. 获取可执行文件路径
+
 	exePath, err := os.Executable()
 	if err != nil {
 		return nil, fmt.Errorf("get executable path failed: %w", err)
 	}
 
-	// 2. 解析可执行文件所在目录
 	exeDir := filepath.Dir(exePath)
 
-	// 3. 拼出配置文件完整路径
 	targetFile := filepath.Join(exeDir, probeTargets)
 
-	// 4. 读取文件
 	data, err := os.ReadFile(targetFile)
 	if err != nil {
 		return nil, fmt.Errorf("read cloud storage targets file failed (%s): %w", targetFile, err)
 	}
 
-	// 5. 反序列化 JSON
 	var targets []CloudStorageTarget
-	if err := json.Unmarshal(data, &targets); err != nil {
+	if err = json.Unmarshal(data, &targets); err != nil {
 		return nil, fmt.Errorf("unmarshal cloud storage targets failed: %w", err)
 	}
 
@@ -73,7 +68,6 @@ func LoadCloudStorageTargetsFromExeDir() (map[int]CloudStorageTarget, error) {
 	return cloudStorageMap, nil
 }
 
-// NewNodeProbeAPIHandler 初始化
 func NewNodeProbeAPIHandler(cli *clientv3.Client, logger *slog.Logger) *NodeProbeAPIHandler {
 	return &NodeProbeAPIHandler{
 		etcdClient: cli,
@@ -81,8 +75,6 @@ func NewNodeProbeAPIHandler(cli *clientv3.Client, logger *slog.Logger) *NodeProb
 	}
 }
 
-// GetProbeTasks 处理 GET /api/v1/probe/tasks
-// 返回当前所有节点的探测任务信息
 func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 	resp := model.ApiResponse{
 		Code: 500,
@@ -92,7 +84,6 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 
 	pre := util.GenerateRandomLetters(5)
 
-	// 1. 从Etcd获取所有节点
 	nodeMap, err := etcd_client.GetPrefixAll(h.etcdClient, "/routing/", pre, h.logger)
 	if err != nil {
 		resp.Code = 500
@@ -102,9 +93,7 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 		return
 	}
 
-	// 2. 解析每个节点JSON，生成Targets列表
 	var tasks []model.ProbeTask
-	//ip_, _ := util.GetPublicIP()
 	ip_ := util.Config_.Node.IP.Public
 	for k, nodeJson := range nodeMap {
 		var telemetry aggregator.Telemetry
@@ -118,7 +107,6 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 			continue
 		}
 
-		//选取controller作为 node代理节点进行探测
 		tasks = append(tasks, model.ProbeTask{
 			TargetType: Node,
 			Provider:   telemetry.Provider,
@@ -139,14 +127,12 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 		})
 	}
 
-	// 3. 返回JSON
 	resp.Code = 200
 	resp.Msg = "成功获取节点探测任务"
 	resp.Data = tasks
 	c.JSON(http.StatusOK, resp)
 }
 
-// InitNodeProbeRouter 初始化路由
 func InitNodeProbeRouter(router *gin.Engine, cli *clientv3.Client, logger *slog.Logger) *gin.Engine {
 	r := router
 	apiV1 := r.Group("/api/v1")

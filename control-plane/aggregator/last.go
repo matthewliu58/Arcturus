@@ -10,9 +10,9 @@ import (
 
 type GlobalStats struct {
 	mu           sync.RWMutex
-	nodeLast     map[string]*rece.LastStats // key: nodeIP
+	nodeLast     map[string]*rece.LastStats
 	edgeAgg      map[string]*rece.LastStatsVal
-	nodeLocation map[string][]string //key continent; val ips
+	nodeLocation map[string][]string
 }
 
 func NewGlobalStats() *GlobalStats {
@@ -23,7 +23,6 @@ func NewGlobalStats() *GlobalStats {
 	}
 }
 
-// AddOrUpdateNode 添加或更新节点（上报最新10分钟数据）
 func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 	if node.IP == "" {
 		return
@@ -34,7 +33,6 @@ func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 	g.mu.Unlock()
 }
 
-// DelNode 删除下线节点
 func (g *GlobalStats) DelNode(nodeIP string) {
 	g.mu.Lock()
 	delete(g.nodeLast, nodeIP)
@@ -42,12 +40,10 @@ func (g *GlobalStats) DelNode(nodeIP string) {
 	g.mu.Unlock()
 }
 
-// AddNodeLocation 添加节点 IP 到地理位置索引
 func (g *GlobalStats) AddNodeLocation(ip, continent string) {
 	if g.nodeLocation[continent] == nil {
 		g.nodeLocation[continent] = make([]string, 0)
 	}
-	// 避免重复
 	for _, existingIP := range g.nodeLocation[continent] {
 		if existingIP == ip {
 			return
@@ -56,7 +52,6 @@ func (g *GlobalStats) AddNodeLocation(ip, continent string) {
 	g.nodeLocation[continent] = append(g.nodeLocation[continent], ip)
 }
 
-// DelNodeLocation 从地理位置索引删除节点 IP
 func (g *GlobalStats) DelNodeLocation(ip string) {
 	for continent, ips := range g.nodeLocation {
 		for i, existingIP := range ips {
@@ -79,16 +74,12 @@ func (g *GlobalStats) GetNodeLocation() map[string][]string {
 	return nodeLocation
 }
 
-// GetAggMap 获取当前所有聚合好的数据（线程安全）
-// 返回：map[聚合key]统计值
 func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsVal {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	// 复制一份返回，避免外部修改内部数据
 	result := make(map[string]*rece.LastStatsVal, len(g.edgeAgg))
 	for k, v := range g.edgeAgg {
-		// 复制值对象，防止外部篡改
 		valCopy := *v
 		result[k] = &valCopy
 	}
@@ -96,22 +87,19 @@ func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsVal {
 	return result
 }
 
-// GetAggValue 根据 key 获取单个聚合结果
 func (g *GlobalStats) GetAggValue(key string) *rece.LastStatsVal {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
 	val, ok := g.edgeAgg[key]
 	if !ok {
-		return &rece.LastStatsVal{} // 不存在返回空值，不崩溃
+		return &rece.LastStatsVal{}
 	}
 
-	// 返回副本，安全
 	copy := *val
 	return &copy
 }
 
-// 启动后台定时聚合（30秒刷新一次）
 func (g *GlobalStats) StartAggregateWorker(logger *slog.Logger) {
 	ticker := time.NewTicker(30 * time.Second)
 	go func() {
@@ -122,7 +110,6 @@ func (g *GlobalStats) StartAggregateWorker(logger *slog.Logger) {
 	}()
 }
 
-// 重新计算所有地理维度聚合
 func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	g.mu.RLock()
 	nodeList := make([]*rece.LastStats, 0, len(g.nodeLast))
@@ -154,7 +141,6 @@ func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	g.mu.Unlock()
 }
 
-// 合并统计：多个节点数据累加，计算平均
 func (g *GlobalStats) merge(newAgg map[string]*rece.LastStatsVal, userKey, serverKey string, val *rece.LastStatsVal) {
 
 	key := userKey + "-" + serverKey

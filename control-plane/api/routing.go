@@ -13,14 +13,12 @@ import (
 	"strconv"
 )
 
-// UserRoutingAPIHandler 提供获取用户传输文件的路由信息
 type UserRoutingAPIHandler struct {
 	GraphManager *graph.GraphManager
 	GlobalStats  *agg.GlobalStats
 	Logger       *slog.Logger
 }
 
-// NewUserRoutingAPIHandler 初始化
 func NewUserRoutingAPIHandler(gm *graph.GraphManager, gs *agg.GlobalStats, logger *slog.Logger) *UserRoutingAPIHandler {
 	return &UserRoutingAPIHandler{
 		GraphManager: gm,
@@ -29,7 +27,6 @@ func NewUserRoutingAPIHandler(gm *graph.GraphManager, gs *agg.GlobalStats, logge
 	}
 }
 
-// GetUserRoute 处理 POST /api/v1/routing
 func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 
 	pre := c.GetHeader("X-Pre")
@@ -44,7 +41,6 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 		Data: nil,
 	}
 
-	// 解析 body JSON
 	var req routing2.EndPoints
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Code = 400
@@ -87,7 +83,6 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 		Data: nil,
 	}
 
-	// 解析 body JSON
 	var req routing2.EndPoints
 	if err := c.ShouldBindJSON(&req); err != nil {
 		resp.Code = 400
@@ -107,7 +102,6 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// InitUserRoutingRouter 初始化用户路由 API 路由
 func InitUserRoutingRouter(router *gin.Engine, gm *graph.GraphManager,
 	gs *agg.GlobalStats, logger *slog.Logger) *gin.Engine {
 	apiV1 := router.Group("/api/v1")
