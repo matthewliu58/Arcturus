@@ -14,10 +14,25 @@ var (
 )
 
 type Config struct {
-	Port       string     `yaml:"port"`
-	Listeners  []Listener `yaml:"listeners"`
-	RateLimit  RateLimit  `yaml:"rate_limit"`
-	Aggregator Aggregator `yaml:"aggregator"`
+	Port        string     `yaml:"port"`
+	ControlHost string     `yaml:"control_host"`
+	Listeners   []Listener `yaml:"listeners"`
+	RateLimit   RateLimit  `yaml:"rate_limit"`
+	Aggregator  Aggregator `yaml:"aggregator"`
+	Node        NodeConfig `yaml:"node"`
+}
+
+type NodeConfig struct {
+	Provider  string `yaml:"provider"`
+	Continent string `yaml:"continent"`
+	Country   string `yaml:"country"`
+	City      string `yaml:"city"`
+	IP        NodeIP `yaml:"ip"`
+}
+
+type NodeIP struct {
+	Private string `yaml:"private"`
+	Public  string `yaml:"public"`
 }
 
 type Listener struct {

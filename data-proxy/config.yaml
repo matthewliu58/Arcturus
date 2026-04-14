@@ -1,5 +1,7 @@
 port: "7095"
 
+control_host: "http://127.0.0.1:7081"
+
 listen_ports:
   - tcp:8001
   - tcp:8002
@@ -19,3 +21,12 @@ rate_limit:
 aggregator:
   buffer_size: 5120
   batch_timeout_ms: 10
+
+node:
+  provider: "Vultr"
+  continent: "NorthAmerica"
+  country: "US"
+  city: "Chicago"
+  ip:
+    private: "0.0.0.0"
+    public: "173.199.92.182"

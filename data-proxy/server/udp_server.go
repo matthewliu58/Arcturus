@@ -149,14 +149,6 @@ func handleUDPConnection(
 	}
 
 	reqID := util.GenShortReqID(clientIP)
-	//start := time.Now()
-	//rtMs := float64(time.Since(start).Microseconds()) / 1000
-	//accessLogger.Info("udp access",
-	//	slog.Any("req_id", reqID),
-	//	slog.String("client_ip", clientIP),
-	//	slog.Float64("rt_ms", rtMs),
-	//	slog.Int("data_len", len(data)),
-	//)
 
 	logger.Info("udp request received", slog.Any("req_id", reqID),
 		slog.Any("clientAddr", clientAddr), slog.Int("port", port))
@@ -165,12 +157,30 @@ func handleUDPConnection(
 	ri, hasRoute := routingMap[port]
 	routingMutex.RUnlock()
 
-	if !hasRoute || time.Now().After(ri.deadline) || ri.info == nil {
-		logger.Error("udp no valid route", slog.Any("req_id", reqID))
-		return
-	}
+	var routeInfo *util.RoutingInfo
+	if !hasRoute {
+		routeInfo = GetRoutingFromControlPlane(port, logger)
 
-	routeInfo := ri.info
+		routingMutex.Lock()
+		routingMap[port] = routingInfo{
+			info:     routeInfo,
+			deadline: time.Now().Add(routeTimeout),
+		}
+		routingMutex.Unlock()
+	} else if time.Now().After(ri.deadline) {
+		go func() {
+			routeInfo = GetRoutingFromControlPlane(port, logger)
+
+			routingMutex.Lock()
+			routingMap[port] = routingInfo{
+				info:     routeInfo,
+				deadline: time.Now().Add(routeTimeout),
+			}
+			routingMutex.Unlock()
+		}()
+	}
+	routeInfo = ri.info
+
 	if len(routeInfo.Routing) == 0 {
 		logger.Error("udp routing empty", slog.Any("req_id", reqID))
 		return
