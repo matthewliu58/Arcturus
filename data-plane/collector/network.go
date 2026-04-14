@@ -1,4 +1,4 @@
-package middle_collector
+package collector
 
 import (
 	model "data-plane/report-info"
@@ -16,7 +16,7 @@ func collectNetwork() (model.NetworkInfo, error) {
 		return model.NetworkInfo{}, err
 	}
 	portCount := len(ports)
-	
+
 	ioStat, err := net.IOCounters(true)
 	if err != nil {
 		return model.NetworkInfo{}, err

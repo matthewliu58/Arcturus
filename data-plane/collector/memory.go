@@ -1,4 +1,4 @@
-package middle_collector
+package collector
 
 import (
 	model "data-plane/report-info"

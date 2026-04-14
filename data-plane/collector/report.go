@@ -1,4 +1,4 @@
-package middle_collector
+package collector
 
 import (
 	"bytes"
@@ -74,7 +74,7 @@ func ReportCycle(controlHost, pre string, logger *slog.Logger) {
 	defer ticker.Stop()
 
 	logger.Info(
-		"数据平面启动，开始定时上报", slog.String("pre", pre),
+		"data plane started, starting scheduled reporting", slog.String("pre", pre),
 		slog.Duration("report_interval", ReportInterval),
 		slog.String("report_url", controlHost+ReportURL),
 	)
@@ -90,21 +90,21 @@ func reportOnce(controlHost string, collector *VMCollector, reporter *HTTPReport
 
 	pre := util.GenerateRandomLetters(5)
 
-	logger.Info("开始采集VM信息...", slog.String("pre", pre))
+	logger.Info("start collecting VM information...", slog.String("pre", pre))
 	vmReport, err := collector.Collect(pre, logger)
 	if err != nil {
-		logger.Error("采集失败", slog.String("pre", pre), slog.Any("err", err))
+		logger.Error("collection failed", slog.String("pre", pre), slog.Any("err", err))
 		return
 	}
-	
+
 	b, _ := json.Marshal(vmReport)
-	logger.Info("开始上报VM信息", slog.String("pre", pre), slog.String("data", string(b)))
+	logger.Info("start reporting VM information", slog.String("pre", pre), slog.String("data", string(b)))
 
 	err = reporter.Report(controlHost, pre, vmReport)
 	if err != nil {
-		logger.Error("上报失败", slog.String("pre", pre), slog.Any("err", err))
+		logger.Error("reporting failed", slog.String("pre", pre), slog.Any("err", err))
 		return
 	}
 
-	logger.Info("上报成功", slog.String("pre", pre), slog.String("ReportID", vmReport.ReportID))
+	logger.Info("reporting successful", slog.String("pre", pre), slog.String("ReportID", vmReport.ReportID))
 }

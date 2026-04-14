@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
+	middle "data-plane/collector"
 	last "data-plane/last-analyzer"
-	middle "data-plane/middle-collector"
 	"data-plane/probing"
 	"data-plane/util"
 	"github.com/gin-gonic/gin"

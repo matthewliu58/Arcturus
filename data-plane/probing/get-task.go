@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	ProbingTaskURL = "/api/v1/probe/tasks"
+	TaskURL = "/api/v1/probe/tasks"
 )
 
 type ProbeTask struct {
@@ -20,40 +20,34 @@ type ProbeTask struct {
 	ID         string `json:"ID"`
 }
 
-func GetProbeTasks(pre, controlHost string) ([]ProbeTask, error) {
+func GetProbeTasks(controlHost, pre string) ([]ProbeTask, error) {
 
-	url := controlHost + ProbingTaskURL
+	url := controlHost + TaskURL
 
-	// 1. 发起 HTTP GET 请求
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("请求接口失败: %w", err)
+		return nil, fmt.Errorf("request api failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	// 2. 读取响应 body
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("读取响应失败: %w", err)
+		return nil, fmt.Errorf("read response failed: %w", err)
 	}
 
-	// 3. 定义服务端返回结构
 	var serverResp struct {
 		Code int         `json:"code"`
 		Msg  string      `json:"msg"`
 		Data []ProbeTask `json:"data"`
 	}
 
-	// 4. 解析 JSON
-	if err := json.Unmarshal(body, &serverResp); err != nil {
-		return nil, fmt.Errorf("解析JSON失败: %w", err)
+	if err = json.Unmarshal(body, &serverResp); err != nil {
+		return nil, fmt.Errorf("parse json failed: %w", err)
 	}
 
-	// 5. 检查返回码
 	if serverResp.Code != 200 {
-		return nil, fmt.Errorf("接口返回错误: %d %s", serverResp.Code, serverResp.Msg)
+		return nil, fmt.Errorf("api returned error: %d %s", serverResp.Code, serverResp.Msg)
 	}
 
-	// 6. 返回节点列表
 	return serverResp.Data, nil
 }
