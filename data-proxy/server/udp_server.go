@@ -210,11 +210,9 @@ func handleUDPConnection(
 
 	p64, _ := strconv.ParseUint(portStr, 10, 16)
 
-	// 注册等待通道
 	waitCh, cleanup := disaggregator.GlobalDisagg.Register(reqID)
 	defer cleanup()
 
-	// 入队
 	aggregator.GlobalAggRequest.AddToBatch(
 		true, // UDP=true
 		routingKey,
@@ -225,7 +223,6 @@ func handleUDPConnection(
 		data,
 	)
 
-	// 等待回包
 	select {
 	case respData, ok := <-waitCh:
 		if !ok {
