@@ -96,8 +96,8 @@ func (g *GlobalStats) GetAggValue(key string) *rece.LastStatsVal {
 		return &rece.LastStatsVal{}
 	}
 
-	copy := *val
-	return &copy
+	copy_ := *val
+	return &copy_
 }
 
 func (g *GlobalStats) StartAggregateWorker(logger *slog.Logger) {
