@@ -120,7 +120,7 @@ func main() {
 
 	server.ServerManager(router, accessLogger, logger)
 
-	port := "7095"
+	port := "7083"
 	logger.Info("Listening", slog.String("pre", pre), "port", port)
 	if err = router.Run(":" + port); err != nil {
 		logger.Error("Gin Run failed", slog.String("pre", pre), "err", err)

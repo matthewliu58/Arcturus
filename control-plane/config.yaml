@@ -1,15 +1,15 @@
 port: "8081"
 server_list:
-  - "173.199.92.182"
-server_ip: "173.199.92.182"
+  - "45.76.55.24"
+server_ip: "45.76.55.24"
 data_dir: "/root/etcd"
 #name: "etcd-1"
 
 node:
   provider: "Vultr"
-  continent: "NorthAmerica"
-  country: "US"
-  city: "Chicago"
+  continent: "Asia"
+  country: "Japan"
+  city: "Tokyo"
   ip:
     private: "0.0.0.0"
-    public: "173.199.92.182"
+    public: "45.76.55.24"

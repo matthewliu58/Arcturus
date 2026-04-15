@@ -1,6 +1,6 @@
 [
   {
-    "server_port":7771,
+    "server_port":8081,
     "provider": "Vultr",
     "ip": "76.223.1.167",
     "port": 80,
