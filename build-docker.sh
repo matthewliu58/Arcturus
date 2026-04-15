@@ -19,8 +19,48 @@ echo_step() {
 
 # Check if Docker is installed
 if ! command -v docker &> /dev/null; then
-    echo "Error: Docker is not installed"
-    exit 1
+    echo "Docker is not installed. Installing Docker..."
+    
+    # Detect OS type
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS=$ID
+    else
+        echo "Error: Cannot detect OS type"
+        exit 1
+    fi
+    
+    # Install Docker based on OS type
+    if [ "$OS" = "ubuntu" ] || [ "$OS" = "debian" ]; then
+        # Ubuntu/Debian installation
+        echo "Installing Docker on Ubuntu/Debian..."
+        sudo apt update && sudo apt upgrade -y
+        sudo apt install -y apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+        sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+        sudo apt update && sudo apt install -y docker-ce docker-ce-cli containerd.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
+    elif [ "$OS" = "centos" ] || [ "$OS" = "rhel" ]; then
+        # CentOS/RHEL installation
+        echo "Installing Docker on CentOS/RHEL..."
+        sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+        sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+        sudo yum install -y docker-ce docker-ce-cli containerd.io
+        sudo systemctl start docker
+        sudo systemctl enable docker
+    else
+        echo "Error: Unsupported OS. Please install Docker manually."
+        exit 1
+    fi
+    
+    # Verify Docker installation
+    if ! command -v docker &> /dev/null; then
+        echo "Error: Docker installation failed"
+        exit 1
+    fi
+    
+    echo "Docker installed successfully!"
 fi
 
 # Stop and remove existing container if it exists
