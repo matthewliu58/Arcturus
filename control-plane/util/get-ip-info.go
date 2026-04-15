@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	dataPlaneUrl = "http://127.0.0.1:7082"
+	ipLibUrl = "http://127.0.0.1:7082"
 )
 
 type IPInfoResult struct {
@@ -27,7 +27,7 @@ func GetIPInfo(ip string) (*IPInfoResult, error) {
 		return nil, errors.New("ip is empty")
 	}
 
-	apiURL := fmt.Sprintf("%s/ip/info?ip=%s", dataPlaneUrl, url.QueryEscape(ip))
+	apiURL := fmt.Sprintf("%s/ip/info?ip=%s", ipLibUrl, url.QueryEscape(ip))
 
 	resp, err := http.Get(apiURL)
 	if err != nil {
