@@ -9,7 +9,9 @@ echo "======================================"
 # ===== Network performance optimization =====
 echo "\n==> Optimizing network kernel parameters"
 
-cat << EOF | sudo tee -a /etc/sysctl.conf
+# Check if Arcturus network configuration already exists
+if ! grep -q "# Network performance optimization for Arcturus acceleration project" /etc/sysctl.conf; then
+    cat << EOF | sudo tee -a /etc/sysctl.conf
 
 # Network performance optimization for Arcturus acceleration project
 net.core.netdev_max_backlog = 65536
@@ -29,6 +31,7 @@ net.ipv4.tcp_synack_retries = 2
 net.ipv4.tcp_abort_on_overflow = 1
 net.ipv4.ip_local_port_range = 1024 65535
 EOF
+fi
 
 # Apply sysctl settings
 sudo sysctl -p
@@ -37,12 +40,14 @@ sudo sysctl -p
 echo "\n==> Enabling BBR congestion control"
 
 sudo modprobe tcp_bbr
-cat << EOF | sudo tee -a /etc/sysctl.conf
+if ! grep -q "# Enable BBR congestion control" /etc/sysctl.conf; then
+    cat << EOF | sudo tee -a /etc/sysctl.conf
 
 # Enable BBR congestion control
 net.ipv4.tcp_congestion_control = bbr
 net.ipv4.tcp_notsent_lowat = 16384
 EOF
+fi
 
 sudo sysctl -p
 
@@ -50,20 +55,24 @@ sudo sysctl -p
 echo "\n==> Optimizing system resources"
 
 # Increase file descriptor limits
-cat << EOF | sudo tee -a /etc/security/limits.conf
+if ! grep -q "# Increase file descriptor limits for network applications" /etc/security/limits.conf; then
+    cat << EOF | sudo tee -a /etc/security/limits.conf
 
 # Increase file descriptor limits for network applications
 * soft nofile 65536
 * hard nofile 65536
 EOF
+fi
 
 # Optimize memory management
-cat << EOF | sudo tee -a /etc/sysctl.conf
+if ! grep -q "# Memory management optimization" /etc/sysctl.conf; then
+    cat << EOF | sudo tee -a /etc/sysctl.conf
 
 # Memory management optimization
 vm.swappiness = 10
 vm.max_map_count = 262144
 EOF
+fi
 
 sudo sysctl -p
 
@@ -76,14 +85,20 @@ sudo apt install -y ethtool
 # Enable hardware checksum offloading
 for nic in $(ls /sys/class/net/ | grep -v lo); do
     echo "Optimizing network interface: $nic"
-    sudo ethtool -K $nic rx on tx on tso on gso on gro on lro off
-    sudo ethtool -G $nic rx 4096 tx 4096
-    sudo ethtool -A $nic rx off tx off
-    sudo ethtool --coalesce $nic rx-usecs 100 rx-frames 100 tx-usecs 100 tx-frames 100
-    sudo ethtool -C $nic adaptive-rx on adaptive-tx on
-    sudo ethtool -s $nic speed 1000 duplex full autoneg off
-    # Note: The above line may need adjustment based on your actual network card capabilities
-    # Remove or modify if it causes issues
+    # Enable checksum offloading (ignore errors)
+    sudo ethtool -K $nic rx on tx on tso on gso on gro on lro off 2>/dev/null || true
+    # Set ring buffer size (use conservative values)
+    sudo ethtool -G $nic rx 2048 tx 2048 2>/dev/null || true
+    # Disable interrupt coalescing (ignore errors)
+    sudo ethtool -A $nic rx off tx off 2>/dev/null || true
+    # Set coalescing parameters (ignore errors)
+    sudo ethtool --coalesce $nic rx-usecs 100 rx-frames 100 tx-usecs 100 tx-frames 100 2>/dev/null || true
+    # Enable adaptive coalescing (ignore errors)
+    sudo ethtool -C $nic adaptive-rx on adaptive-tx on 2>/dev/null || true
+    # Only set speed if supported
+    if sudo ethtool $nic | grep -q "Speed: 1000Mb/s"; then
+        sudo ethtool -s $nic speed 1000 duplex full autoneg off 2>/dev/null || true
+    fi
     echo "Optimization applied to $nic"
 done
 
@@ -111,7 +126,7 @@ echo "\n==> Optimizing network stack"
 for nic in $(ls /sys/class/net/ | grep -v lo); do
     if sudo ethtool -g $nic | grep -q "Jumbo":; then
         echo "Enabling jumbo frames on $nic"
-        sudo ip link set $nic mtu 9000
+        sudo ip link set $nic mtu 9000 2>/dev/null || true
     fi
 done
 

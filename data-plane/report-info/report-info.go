@@ -11,10 +11,10 @@ type VMReport struct {
 	ReportID        string               `json:"report_id"`
 	CPU             CPUInfo              `json:"cpu"`
 	Memory          MemoryInfo           `json:"memory"`
-	Disk            DiskInfo             `json:"disk,omitempty"`
+	Disk            DiskInfo             `json:"disk"`
 	Network         NetworkInfo          `json:"network"`
-	OS              OSInfo               `json:"os,omitempty"`
-	Process         ProcessInfo          `json:"process,omitempty"`
+	OS              OSInfo               `json:"os"`
+	Process         ProcessInfo          `json:"process"`
 	LinksCongestion []LinkCongestionInfo `json:"links_congestion"`
 }
 
@@ -22,8 +22,8 @@ type CPUInfo struct {
 	PhysicalCore int     `json:"physical_core"`
 	LogicalCore  int     `json:"logical_core"`
 	Usage        float64 `json:"usage"`
-	Load1Min     float64 `json:"load_1min,omitempty"`
-	LoadDelta    float64 `json:"load_delta,omitempty"`
+	Load1Min     float64 `json:"load_1min"`
+	LoadDelta    float64 `json:"load_delta"`
 }
 
 type MemoryInfo struct {
@@ -45,8 +45,8 @@ type NetworkInfo struct {
 	PublicIP   string `json:"public_ip"`
 	PrivateIP  string `json:"private_ip"`
 	PortCount  int    `json:"port_count"`
-	TrafficIn  uint64 `json:"traffic_in,omitempty"`
-	TrafficOut uint64 `json:"traffic_out,omitempty"`
+	TrafficIn  uint64 `json:"traffic_in"`
+	TrafficOut uint64 `json:"traffic_out"`
 }
 
 type OSInfo struct {
