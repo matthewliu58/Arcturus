@@ -10,15 +10,31 @@ import (
 )
 
 type JointRouter struct {
-	edgeAgg map[string]*rece.LastCongestion
-	nodeTel map[string]*agg.NodeTelemetry
+	edgeAgg       map[string]*rece.LastCongestion
+	nodeTel       map[string]*agg.NodeTelemetry
+	cpuWeight     float64
+	latencyWeight float64
 }
 
 func NewJointRouter(
 	edgeAgg map[string]*rece.LastCongestion,
 	nodeTel map[string]*agg.NodeTelemetry,
 ) *JointRouter {
-	return &JointRouter{edgeAgg: edgeAgg, nodeTel: nodeTel}
+	return &JointRouter{
+		edgeAgg:       edgeAgg,
+		nodeTel:       nodeTel,
+		cpuWeight:     0.5, // Default CPU weight
+		latencyWeight: 0.5, // Default latency weight
+	}
+}
+
+// SetWeights sets the weights for CPU and latency
+func (r *JointRouter) SetWeights(cpuWeight, latencyWeight float64) {
+	if cpuWeight >= 0 && latencyWeight >= 0 && cpuWeight+latencyWeight > 0 {
+		total := cpuWeight + latencyWeight
+		r.cpuWeight = cpuWeight / total
+		r.latencyWeight = latencyWeight / total
+	}
 }
 
 func (r *JointRouter) Computing(endPoints routing.EndPoints, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
@@ -69,12 +85,13 @@ func (r *JointRouter) Computing(endPoints routing.EndPoints, pre string, logger 
 			Qk = 100
 		}
 
-		score := 0.5*Qk + 0.5*delay
+		score := r.cpuWeight*Qk + r.latencyWeight*delay
 		candidates = append(candidates, nodeScore{nodeIp: nodeIp, score: score})
 
 		logger.Info("Joint routing score",
 			slog.String("pre", pre), slog.String("nodeIp", nodeIp), slog.Float64("score", score),
-			slog.Float64("cpu", Qk), slog.Float64("delay", delay))
+			slog.Float64("cpu", Qk), slog.Float64("delay", delay),
+			slog.Float64("cpuWeight", r.cpuWeight), slog.Float64("latencyWeight", r.latencyWeight))
 	}
 
 	if len(candidates) == 0 {

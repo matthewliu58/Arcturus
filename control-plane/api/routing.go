@@ -96,7 +96,28 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 	}
 	h.Logger.Info("GetLastRoute request", slog.String("pre", pre), slog.Any("endPoints", req))
 
-	paths := routing1.LastRouting(h.GraphManager, h.GlobalStats, req, routing1.Lyapunov, pre, h.Logger)
+	algorithm := c.Query("algorithm")
+	if len(algorithm) <= 0 {
+		algorithm = routing1.Lyapunov
+	}
+
+	// Get weights from query parameters
+	cpuWeight := 0.5
+	latencyWeight := 0.5
+	if algorithm == routing1.JointCpuLatency {
+		cpuStr := c.Query("cpu_weight")
+		latStr := c.Query("latency_weight")
+		if cpuStr != "" && latStr != "" {
+			cpuVal, cpuErr := strconv.ParseFloat(cpuStr, 64)
+			latVal, latErr := strconv.ParseFloat(latStr, 64)
+			if cpuErr == nil && latErr == nil && cpuVal >= 0 && latVal >= 0 {
+				cpuWeight = cpuVal
+				latencyWeight = latVal
+			}
+		}
+	}
+
+	paths := routing1.LastRouting(h.GraphManager, h.GlobalStats, req, algorithm, cpuWeight, latencyWeight, pre, h.Logger)
 	h.Logger.Info("GetLastRoute response", slog.String("pre", pre), slog.Any("routing", paths))
 
 	resp.Code = 200

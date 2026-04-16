@@ -81,8 +81,8 @@ type RoutingLastInterface struct {
 	Operate ComputingLastInterface
 }
 
-func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats,
-	algorithm string, pre string, logger *slog.Logger) RoutingLastInterface {
+func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats, algorithm string,
+	cpuWeight, latencyWeight float64, pre string, logger *slog.Logger) RoutingLastInterface {
 	nodes := g.GetNodes()
 	edgeAgg := a.GetAggMap()
 	switch algorithm {
@@ -97,16 +97,21 @@ func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats,
 		return RoutingLastInterface{Operate: router}
 	case JointCpuLatency:
 		router := last.NewJointRouter(edgeAgg, nodes)
+		// Set weights if provided
+		if cpuWeight >= 0 && latencyWeight >= 0 {
+			router.SetWeights(cpuWeight, latencyWeight)
+		}
 		return RoutingLastInterface{Operate: router}
 	default:
 		return RoutingLastInterface{}
 	}
 }
 
-func LastRouting(g *graph.GraphManager, a *agg.GlobalStats, endPoints routing.EndPoints, algorithm,
-	pre string, logger *slog.Logger) routing.RoutingInfo {
+func LastRouting(g *graph.GraphManager, a *agg.GlobalStats, endPoints routing.EndPoints, algorithm string,
+	cpuWeight, latencyWeight float64, pre string, logger *slog.Logger) routing.RoutingInfo {
 
-	logger.Info("LastRouting", slog.String("pre", pre), slog.Any("endPoints", endPoints))
+	logger.Info("LastRouting", slog.String("pre", pre), slog.Any("endPoints", endPoints),
+		slog.Float64("cpuWeight", cpuWeight), slog.Float64("latencyWeight", latencyWeight))
 
 	result, err := util.GetIPInfo(endPoints.Source.IP)
 	if err != nil {
@@ -117,7 +122,7 @@ func LastRouting(g *graph.GraphManager, a *agg.GlobalStats, endPoints routing.En
 	endPoints.Source.City = result.City
 	endPoints.Source.Continent = result.Continent
 
-	solver := InitLastInterface(g, a, algorithm, pre, logger)
+	solver := InitLastInterface(g, a, algorithm, cpuWeight, latencyWeight, pre, logger)
 	paths, err := solver.Operate.Computing(endPoints, pre, logger)
 	if err != nil {
 		logger.Warn("No routing", slog.String("pre", pre), slog.Any("err", err))
