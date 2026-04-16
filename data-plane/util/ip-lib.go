@@ -60,6 +60,6 @@ func GetIPInfo(ip string, pre string, logger *slog.Logger) (IPInfoResult, error)
 		Continent: GetContinentByCountry(res.Country_long),
 		Province:  res.Region,
 		City:      res.City,
-		ISP:       res.Isp,
+		//ISP:       res.Isp,
 	}, nil
 }
