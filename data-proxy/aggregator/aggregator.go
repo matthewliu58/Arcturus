@@ -190,6 +190,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 	b := w.batches[msg.routingKey]
 	if b == nil {
 		b = &Batch{
+			BuffSize:   buffSize,
 			RoutingKey: msg.routingKey,
 			NextHop:    msg.nextHop,
 			pkt:        packet.NewPacket(buffSize),
@@ -206,7 +207,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 	}
 
 	if msg.emerge {
-		w.flush(b, b.BuffSize)
+		w.flush(b, buffSize)
 		return
 	}
 
