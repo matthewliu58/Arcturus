@@ -10,20 +10,18 @@ import (
 
 type GlobalStats struct {
 	mu       sync.RWMutex
-	nodeLast map[string]*rece.LastStats
-	edgeAgg  map[string]*rece.LastStatsVal
-	//nodeLocation map[string][]string
+	nodeLast map[string]*rece.LastTelemetry
+	edgeAgg  map[string]*rece.LastCongestion
 }
 
 func NewGlobalStats() *GlobalStats {
 	return &GlobalStats{
-		nodeLast: make(map[string]*rece.LastStats),
-		edgeAgg:  make(map[string]*rece.LastStatsVal),
-		//nodeLocation: make(map[string][]string),
+		nodeLast: make(map[string]*rece.LastTelemetry),
+		edgeAgg:  make(map[string]*rece.LastCongestion),
 	}
 }
 
-func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
+func (g *GlobalStats) AddOrUpdateNode(node *rece.LastTelemetry) {
 	if node.IP == "" {
 		return
 	}
@@ -38,11 +36,11 @@ func (g *GlobalStats) DelNode(nodeIP string) {
 	g.mu.Unlock()
 }
 
-func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsVal {
+func (g *GlobalStats) GetAggMap() map[string]*rece.LastCongestion {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
-	result := make(map[string]*rece.LastStatsVal, len(g.edgeAgg))
+	result := make(map[string]*rece.LastCongestion, len(g.edgeAgg))
 	for k, v := range g.edgeAgg {
 		valCopy := *v
 		result[k] = &valCopy
@@ -51,13 +49,13 @@ func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsVal {
 	return result
 }
 
-func (g *GlobalStats) GetAggValue(key string) *rece.LastStatsVal {
+func (g *GlobalStats) GetAggValue(key string) *rece.LastCongestion {
 	g.mu.RLock()
 	defer g.mu.RUnlock()
 
 	val, ok := g.edgeAgg[key]
 	if !ok {
-		return &rece.LastStatsVal{}
+		return &rece.LastCongestion{}
 	}
 
 	copy_ := *val
@@ -76,16 +74,16 @@ func (g *GlobalStats) StartAggregateWorker(logger *slog.Logger) {
 
 func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	g.mu.RLock()
-	nodeList := make([]*rece.LastStats, 0, len(g.nodeLast))
+	nodeList := make([]*rece.LastTelemetry, 0, len(g.nodeLast))
 	for _, n := range g.nodeLast {
 		nodeList = append(nodeList, n)
 	}
 	g.mu.RUnlock()
 
-	newAgg := make(map[string]*rece.LastStatsVal)
+	newAgg := make(map[string]*rece.LastCongestion)
 
 	for _, node := range nodeList {
-		for userKey, val := range node.DelayStats {
+		for userKey, val := range node.LastsCongestion {
 
 			if userKey.Continent == node.Continent {
 				g.merge(newAgg, userKey.City, node.IP, val)
@@ -105,12 +103,12 @@ func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	g.mu.Unlock()
 }
 
-func (g *GlobalStats) merge(newAgg map[string]*rece.LastStatsVal, userKey, serverKey string, val *rece.LastStatsVal) {
+func (g *GlobalStats) merge(newAgg map[string]*rece.LastCongestion, userKey, serverKey string, val *rece.LastCongestion) {
 
 	key := userKey + "-" + serverKey
 
 	if newAgg[key] == nil {
-		newAgg[key] = &rece.LastStatsVal{}
+		newAgg[key] = &rece.LastCongestion{}
 	}
 	t := newAgg[key]
 

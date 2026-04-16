@@ -6,16 +6,16 @@ import (
 )
 
 type VMReport struct {
-	VMID            string               `json:"vm_id"`
-	CollectTime     time.Time            `json:"collect_time"`
-	ReportID        string               `json:"report_id"`
-	CPU             CPUInfo              `json:"cpu"`
-	Memory          MemoryInfo           `json:"memory"`
-	Disk            DiskInfo             `json:"disk"`
-	Network         NetworkInfo          `json:"network"`
-	OS              OSInfo               `json:"os"`
-	Process         ProcessInfo          `json:"process"`
-	LinksCongestion []LinkCongestionInfo `json:"links_congestion"`
+	VMID            string           `json:"vm_id"`
+	CollectTime     time.Time        `json:"collect_time"`
+	ReportID        string           `json:"report_id"`
+	CPU             CPUInfo          `json:"cpu"`
+	Memory          MemoryInfo       `json:"memory"`
+	Disk            DiskInfo         `json:"disk"`
+	Network         NetworkInfo      `json:"network"`
+	OS              OSInfo           `json:"os"`
+	Process         ProcessInfo      `json:"process"`
+	LinksCongestion []LinkCongestion `json:"links_congestion"`
 }
 
 type CPUInfo struct {
@@ -74,7 +74,7 @@ type ApiResponse struct {
 	Data interface{} `json:"data"`
 }
 
-type LinkCongestionInfo struct {
+type LinkCongestion struct {
 	TargetIP       string            `json:"target_ip"`
 	Target         probing.ProbeTask `json:"target"`
 	PacketLoss     float64           `json:"packet_loss"`

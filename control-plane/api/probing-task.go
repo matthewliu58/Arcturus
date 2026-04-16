@@ -98,7 +98,7 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 	var tasks []model.ProbeTask
 	ip_ := util.Config_.Node.IP.Public
 	for k, nodeJson := range nodeMap {
-		var telemetry aggregator.Telemetry
+		var telemetry aggregator.NodeTelemetry
 		if err = json.Unmarshal([]byte(nodeJson), &telemetry); err != nil {
 			h.logger.Warn("Failed to parse node JSON, skipping", slog.String("pre", pre),
 				slog.String("ip", k), slog.Any("error", err))

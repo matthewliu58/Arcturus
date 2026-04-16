@@ -1,4 +1,4 @@
-package last_analyzer
+package last_mile
 
 import (
 	"bufio"
@@ -20,19 +20,15 @@ type Record struct {
 	Country   string
 	Province  string
 	City      string
-	//ISP       string
-	//Node     string
 }
 
-type LastStatsKey struct {
+type LastKey struct {
 	Continent string `json:"continent"`
 	Country   string `json:"country"`
-	//Province  string `json:"province"`
-	City string `json:"city"`
-	//ISP       string `json:"isp"`
+	City      string `json:"city"`
 }
 
-type LastStatsValue struct {
+type LastCongestion struct {
 	Count int     `json:"count"`
 	SumRT float64 `json:"sum_rt"`
 	AvgRT float64 `json:"avg_rt"`
@@ -118,8 +114,6 @@ func tailFile(path string, pre string, logger *slog.Logger) {
 				Country:  ipInfo.Country,
 				Province: ipInfo.Province,
 				City:     ipInfo.City,
-				//ISP:      ipInfo.ISP,
-				//Node:     util.Config_.NodeName,
 			})
 			mu.Unlock()
 
@@ -134,11 +128,10 @@ func tailFile(path string, pre string, logger *slog.Logger) {
 	}
 }
 
-func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue {
+func calculate(pre string, logger *slog.Logger) map[LastKey]*LastCongestion {
 	now := time.Now()
-	mu.Lock()
-	defer mu.Unlock()
 
+	mu.Lock()
 	valid := make([]Record, 0, len(records))
 	for _, r := range records {
 		if now.Sub(r.Ts) <= window {
@@ -146,21 +139,20 @@ func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue
 		}
 	}
 	records = valid
+	mu.Unlock()
 
-	agg := make(map[LastStatsKey]*LastStatsValue)
-	rts := make(map[LastStatsKey][]int)
+	agg := make(map[LastKey]*LastCongestion)
+	rts := make(map[LastKey][]int)
 
 	for _, r := range valid {
-		key := LastStatsKey{
+		key := LastKey{
 			Continent: util.GetContinentByCountry(r.Country),
 			Country:   r.Country,
-			//Province:  r.Province,
-			City: r.City,
-			//ISP:       r.ISP,
+			City:      r.City,
 		}
 
 		if agg[key] == nil {
-			agg[key] = &LastStatsValue{}
+			agg[key] = &LastCongestion{}
 		}
 
 		s := agg[key]
@@ -191,10 +183,7 @@ func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue
 			slog.String("pre", pre),
 			slog.String("continent", key.Continent),
 			slog.String("country", key.Country),
-			//slog.String("province", key.Province),
 			slog.String("city", key.City),
-			//slog.String("isp", key.ISP),
-			//slog.String("node", key.Node),
 			slog.Float64("avg_rt_ms", s.AvgRT),
 			slog.Any("p95_rt_ms", s.P95RT),
 			slog.Any("count", s.Count),

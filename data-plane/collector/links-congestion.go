@@ -5,12 +5,12 @@ import (
 	model "data-plane/report-info"
 )
 
-func BuildLinkCongestion() []model.LinkCongestionInfo {
+func BuildLinkCongestion() []model.LinkCongestion {
 	results := probing.GetLatestResults()
-	var links []model.LinkCongestionInfo
+	var links []model.LinkCongestion
 
 	for target, r := range results {
-		links = append(links, model.LinkCongestionInfo{
+		links = append(links, model.LinkCongestion{
 			TargetIP:       target,
 			Target:         r.Target,
 			PacketLoss:     r.LossRate,

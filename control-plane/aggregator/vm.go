@@ -16,22 +16,22 @@ const (
 	expireTime = 1
 )
 
-type LinkCongestionInfo struct {
+type LinkCongestion struct {
 	TargetIP       string         `json:"target_ip"`
 	Target         rece.ProbeTask `json:"target"`
 	PacketLoss     float64        `json:"packet_loss"`
 	AverageLatency float64        `json:"average_latency"`
 }
 
-type Telemetry struct {
-	PublicIP        string                        `json:"public_ip"`
-	Provider        string                        `json:"provider"`
-	Continent       string                        `json:"continent"`
-	Country         string                        `json:"country"`
-	City            string                        `json:"city"`
-	CpuPressure     float64                       `json:"cpu_pressure"`
-	Cpu             rece.CPUInfo                  `json:"cpu"`
-	LinksCongestion map[string]LinkCongestionInfo `json:"links_congestion"`
+type NodeTelemetry struct {
+	PublicIP        string                    `json:"public_ip"`
+	Provider        string                    `json:"provider"`
+	Continent       string                    `json:"continent"`
+	Country         string                    `json:"country"`
+	City            string                    `json:"city"`
+	CpuPressure     float64                   `json:"cpu_pressure"`
+	Cpu             rece.CPUInfo              `json:"cpu"`
+	LinksCongestion map[string]LinkCongestion `json:"links_congestion"`
 }
 
 func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
@@ -94,7 +94,7 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 			cupPressureAvg = cupPressureAvg / float64(len(allReports))
 		}
 
-		linkMap := make(map[string]LinkCongestionInfo)
+		linkMap := make(map[string]LinkCongestion)
 		for k, vs := range totalLinksCong {
 			var avgLoss float64 = 0
 			for _, v := range vs.PacketLosses {
@@ -112,11 +112,11 @@ func CalcClusterWeightedAvg(fs *util.FileStorage, interval time.Duration,
 				avgLatency = avgLatency / float64(len(vs.AverageLatencies))
 			}
 
-			linkMap[k] = LinkCongestionInfo{TargetIP: k, PacketLoss: avgLoss,
+			linkMap[k] = LinkCongestion{TargetIP: k, PacketLoss: avgLoss,
 				Target: vs.ProbeTask, AverageLatency: avgLatency}
 		}
 
-		result := Telemetry{
+		result := NodeTelemetry{
 			CpuPressure:     cupPressureAvg,
 			LinksCongestion: linkMap,
 			Cpu:             cpuAvg,

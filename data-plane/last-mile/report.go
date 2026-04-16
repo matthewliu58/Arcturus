@@ -1,4 +1,4 @@
-package last_analyzer
+package last_mile
 
 import (
 	"bytes"
@@ -16,28 +16,24 @@ const (
 	lastReceiveURL = "/api/v1/last/receive"
 )
 
-type LastStats struct {
-	DelayStats map[LastStatsKey]*LastStatsValue `json:"delay_stats"`
-	IP         string                           `json:"ip"`
-	//ISP        string                           `json:"isp"`
-	Continent string `json:"continent"`
-	Country   string `json:"country"`
-	//Province   string                           `json:"province"`
-	City string `json:"city"`
+type LastTelemetry struct {
+	LastsCongestion map[LastKey]*LastCongestion `json:"lasts_congestion"`
+	IP              string                      `json:"ip"`
+	Continent       string                      `json:"continent"`
+	Country         string                      `json:"country"`
+	City            string                      `json:"city"`
 }
 
-func SendLastStats(delayStats map[LastStatsKey]*LastStatsValue, pre string, logger *slog.Logger) error {
+func SendLastStats(delayStats map[LastKey]*LastCongestion, pre string, logger *slog.Logger) error {
 
 	c := util.Config_.Node
 
-	stats := &LastStats{
-		DelayStats: delayStats,
-		IP:         c.IP.Public,
-		//ISP:        c.Provider,
-		Continent: c.Continent,
-		Country:   c.Country,
-		//Province:   "",
-		City: c.City,
+	stats := &LastTelemetry{
+		LastsCongestion: delayStats,
+		IP:              c.IP.Public,
+		Continent:       c.Continent,
+		Country:         c.Country,
+		City:            c.City,
 	}
 
 	reqBody := report.ApiResponse{

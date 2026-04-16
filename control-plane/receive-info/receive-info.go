@@ -5,16 +5,16 @@ import (
 )
 
 type VMReport struct {
-	VMID            string               `json:"vm_id"`
-	CollectTime     time.Time            `json:"collect_time"`
-	ReportID        string               `json:"report_id"`
-	CPU             CPUInfo              `json:"cpu"`
-	Memory          MemoryInfo           `json:"memory"`
-	Disk            DiskInfo             `json:"disk"`
-	Network         NetworkInfo          `json:"network"`
-	OS              OSInfo               `json:"os"`
-	Process         ProcessInfo          `json:"process"`
-	LinksCongestion []LinkCongestionInfo `json:"links_congestion"`
+	VMID            string           `json:"vm_id"`
+	CollectTime     time.Time        `json:"collect_time"`
+	ReportID        string           `json:"report_id"`
+	CPU             CPUInfo          `json:"cpu"`
+	Memory          MemoryInfo       `json:"memory"`
+	Disk            DiskInfo         `json:"disk"`
+	Network         NetworkInfo      `json:"network"`
+	OS              OSInfo           `json:"os"`
+	Process         ProcessInfo      `json:"process"`
+	LinksCongestion []LinkCongestion `json:"links_congestion"`
 }
 
 type CPUInfo struct {
@@ -89,34 +89,30 @@ type ProbeTask struct {
 	ID         string `json:"ID"`
 }
 
-type LinkCongestionInfo struct {
+type LinkCongestion struct {
 	TargetIP       string    `json:"target_ip"`
 	Target         ProbeTask `json:"target"`
 	PacketLoss     float64   `json:"packet_loss"`
 	AverageLatency float64   `json:"average_latency"`
 }
 
-type LastStatsKey struct {
+type LastKey struct {
 	Continent string `json:"continent"`
 	Country   string `json:"country"`
-	//Province  string `json:"province"`
-	City string `json:"city"`
-	//ISP       string `json:"isp"`
+	City      string `json:"city"`
 }
 
-type LastStatsVal struct {
+type LastCongestion struct {
 	Count int     `json:"count"`
 	SumRT float64 `json:"sum_rt"`
 	AvgRT float64 `json:"avg_rt"`
 	P95RT int     `json:"p95_rt"`
 }
 
-type LastStats struct {
-	DelayStats map[LastStatsKey]*LastStatsVal `json:"delay_stats"`
-	IP         string                         `json:"ip"`
-	//ISP        string                         `json:"isp"`
-	Continent string `json:"continent"`
-	Country   string `json:"country"`
-	//Province   string                         `json:"province"`
-	City string `json:"city"`
+type LastTelemetry struct {
+	LastsCongestion map[LastKey]*LastCongestion `json:"lasts_congestion"`
+	IP              string                      `json:"ip"`
+	Continent       string                      `json:"continent"`
+	Country         string                      `json:"country"`
+	City            string                      `json:"city"`
 }

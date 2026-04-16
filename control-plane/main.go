@@ -81,7 +81,7 @@ func HandleRoutingWatchEvent(
 		slog.String("value", val),
 	)
 
-	var tel agg.Telemetry
+	var tel agg.NodeTelemetry
 	if len(val) > 0 {
 		if err := json.Unmarshal([]byte(val), &tel); err != nil {
 			logger.Warn("Failed to parse node JSON, skipping",
@@ -126,7 +126,7 @@ func HandleLastWatchEvent(
 		slog.String("key", key),
 	)
 
-	var lastStats rece.LastStats
+	var lastStats rece.LastTelemetry
 	if len(val) > 0 {
 		if err := json.Unmarshal([]byte(val), &lastStats); err != nil {
 			logger.Warn("Failed to parse LastStats JSON, skipping",
@@ -229,7 +229,7 @@ func main() {
 	} else {
 		logger.Info("Successfully got full prefix information", slog.String("pre", pre), slog.Any("nodeMap", nodeMap))
 		for k, nodeJson := range nodeMap {
-			var tel agg.Telemetry
+			var tel agg.NodeTelemetry
 			if err = json.Unmarshal([]byte(nodeJson), &tel); err != nil {
 				logger.Warn("Failed to parse node JSON, skipping", slog.String("pre", pre),
 					slog.String("ip", k), slog.Any("err", err))
@@ -252,7 +252,7 @@ func main() {
 	} else {
 		logger.Info("Successfully got full last statistics", slog.String("pre", pre), slog.Any("lastMap", lastMap))
 		for _, lastJson := range lastMap {
-			var lastStats rece.LastStats
+			var lastStats rece.LastTelemetry
 			if err = json.Unmarshal([]byte(lastJson), &lastStats); err != nil {
 				continue
 			}

@@ -58,7 +58,7 @@ func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 		return
 	}
 
-	var lastStats receive_info.LastStats
+	var lastStats receive_info.LastTelemetry
 	if err = json.Unmarshal(reqDataBytes, &lastStats); err != nil {
 		resp.Code = 400
 		resp.Msg = "Data field parsing failed: " + err.Error()

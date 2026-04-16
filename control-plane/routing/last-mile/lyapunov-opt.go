@@ -22,13 +22,13 @@ const (
 )
 
 type LyapunovSolver struct {
-	edgeAgg map[string]*rece.LastStatsVal
-	nodeTel map[string]*agg.Telemetry
+	edgeAgg map[string]*rece.LastCongestion
+	nodeTel map[string]*agg.NodeTelemetry
 }
 
 func NewLyapunovSolver(
-	edgeAgg map[string]*rece.LastStatsVal,
-	nodeTel map[string]*agg.Telemetry,
+	edgeAgg map[string]*rece.LastCongestion,
+	nodeTel map[string]*agg.NodeTelemetry,
 ) *LyapunovSolver {
 	return &LyapunovSolver{
 		edgeAgg: edgeAgg,
@@ -74,7 +74,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 		stats := l.GetNodeRT(source, nodeIp, pre, logger)
 		if stats == nil || stats.Count == 0 {
 			logger.Warn("skip node: no rt stats", slog.String("pre", pre), slog.String("nodeIp", nodeIp))
-			stats = &rece.LastStatsVal{AvgRT: 500}
+			stats = &rece.LastCongestion{AvgRT: 500}
 		}
 
 		//score = w * Qk * Δk + V * delay
@@ -132,7 +132,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 	return paths, nil
 }
 
-func (l *LyapunovSolver) GetNodeRT(source routing.EndPoint, nodeIP string, pre string, logger *slog.Logger) *rece.LastStatsVal {
+func (l *LyapunovSolver) GetNodeRT(source routing.EndPoint, nodeIP string, pre string, logger *slog.Logger) *rece.LastCongestion {
 	userContinent := source.Continent
 	userCountry := source.Country
 	userCity := source.City
@@ -158,10 +158,10 @@ func (l *LyapunovSolver) GetNodeRT(source routing.EndPoint, nodeIP string, pre s
 		}
 	}
 
-	return &rece.LastStatsVal{}
+	return &rece.LastCongestion{}
 }
 
-func (l *LyapunovSolver) getAggFallback(cont, serverKey string) *rece.LastStatsVal {
+func (l *LyapunovSolver) getAggFallback(cont, serverKey string) *rece.LastCongestion {
 	key := cont + "-" + serverKey
 	return l.edgeAgg[key]
 }
