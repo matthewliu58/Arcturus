@@ -130,23 +130,6 @@ for nic in $(ls /sys/class/net/ | grep -v lo); do
     fi
 done
 
-# ===== Firewall optimization =====
-echo "\n==> Optimizing firewall settings"
-
-# Check if ufw is installed
-if command -v ufw &> /dev/null; then
-    echo "Configuring ufw for better performance"
-    # Add timeout to prevent hanging
-    timeout 30s sudo ufw --force enable || echo "Warning: Failed to enable ufw (timeout)"
-    timeout 30s sudo ufw default deny incoming || echo "Warning: Failed to set default deny incoming (timeout)"
-    timeout 30s sudo ufw default allow outgoing || echo "Warning: Failed to set default allow outgoing (timeout)"
-    # Allow necessary ports
-    timeout 30s sudo ufw allow 4433/tcp  # QUIC port
-    timeout 30s sudo ufw allow 7095/tcp  # API port
-    timeout 30s sudo ufw allow 8080/tcp  # Control plane port
-    timeout 30s sudo ufw reload || echo "Warning: Failed to reload ufw (timeout)"
-fi
-
 # ===== Verification =====
 echo "\n==> Verifying optimizations"
 
@@ -178,6 +161,5 @@ echo "3. System resources optimized (file descriptors, memory)"
 echo "4. Hardware acceleration enabled"
 echo "5. Compilation optimizations configured"
 echo "6. Network stack optimized"
-echo "7. Firewall settings optimized"
 echo "\nPlease reboot the system for all changes to take full effect."
 echo "======================================"
