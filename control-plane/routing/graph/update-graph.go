@@ -101,6 +101,8 @@ func (g *GraphManager) AddNode(node *agg.Telemetry, logPre string) {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 
+	g.logger.Info("AddNode", slog.String("pre", logPre), slog.Any("node", node))
+
 	g.nodes[node.PublicIP] = node
 
 	for _, v := range node.LinksCongestion {
@@ -138,6 +140,8 @@ func (g *GraphManager) AddNode(node *agg.Telemetry, logPre string) {
 			}
 		}
 	}
+
+	g.DumpGraph(logPre)
 }
 
 func (g *GraphManager) DumpGraph(logPre string) {

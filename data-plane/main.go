@@ -112,7 +112,7 @@ func getIPInfoHandler(logger *slog.Logger) gin.HandlerFunc {
 			return
 		}
 
-		ipInfo, err := util.GetIPInfo("Get IP info", ip, logger)
+		ipInfo, err := util.GetIPInfo(ip, ip, logger)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error": err.Error(),
