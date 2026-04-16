@@ -10,10 +10,18 @@ import (
 	"log/slog"
 )
 
-const (
+const ( //middle
 	Shortest       = "shortest"
+	KShortest      = "k_shortest"
 	CarouselGreedy = "carousel_greed"
-	Lyapunov       = "lyapunov"
+	LiveNet        = "live_net"
+	ONEWAN         = "onewan"
+)
+const ( //last
+	Lyapunov        = "lyapunov"
+	LatencyOnly     = "latency_only"
+	CPUOnly         = "cpu_only"
+	JointCpuLatency = "joint_cpu_latency"
 )
 
 type ComputingMiddleInterface interface {
@@ -25,14 +33,22 @@ type RoutingMiddleInterface struct {
 }
 
 func InitMiddleInterface(g *graph.GraphManager, algorithm string, pre string, logger *slog.Logger) RoutingMiddleInterface {
+	edges := g.GetEdges()
 	switch algorithm {
 	case Shortest:
-		edges := g.GetEdges()
 		solver := middle.NewDijkstraSolver(edges)
 		return RoutingMiddleInterface{Operate: solver}
 	case CarouselGreedy:
-		edges := g.GetEdges()
 		solver := middle.NewHeuristicSolver(edges)
+		return RoutingMiddleInterface{Operate: solver}
+	case KShortest:
+		solver := middle.NewKShortestSolver(edges, 3) // 默认 k=3
+		return RoutingMiddleInterface{Operate: solver}
+	case LiveNet:
+		solver := middle.NewLiveNetSolver(edges, 3) // 默认 k=3
+		return RoutingMiddleInterface{Operate: solver}
+	case ONEWAN:
+		solver := middle.NewONEWANSolver(edges, 10) // 默认 maxPaths=10
 		return RoutingMiddleInterface{Operate: solver}
 	default:
 		return RoutingMiddleInterface{}
@@ -67,12 +83,21 @@ type RoutingLastInterface struct {
 
 func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats,
 	algorithm string, pre string, logger *slog.Logger) RoutingLastInterface {
+	nodes := g.GetNodes()
+	edgeAgg := a.GetAggMap()
 	switch algorithm {
 	case Lyapunov:
-		nodes := g.GetNodes()
-		edgeAgg := a.GetAggMap()
 		solver := last.NewLyapunovSolver(edgeAgg, nodes)
 		return RoutingLastInterface{Operate: solver}
+	case LatencyOnly:
+		router := last.NewLatencyOnlyRouter(edgeAgg, nodes)
+		return RoutingLastInterface{Operate: router}
+	case CPUOnly:
+		router := last.NewCPUOnlyRouter(nodes)
+		return RoutingLastInterface{Operate: router}
+	case JointCpuLatency:
+		router := last.NewJointRouter(edgeAgg, nodes)
+		return RoutingLastInterface{Operate: router}
 	default:
 		return RoutingLastInterface{}
 	}

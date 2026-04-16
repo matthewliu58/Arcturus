@@ -1,0 +1,273 @@
+package middle_mile
+
+import (
+	"container/heap"
+	"control-plane/routing/graph"
+	"control-plane/routing/routing"
+	"fmt"
+	"log/slog"
+	"math"
+	"strings"
+)
+
+type KShortestSolver struct {
+	edges []*graph.Edge
+	alpha float64
+	k     int
+}
+
+func NewKShortestSolver(edges []*graph.Edge, k int) *KShortestSolver {
+	var g []*graph.Edge
+	for _, e := range edges {
+		g = append(g, e)
+	}
+	return &KShortestSolver{
+		edges: g,
+		alpha: 1.2,
+		k:     k,
+	}
+}
+
+func (ks *KShortestSolver) Computing(start, end, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
+	// Build graph structure
+	graph_ := make(map[string][]*graph.Edge)
+	nodes := make(map[string]struct{})
+	for _, e := range ks.edges {
+		graph_[e.SourceIp] = append(graph_[e.SourceIp], e)
+		nodes[e.SourceIp] = struct{}{}
+		nodes[e.DestinationIp] = struct{}{}
+	}
+
+	// Check if start and end nodes exist
+	if _, ok := nodes[start]; !ok {
+		return nil, fmt.Errorf("start node %s not found", start)
+	}
+	if _, ok := nodes[end]; !ok {
+		return nil, fmt.Errorf("end node %s not found", end)
+	}
+
+	// Use Yen's algorithm to find top k shortest paths
+	paths, err := ks.yensAlgorithm(start, end, graph_, logger)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to PathInfo format
+	var pathInfos []routing.PathInfo
+	for _, path := range paths {
+		pathInfos = append(pathInfos, routing.PathInfo{
+			Hops: path.hops,
+			Rtt:  path.cost,
+		})
+	}
+
+	logger.Info("K-shortest paths found", slog.String("pre", pre),
+		slog.String("start", start), slog.String("end", end),
+		slog.Int("k", ks.k), slog.Any("paths", pathInfos))
+
+	return pathInfos, nil
+}
+
+type Path struct {
+	hops []string
+	cost float64
+}
+
+func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]*graph.Edge, logger *slog.Logger) ([]Path, error) {
+	// Initialize result list
+	var A []Path
+	// Initialize candidate path list
+	var B PriorityQueue
+
+	// Find first shortest path
+	firstPath, err := ks.findShortestPath(start, end, graph_, nil, nil, logger)
+	if err != nil {
+		return nil, err
+	}
+	A = append(A, *firstPath)
+
+	for i := 1; i < ks.k; i++ {
+		// For each node in the previous path
+		prevPath := A[i-1]
+		for j := 0; j < len(prevPath.hops)-1; j++ {
+			// Build spur node and root path
+			spurNode := prevPath.hops[j]
+			rootPath := prevPath.hops[:j+1]
+
+			// Remove edges related to root path
+			removedEdges := make([]*graph.Edge, 0)
+			for _, edge := range graph_[spurNode] {
+				if !ks.isInPath(edge.DestinationIp, rootPath) {
+					removedEdges = append(removedEdges, edge)
+				}
+			}
+			// Temporarily remove these edges
+			originalEdges := graph_[spurNode]
+			graph_[spurNode] = removedEdges
+
+			// Remove edges from spur node to next node in all found paths with same prefix
+			for _, path := range A {
+				if len(path.hops) > j && ks.pathsSharePrefix(path.hops, rootPath) {
+					// Remove edge from spur node to path[j+1]
+					if j+1 < len(path.hops) {
+						target := path.hops[j+1]
+						newEdges := make([]*graph.Edge, 0)
+						for _, edge := range graph_[spurNode] {
+							if edge.DestinationIp != target {
+								newEdges = append(newEdges, edge)
+							}
+						}
+						graph_[spurNode] = newEdges
+					}
+				}
+			}
+
+			// Find shortest path from spur node to end
+			spurPath, err := ks.findShortestPath(spurNode, end, graph_, nil, nil, logger)
+			if err == nil {
+				// Build complete path
+				completePath := Path{
+					hops: append(rootPath[:len(rootPath)-1], spurPath.hops...),
+					cost: prevPath.cost - ks.calculatePathCost(rootPath, graph_) + spurPath.cost,
+				}
+				// Check if path is already in candidate list
+				if !ks.isPathInQueue(completePath, &B) {
+					heap.Push(&B, &PQNode{
+						node: strings.Join(completePath.hops, "->"),
+						cost: completePath.cost,
+					})
+				}
+			}
+
+			// Restore original edges
+			graph_[spurNode] = originalEdges
+		}
+
+		if B.Len() == 0 {
+			// No more candidate paths
+			break
+		}
+
+		// Select shortest path from candidate list
+		shortest := heap.Pop(&B).(*PQNode)
+		// Parse path
+		hops := strings.Split(shortest.node, "->")
+		A = append(A, Path{
+			hops: hops,
+			cost: shortest.cost,
+		})
+	}
+
+	return A, nil
+}
+
+func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string][]*graph.Edge,
+	forbiddenNodes map[string]bool, forbiddenEdges map[string]bool, logger *slog.Logger) (*Path, error) {
+
+	dist := make(map[string]float64)
+	prev := make(map[string]string)
+	for node := range graph_ {
+		dist[node] = math.Inf(1)
+	}
+	dist[start] = 0
+
+	pq := &PriorityQueue{}
+	heap.Init(pq)
+	heap.Push(pq, &PQNode{
+		node: start,
+		cost: 0,
+	})
+
+	for pq.Len() > 0 {
+		u := heap.Pop(pq).(*PQNode)
+		currNode := u.node
+		currCost := u.cost
+
+		if currCost > dist[currNode] {
+			continue
+		}
+
+		if currNode == end {
+			// Build path
+			var path []string
+			for node := end; node != ""; node = prev[node] {
+				path = append([]string{node}, path...)
+			}
+			return &Path{
+				hops: path,
+				cost: currCost,
+			}, nil
+		}
+
+		for _, e := range graph_[currNode] {
+			// Check if node or edge is forbidden
+			if forbiddenNodes != nil && forbiddenNodes[e.DestinationIp] {
+				continue
+			}
+			edgeKey := currNode + "->" + e.DestinationIp
+			if forbiddenEdges != nil && forbiddenEdges[edgeKey] {
+				continue
+			}
+
+			nextNode := e.DestinationIp
+			newCost := currCost + e.EdgeWeight*ks.alpha
+
+			if newCost < dist[nextNode] {
+				dist[nextNode] = newCost
+				prev[nextNode] = currNode
+				heap.Push(pq, &PQNode{
+					node: nextNode,
+					cost: newCost,
+				})
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("no path found from %s to %s", start, end)
+}
+
+func (ks *KShortestSolver) isInPath(node string, path []string) bool {
+	for _, n := range path {
+		if n == node {
+			return true
+		}
+	}
+	return false
+}
+
+func (ks *KShortestSolver) pathsSharePrefix(path1, path2 []string) bool {
+	if len(path1) < len(path2) {
+		path1, path2 = path2, path1
+	}
+	for i := range path2 {
+		if path1[i] != path2[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func (ks *KShortestSolver) isPathInQueue(path Path, pq *PriorityQueue) bool {
+	pathStr := strings.Join(path.hops, "->")
+	for _, item := range *pq {
+		if item.node == pathStr {
+			return true
+		}
+	}
+	return false
+}
+
+func (ks *KShortestSolver) calculatePathCost(path []string, graph_ map[string][]*graph.Edge) float64 {
+	cost := 0.0
+	for i := 0; i < len(path)-1; i++ {
+		source := path[i]
+		dest := path[i+1]
+		for _, edge := range graph_[source] {
+			if edge.DestinationIp == dest {
+				cost += edge.EdgeWeight * ks.alpha
+				break
+			}
+		}
+	}
+	return cost
+}
