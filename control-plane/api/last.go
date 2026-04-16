@@ -29,7 +29,10 @@ func NewLastReceiveAPIHandler(cli *clientv3.Client, l *slog.Logger) *LastReceive
 
 func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 
-	pre := util.GenerateRandomLetters(5)
+	pre := c.Query("ip")
+	if pre == "" {
+		pre = util.GenerateRandomLetters(5)
+	}
 
 	resp := receive_info.ApiResponse{
 		Code: 500,
@@ -56,7 +59,7 @@ func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 	}
 
 	var lastStats receive_info.LastStats
-	if err := json.Unmarshal(reqDataBytes, &lastStats); err != nil {
+	if err = json.Unmarshal(reqDataBytes, &lastStats); err != nil {
 		resp.Code = 400
 		resp.Msg = "Data field parsing failed: " + err.Error()
 		c.JSON(http.StatusOK, resp)

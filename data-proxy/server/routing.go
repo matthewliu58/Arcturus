@@ -5,9 +5,14 @@ import (
 	"data-proxy/config"
 	"data-proxy/util"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
+)
+
+const (
+	middleRoutingURL = "/api/v1/routing/middle"
 )
 
 type ControlPlaneRoutingResponse struct {
@@ -44,8 +49,8 @@ func GetRoutingFromControlPlane(port int, l *slog.Logger) *util.RoutingInfo {
 		return &util.RoutingInfo{}
 	}
 
-	controlHost := config.Config_.ControlHost
-	resp, err := http.Post(controlHost+"/api/v1/routing/middle", "application/json", bytes.NewBuffer(reqBody))
+	url := fmt.Sprintf("%s?ip=%s", config.Config_.ControlHost+middleRoutingURL, config.Config_.Node.IP.Public)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		l.Error("Failed to send routing request to control plane", slog.Any("err", err))
 		return &util.RoutingInfo{}

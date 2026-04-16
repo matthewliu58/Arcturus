@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"data-plane/util"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -12,17 +13,17 @@ import (
 )
 
 const (
-	lastReceiveURL = "http://127.0.0.1:7081/api/v1/last/receive"
+	lastReceiveURL = "/api/v1/last/receive"
 )
 
 type LastStats struct {
 	DelayStats map[LastStatsKey]*LastStatsValue `json:"delay_stats"`
 	IP         string                           `json:"ip"`
-	ISP        string                           `json:"isp"`
-	Continent  string                           `json:"continent"`
-	Country    string                           `json:"country"`
-	Province   string                           `json:"province"`
-	City       string                           `json:"city"`
+	//ISP        string                           `json:"isp"`
+	Continent string `json:"continent"`
+	Country   string `json:"country"`
+	//Province   string                           `json:"province"`
+	City string `json:"city"`
 }
 
 func SendLastStats(delayStats map[LastStatsKey]*LastStatsValue, pre string, logger *slog.Logger) error {
@@ -32,11 +33,11 @@ func SendLastStats(delayStats map[LastStatsKey]*LastStatsValue, pre string, logg
 	stats := &LastStats{
 		DelayStats: delayStats,
 		IP:         c.IP.Public,
-		ISP:        c.Provider,
-		Continent:  c.Continent,
-		Country:    c.Country,
-		Province:   "",
-		City:       c.City,
+		//ISP:        c.Provider,
+		Continent: c.Continent,
+		Country:   c.Country,
+		//Province:   "",
+		City: c.City,
 	}
 
 	reqBody := report.ApiResponse{
@@ -55,10 +56,11 @@ func SendLastStats(delayStats map[LastStatsKey]*LastStatsValue, pre string, logg
 		Timeout: 10 * time.Second,
 	}
 
-	resp, err := client.Post(lastReceiveURL, "application/json", bytes.NewBuffer(jsonData))
+	url := fmt.Sprintf("%s?ip=%s", util.Config_.ControlHost+lastReceiveURL, util.Config_.Node.IP.Public)
+	resp, err := client.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		logger.Error("failed to send LastStats to control-plane", slog.String("pre", pre),
-			slog.Any("error", err), slog.String("url", lastReceiveURL))
+			slog.Any("error", err), slog.String("url", url))
 		return err
 	}
 	defer resp.Body.Close()

@@ -81,7 +81,7 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 		Data: nil,
 	}
 
-	pre := c.Query("node")
+	pre := c.Query("ip")
 	if pre == "" {
 		pre = util.GenerateRandomLetters(5)
 	}

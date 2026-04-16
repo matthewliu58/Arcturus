@@ -176,6 +176,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 
 	w.logger.Info("handleMsg", "routingKey", msg.routingKey, "nextHop", msg.nextHop.String(), "payloadLen", len(msg.data))
 
+	//todo select these two variables by characteristics of business
 	buffSize := config.Config_.Aggregator.BufferSize
 	batchTimeout := time.Duration(config.Config_.Aggregator.BatchTimeoutMs) * time.Millisecond
 
@@ -270,7 +271,7 @@ func (w *worker) flush(b *Batch, buffSize int) {
 
 	go func() {
 		w.logger.Info("flush batch", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
-		_ = manager.TunnelMgr.SendPacket(context.Background(), b.NextHop, buf, "", w.logger)
+		_ = manager.TunnelMgr.SendPacket(context.Background(), b.NextHop, buf, b.NextHop.String(), w.logger)
 	}()
 
 	b.pkt = packet.NewPacket(buffSize)

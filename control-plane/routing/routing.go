@@ -71,8 +71,7 @@ func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats,
 	case Lyapunov:
 		nodes := g.GetNodes()
 		edgeAgg := a.GetAggMap()
-		nodeLocation := a.GetNodeLocation()
-		solver := last.NewLyapunovSolver(edgeAgg, nodes, nodeLocation)
+		solver := last.NewLyapunovSolver(edgeAgg, nodes)
 		return RoutingLastInterface{Operate: solver}
 	default:
 		return RoutingLastInterface{}

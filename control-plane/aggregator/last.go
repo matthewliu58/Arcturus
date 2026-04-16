@@ -9,17 +9,17 @@ import (
 )
 
 type GlobalStats struct {
-	mu           sync.RWMutex
-	nodeLast     map[string]*rece.LastStats
-	edgeAgg      map[string]*rece.LastStatsVal
-	nodeLocation map[string][]string
+	mu       sync.RWMutex
+	nodeLast map[string]*rece.LastStats
+	edgeAgg  map[string]*rece.LastStatsVal
+	//nodeLocation map[string][]string
 }
 
 func NewGlobalStats() *GlobalStats {
 	return &GlobalStats{
-		nodeLast:     make(map[string]*rece.LastStats),
-		edgeAgg:      make(map[string]*rece.LastStatsVal),
-		nodeLocation: make(map[string][]string),
+		nodeLast: make(map[string]*rece.LastStats),
+		edgeAgg:  make(map[string]*rece.LastStatsVal),
+		//nodeLocation: make(map[string][]string),
 	}
 }
 
@@ -29,49 +29,13 @@ func (g *GlobalStats) AddOrUpdateNode(node *rece.LastStats) {
 	}
 	g.mu.Lock()
 	g.nodeLast[node.IP] = node
-	g.AddNodeLocation(node.IP, node.Continent)
 	g.mu.Unlock()
 }
 
 func (g *GlobalStats) DelNode(nodeIP string) {
 	g.mu.Lock()
 	delete(g.nodeLast, nodeIP)
-	g.DelNodeLocation(nodeIP)
 	g.mu.Unlock()
-}
-
-func (g *GlobalStats) AddNodeLocation(ip, continent string) {
-	if g.nodeLocation[continent] == nil {
-		g.nodeLocation[continent] = make([]string, 0)
-	}
-	for _, existingIP := range g.nodeLocation[continent] {
-		if existingIP == ip {
-			return
-		}
-	}
-	g.nodeLocation[continent] = append(g.nodeLocation[continent], ip)
-}
-
-func (g *GlobalStats) DelNodeLocation(ip string) {
-	for continent, ips := range g.nodeLocation {
-		for i, existingIP := range ips {
-			if existingIP == ip {
-				g.nodeLocation[continent] = append(ips[:i], ips[i+1:]...)
-				return
-			}
-		}
-	}
-}
-
-func (g *GlobalStats) GetNodeLocation() map[string][]string {
-	g.mu.RLock()
-	defer g.mu.RUnlock()
-
-	nodeLocation := make(map[string][]string)
-	for c, ips := range g.nodeLocation {
-		nodeLocation[c] = ips
-	}
-	return nodeLocation
 }
 
 func (g *GlobalStats) GetAggMap() map[string]*rece.LastStatsVal {

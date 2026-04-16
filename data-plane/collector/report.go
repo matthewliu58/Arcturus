@@ -30,7 +30,7 @@ func NewHTTPReporter() *HTTPReporter {
 	}
 }
 
-func (r *HTTPReporter) Report(controlHost, pre string, vmReport *model.VMReport) error {
+func (r *HTTPReporter) Report(pre string, vmReport *model.VMReport) error {
 
 	if vmReport.ReportID == "" {
 		vmReport.ReportID = uuid.NewString()
@@ -47,7 +47,8 @@ func (r *HTTPReporter) Report(controlHost, pre string, vmReport *model.VMReport)
 		return err
 	}
 
-	resp, err := r.client.Post(controlHost+ReportURL, "application/json", bytes.NewBuffer(jsonData))
+	url := fmt.Sprintf("%s?ip=%s", util.Config_.ControlHost+ReportURL, util.Config_.Node.IP.Public)
+	resp, err := r.client.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ func (r *HTTPReporter) Report(controlHost, pre string, vmReport *model.VMReport)
 	return nil
 }
 
-func ReportCycle(controlHost, pre string, logger *slog.Logger) {
+func ReportCycle(pre string, logger *slog.Logger) {
 
 	vmCollector := NewVMCollector()
 	httpReporter := NewHTTPReporter()
@@ -73,20 +74,14 @@ func ReportCycle(controlHost, pre string, logger *slog.Logger) {
 	ticker := time.NewTicker(ReportInterval)
 	defer ticker.Stop()
 
-	logger.Info(
-		"data plane started, starting scheduled reporting", slog.String("pre", pre),
-		slog.Duration("report_interval", ReportInterval),
-		slog.String("report_url", controlHost+ReportURL),
-	)
-
-	//reportOnce(vmCollector, httpReporter, logger)
+	logger.Info("data plane started, starting scheduled reporting", slog.String("pre", pre))
 
 	for range ticker.C {
-		reportOnce(controlHost, vmCollector, httpReporter, logger)
+		reportOnce(vmCollector, httpReporter, logger)
 	}
 }
 
-func reportOnce(controlHost string, collector *VMCollector, reporter *HTTPReporter, logger *slog.Logger) {
+func reportOnce(collector *VMCollector, reporter *HTTPReporter, logger *slog.Logger) {
 
 	pre := util.GenerateRandomLetters(5)
 
@@ -100,7 +95,7 @@ func reportOnce(controlHost string, collector *VMCollector, reporter *HTTPReport
 	b, _ := json.Marshal(vmReport)
 	logger.Info("start reporting VM information", slog.String("pre", pre), slog.String("data", string(b)))
 
-	err = reporter.Report(controlHost, pre, vmReport)
+	err = reporter.Report(pre, vmReport)
 	if err != nil {
 		logger.Error("reporting failed", slog.String("pre", pre), slog.Any("err", err))
 		return

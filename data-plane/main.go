@@ -74,7 +74,7 @@ func main() {
 
 	go last.AccessAnalyzer(pre, logger)
 
-	go middle.ReportCycle(util.Config_.ControlHost, pre, logger)
+	go middle.ReportCycle(pre, logger)
 
 	probing.StartProbePeriodically(context.Background(), util.Config_.ControlHost,
 		probing.Config{

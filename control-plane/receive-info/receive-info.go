@@ -99,9 +99,9 @@ type LinkCongestionInfo struct {
 type LastStatsKey struct {
 	Continent string `json:"continent"`
 	Country   string `json:"country"`
-	Province  string `json:"province"`
-	City      string `json:"city"`
-	ISP       string `json:"isp"`
+	//Province  string `json:"province"`
+	City string `json:"city"`
+	//ISP       string `json:"isp"`
 }
 
 type LastStatsVal struct {
@@ -114,9 +114,9 @@ type LastStatsVal struct {
 type LastStats struct {
 	DelayStats map[LastStatsKey]*LastStatsVal `json:"delay_stats"`
 	IP         string                         `json:"ip"`
-	ISP        string                         `json:"isp"`
-	Continent  string                         `json:"continent"`
-	Country    string                         `json:"country"`
-	Province   string                         `json:"province"`
-	City       string                         `json:"city"`
+	//ISP        string                         `json:"isp"`
+	Continent string `json:"continent"`
+	Country   string `json:"country"`
+	//Province   string                         `json:"province"`
+	City string `json:"city"`
 }

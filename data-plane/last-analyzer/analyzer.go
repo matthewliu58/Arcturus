@@ -20,16 +20,16 @@ type Record struct {
 	Country   string
 	Province  string
 	City      string
-	ISP       string
+	//ISP       string
 	//Node     string
 }
 
 type LastStatsKey struct {
 	Continent string `json:"continent"`
 	Country   string `json:"country"`
-	Province  string `json:"province"`
-	City      string `json:"city"`
-	ISP       string `json:"isp"`
+	//Province  string `json:"province"`
+	City string `json:"city"`
+	//ISP       string `json:"isp"`
 }
 
 type LastStatsValue struct {
@@ -54,7 +54,7 @@ func AccessAnalyzer(pre string, logger *slog.Logger) {
 
 	for range ticker.C {
 		delayStats := calculate(pre, logger)
-		SendLastStats(delayStats, pre, logger)
+		_ = SendLastStats(delayStats, pre, logger)
 	}
 }
 
@@ -118,7 +118,7 @@ func tailFile(path string, pre string, logger *slog.Logger) {
 				Country:  ipInfo.Country,
 				Province: ipInfo.Province,
 				City:     ipInfo.City,
-				ISP:      ipInfo.ISP,
+				//ISP:      ipInfo.ISP,
 				//Node:     util.Config_.NodeName,
 			})
 			mu.Unlock()
@@ -154,9 +154,9 @@ func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue
 		key := LastStatsKey{
 			Continent: util.GetContinentByCountry(r.Country),
 			Country:   r.Country,
-			Province:  r.Province,
-			City:      r.City,
-			ISP:       r.ISP,
+			//Province:  r.Province,
+			City: r.City,
+			//ISP:       r.ISP,
 		}
 
 		if agg[key] == nil {
@@ -189,10 +189,11 @@ func calculate(pre string, logger *slog.Logger) map[LastStatsKey]*LastStatsValue
 	for key, s := range agg {
 		logger.Info("User latency statistics",
 			slog.String("pre", pre),
+			slog.String("continent", key.Continent),
 			slog.String("country", key.Country),
-			slog.String("province", key.Province),
+			//slog.String("province", key.Province),
 			slog.String("city", key.City),
-			slog.String("isp", key.ISP),
+			//slog.String("isp", key.ISP),
 			//slog.String("node", key.Node),
 			slog.Float64("avg_rt_ms", s.AvgRT),
 			slog.Any("p95_rt_ms", s.P95RT),

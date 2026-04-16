@@ -30,7 +30,7 @@ func NewUserRoutingAPIHandler(gm *graph.GraphManager, gs *agg.GlobalStats, logge
 
 func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 
-	pre := c.GetHeader("X-Pre")
+	pre := c.Query("ip")
 	if len(pre) <= 0 {
 		pre = util.GenerateRandomLetters(5)
 	}
@@ -61,7 +61,11 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 	req.Dest.IP = ip.IP + ":" + strconv.Itoa(ip.Port)
 	h.Logger.Info("GetMiddleRoute request", slog.String("pre", pre), slog.Any("endPoints", req))
 
-	paths := routing1.MiddleRouting(h.GraphManager, req, routing1.Shortest, pre, h.Logger)
+	algorithm := c.Query("algorithm")
+	if len(algorithm) <= 0 {
+		algorithm = routing1.Shortest
+	}
+	paths := routing1.MiddleRouting(h.GraphManager, req, algorithm, pre, h.Logger)
 	h.Logger.Info("GetMiddleRoute response", slog.String("pre", pre), slog.Any("routing", paths))
 
 	resp.Code = 200
@@ -72,7 +76,7 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 
 func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 
-	pre := c.GetHeader("X-Pre")
+	pre := c.Query("ip")
 	if len(pre) <= 0 {
 		pre = util.GenerateRandomLetters(5)
 	}

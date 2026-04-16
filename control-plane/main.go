@@ -279,10 +279,10 @@ func main() {
 	router := gin.Default()
 	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, "success") })
 
-	api.InitVmReceiveAPIRouter(router, s, logger)
 	api.InitNodeProbeRouter(router, cli, logger)
-	api.InitUserRoutingRouter(router, r, globalStats, logger)
+	api.InitVmReceiveAPIRouter(router, s, logger)
 	api.InitLastReceiveAPIRouter(router, cli, logger)
+	api.InitUserRoutingRouter(router, r, globalStats, logger)
 
 	logger.Info("service started successfully", slog.String("pre", pre), slog.String("port", ":7081"))
 	if err = router.Run(":7081"); err != nil {

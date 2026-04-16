@@ -57,7 +57,7 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 		} else {
 			nextIP := util.Uint32ToIP(header.HopIP[header.HopPos+1])
 			packet.AdvanceRawHop(pkt)
-			if err = manager.TunnelMgr.SendPacket(context.Background(), nextIP, pkt, "quic", l); err != nil {
+			if err = manager.TunnelMgr.SendPacket(context.Background(), nextIP, pkt, nextIP.String(), l); err != nil {
 				l.Error("Outbound forwarding failed", "err", err)
 			}
 		}
@@ -82,7 +82,7 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 		} else {
 			nextIP := util.Uint32ToIP(header.HopIP[header.HopPos+1])
 			packet.AdvanceRawHop(pkt)
-			if err = manager.TunnelMgr.SendPacket(context.Background(), nextIP, pkt, "quic", l); err != nil {
+			if err = manager.TunnelMgr.SendPacket(context.Background(), nextIP, pkt, nextIP.String(), l); err != nil {
 				l.Error("Return forwarding failed", "err", err)
 			}
 		}

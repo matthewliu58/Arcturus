@@ -4,6 +4,7 @@ import (
 	agg "control-plane/aggregator"
 	rece "control-plane/receive-info"
 	"control-plane/routing/routing"
+	"control-plane/util"
 	"log/slog"
 	"math"
 	"sort"
@@ -21,20 +22,17 @@ const (
 )
 
 type LyapunovSolver struct {
-	edgeAgg      map[string]*rece.LastStatsVal
-	nodeTel      map[string]*agg.Telemetry
-	nodeLocation map[string][]string
+	edgeAgg map[string]*rece.LastStatsVal
+	nodeTel map[string]*agg.Telemetry
 }
 
 func NewLyapunovSolver(
 	edgeAgg map[string]*rece.LastStatsVal,
 	nodeTel map[string]*agg.Telemetry,
-	nodeLocation map[string][]string,
 ) *LyapunovSolver {
 	return &LyapunovSolver{
-		edgeAgg:      edgeAgg,
-		nodeTel:      nodeTel,
-		nodeLocation: nodeLocation,
+		edgeAgg: edgeAgg,
+		nodeTel: nodeTel,
 	}
 }
 
@@ -44,11 +42,17 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 
 	source := endPoints.Source
 	continent := source.Continent
-	nodeIps := l.nodeLocation[continent]
+	var nodeIps []string
 
-	if len(nodeIps) == 0 {
+	for _, node := range l.nodeTel {
+		if node.Continent == continent {
+			nodeIps = append(nodeIps, node.PublicIP)
+		}
+	}
+	if len(nodeIps) <= 0 {
 		logger.Warn("no available nodes in continent", slog.String("pre", pre), slog.String("continent", continent))
-		return []routing.PathInfo{}, nil
+		//return []routing.PathInfo{}, nil
+		nodeIps = []string{util.Config_.Node.IP.Public}
 	}
 
 	type nodeScore struct {
@@ -70,7 +74,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 		stats := l.GetNodeRT(source, nodeIp, pre, logger)
 		if stats == nil || stats.Count == 0 {
 			logger.Warn("skip node: no rt stats", slog.String("pre", pre), slog.String("nodeIp", nodeIp))
-			continue
+			stats = &rece.LastStatsVal{AvgRT: 500}
 		}
 
 		//score = w * Qk * Δk + V * delay
