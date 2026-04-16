@@ -24,7 +24,7 @@ type LastTelemetry struct {
 	City            string                      `json:"city"`
 }
 
-func SendLastStats(delayStats map[LastKey]*LastCongestion, pre string, logger *slog.Logger) error {
+func SendLastTelemetry(delayStats map[LastKey]*LastCongestion, pre string, logger *slog.Logger) error {
 
 	c := util.Config_.Node
 

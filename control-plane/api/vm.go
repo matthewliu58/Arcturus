@@ -26,9 +26,7 @@ func NewVmReceiveAPIHandler(s util.Storage, l *slog.Logger) *VmReceiveAPIHandler
 func (h *VmReceiveAPIHandler) PostVMReceive(c *gin.Context) {
 
 	pre := c.Query("ip")
-	if pre == "" {
-		pre = util.GenerateRandomLetters(5)
-	}
+	pre += util.GenerateRandomLetters(5)
 
 	resp := model.ApiResponse{
 		Code: 500,

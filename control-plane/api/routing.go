@@ -31,9 +31,8 @@ func NewUserRoutingAPIHandler(gm *graph.GraphManager, gs *agg.GlobalStats, logge
 func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 
 	pre := c.Query("ip")
-	if len(pre) <= 0 {
-		pre = util.GenerateRandomLetters(5)
-	}
+	pre += util.GenerateRandomLetters(5)
+
 	h.Logger.Info("GetMiddleRoute", slog.String("pre", pre))
 
 	resp := rece.ApiResponse{
@@ -50,7 +49,7 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 		h.Logger.Warn("GetMiddleRoute parse body failed", slog.String("pre", pre), slog.Any("error", err))
 		return
 	}
-	ip, ok := SourceTargetMap[req.Dest.Port]
+	source, ok := SourceTargetMap[req.Dest.Port]
 	if !ok {
 		resp.Code = 400
 		resp.Msg = "Request body parsing failed: No corresponding port found"
@@ -58,7 +57,7 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 		h.Logger.Warn("GetMiddleRoute failed", slog.String("pre", pre))
 		return
 	}
-	req.Dest.IP = ip.IP + ":" + strconv.Itoa(ip.Port)
+	req.Dest.IP = source.IP + ":" + strconv.Itoa(source.Port)
 	h.Logger.Info("GetMiddleRoute request", slog.String("pre", pre), slog.Any("endPoints", req))
 
 	algorithm := c.Query("algorithm")
@@ -77,9 +76,8 @@ func (h *UserRoutingAPIHandler) GetMiddleRoute(c *gin.Context) {
 func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 
 	pre := c.Query("ip")
-	if len(pre) <= 0 {
-		pre = util.GenerateRandomLetters(5)
-	}
+	pre += util.GenerateRandomLetters(5)
+
 	h.Logger.Info("GetLastRoute", slog.String("pre", pre))
 
 	resp := rece.ApiResponse{

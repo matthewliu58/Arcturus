@@ -66,7 +66,7 @@ func (r *HTTPReporter) Report(pre string, vmReport *model.VMReport) error {
 	return nil
 }
 
-func ReportCycle(pre string, logger *slog.Logger) {
+func VMTelemetryReporter(pre string, logger *slog.Logger) {
 
 	vmCollector := NewVMCollector()
 	httpReporter := NewHTTPReporter()

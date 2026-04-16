@@ -108,6 +108,12 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 			nodeIp: nodeIp,
 			score:  score,
 		})
+
+		logger.Info("Lyapunov last-mile routing score", slog.String("pre", pre),
+			slog.String("nodeIp", nodeIp), slog.Float64("score", score),
+			slog.Float64("cpuPenalty", cpuPenalty), slog.Float64("delayPenalty", delayPenalty),
+			slog.Float64("Qk", Qk), slog.Float64("deltaK", deltaK),
+			slog.Float64("delay", delay), slog.Float64("w", w))
 	}
 
 	if len(candidates) == 0 {

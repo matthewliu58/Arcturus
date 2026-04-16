@@ -30,9 +30,7 @@ func NewLastReceiveAPIHandler(cli *clientv3.Client, l *slog.Logger) *LastReceive
 func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 
 	pre := c.Query("ip")
-	if pre == "" {
-		pre = util.GenerateRandomLetters(5)
-	}
+	pre += util.GenerateRandomLetters(5)
 
 	resp := receive_info.ApiResponse{
 		Code: 500,

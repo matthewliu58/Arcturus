@@ -42,15 +42,15 @@ var (
 	tickInterval = 10 * time.Second
 )
 
-func AccessAnalyzer(pre string, logger *slog.Logger) {
+func LastTelemetryReporter(pre string, logger *slog.Logger) {
 	go tailFile(util.Config_.AccessLog, pre, logger)
 
 	ticker := time.NewTicker(tickInterval)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		delayStats := calculate(pre, logger)
-		_ = SendLastStats(delayStats, pre, logger)
+		lastsCongestion := calculateLastCongestion(pre, logger)
+		_ = SendLastTelemetry(lastsCongestion, pre, logger)
 	}
 }
 
@@ -128,7 +128,7 @@ func tailFile(path string, pre string, logger *slog.Logger) {
 	}
 }
 
-func calculate(pre string, logger *slog.Logger) map[LastKey]*LastCongestion {
+func calculateLastCongestion(pre string, logger *slog.Logger) map[LastKey]*LastCongestion {
 	now := time.Now()
 
 	mu.Lock()

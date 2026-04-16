@@ -82,9 +82,7 @@ func (h *NodeProbeAPIHandler) GetProbeTasks(c *gin.Context) {
 	}
 
 	pre := c.Query("ip")
-	if pre == "" {
-		pre = util.GenerateRandomLetters(5)
-	}
+	pre += util.GenerateRandomLetters(5)
 
 	nodeMap, err := etcd_client.GetPrefixAll(h.etcdClient, "/routing-middle/", pre, h.logger)
 	if err != nil {

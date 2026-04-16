@@ -72,9 +72,9 @@ func main() {
 		logger.Warn("Failed to read country information file", slog.String("pre", pre), slog.Any("err", err))
 	}
 
-	go last.AccessAnalyzer(pre, logger)
+	go last.LastTelemetryReporter(pre, logger)
 
-	go middle.ReportCycle(pre, logger)
+	go middle.VMTelemetryReporter(pre, logger)
 
 	probing.StartProbePeriodically(context.Background(), util.Config_.ControlHost,
 		probing.Config{
