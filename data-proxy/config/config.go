@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	Config_ *Config
+	Config_     *Config
+	TestPathMap = make(map[int]string)
 )
 
 type Config struct {
@@ -79,6 +80,14 @@ func ReadYamlConfig(logger *slog.Logger) (*Config, error) {
 	if err = yaml.Unmarshal(content, &config); err != nil {
 		return nil, fmt.Errorf("failed to parse yaml: %w", err)
 	}
+
+	Config_ = &config
+
+	testPathMap := make(map[int]string)
+	for _, v := range config.TestRouting {
+		testPathMap[v.Port] = v.Path
+	}
+	TestPathMap = testPathMap
 
 	return &config, nil
 }

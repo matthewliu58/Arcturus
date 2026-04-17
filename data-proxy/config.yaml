@@ -3,18 +3,28 @@ port: "7083"
 control_host: "http://127.0.0.1:7081"
 
 test_routing:
-  - 8081:"139.180.159.203,141.164.55.197,141.164.43.8:8081"
+  - port: 8081
+    path: "139.180.159.203,141.164.55.197,141.164.43.8:8081"
 
-listen_ports:
-  - tcp:8081
-#  - tcp:8002
-#  - udp:8002
-#  - tcp:8003
-#  - udp:8003
-#  - tcp:8004
-#  - tcp:8005
-#  - udp:443   # HTTP3/QUIC
-#  - tcp:443   # HTTPS
+listeners:
+  - proto: "tcp"
+    port: 8081
+#  - proto: "tcp"
+#    port: 8002
+#  - proto: "udp"
+#    port: 8002
+#  - proto: "tcp"
+#    port: 8003
+#  - proto: "udp"
+#    port: 8003
+#  - proto: "tcp"
+#    port: 8004
+#  - proto: "tcp"
+#    port: 8005
+#  - proto: "udp"
+#    port: 443   # HTTP3/QUIC
+#  - proto: "tcp"
+#    port: 443   # HTTPS
 
 rate_limit:
   qps: 1000
