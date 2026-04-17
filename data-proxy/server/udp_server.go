@@ -168,6 +168,7 @@ func handleUDPConnection(
 		}
 		routingMutex.Unlock()
 	} else if time.Now().After(ri.deadline) {
+		routeInfo = ri.info
 		go func() {
 			routeInfo = GetRoutingFromControlPlane(port, logger)
 
@@ -178,8 +179,9 @@ func handleUDPConnection(
 			}
 			routingMutex.Unlock()
 		}()
+	} else {
+		routeInfo = ri.info
 	}
-	routeInfo = ri.info
 
 	if len(routeInfo.Routing) == 0 {
 		logger.Error("udp routing empty", slog.Any("req_id", reqID))

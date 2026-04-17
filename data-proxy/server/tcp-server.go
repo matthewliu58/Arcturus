@@ -174,6 +174,7 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 		}
 		routingMutex.Unlock()
 	} else if time.Now().After(ri.deadline) {
+		routeInfo = ri.info
 		go func() {
 			routeInfo = GetRoutingFromControlPlane(port, l)
 
@@ -184,8 +185,9 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 			}
 			routingMutex.Unlock()
 		}()
+	} else {
+		routeInfo = ri.info
 	}
-	routeInfo = ri.info
 
 	if len(routeInfo.Routing) == 0 {
 		l.Error("no path in routing info", slog.Any("req_id", reqID))
