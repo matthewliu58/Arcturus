@@ -34,7 +34,7 @@ func NewTunnelManager(pre string, l *slog.Logger) *TunnelManager {
 func (m *TunnelManager) SendPacket(
 	ctx context.Context,
 	remoteIP net.IP,
-	//pkt *tunnel_packet.Packet,
+//pkt *tunnel_packet.Packet,
 	data []byte, pre string, l *slog.Logger,
 ) error {
 	if remoteIP == nil {
@@ -52,8 +52,12 @@ func (m *TunnelManager) SendPacket(
 	success := true
 	stream, err := conn.OpenUniStreamSync(ctx)
 	if err != nil {
+		l.Error("open uni stream failed", slog.String("pre", pre),
+			slog.String("addr", remoteIP.String()), slog.Any("err", err))
 		m.CloseTunnel(remoteIP, pre, l)
 		success = false
+	} else {
+		l.Info("open uni stream success", slog.String("pre", pre), slog.String("addr", remoteIP.String()))
 	}
 
 	if !success {
@@ -70,6 +74,7 @@ func (m *TunnelManager) SendPacket(
 
 	_, err = stream.Write(data)
 	if err != nil {
+		l.Error("write to uni stream failed", slog.String("pre", pre), slog.Any("err", err))
 		m.CloseTunnel(remoteIP, pre, l)
 	}
 	return err

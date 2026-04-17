@@ -280,8 +280,11 @@ func (w *worker) flush(b *Batch, buffSize int) {
 	buf := b.pkt.Buf[:b.pkt.TotalBytes()]
 
 	go func() {
-		w.logger.Info("send packet", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
-		_ = manager.TunnelMgr.SendPacket(context.Background(), b.NextHop, buf, b.NextHop.String(), w.logger)
+		w.logger.Info("send packet", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "buf", len(buf))
+		err := manager.TunnelMgr.SendPacket(context.Background(), b.NextHop, buf, b.NextHop.String(), w.logger)
+		if err != nil {
+			w.logger.Error("send packet failed", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "err", err)
+		}
 	}()
 
 	b.pkt = packet.NewPacket(buffSize)
