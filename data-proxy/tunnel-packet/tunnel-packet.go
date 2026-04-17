@@ -33,8 +33,9 @@ type SubPacket struct {
 
 func NewPacket(buffSizes int) *Packet {
 	return &Packet{
-		Buf: make([]byte, buffSizes),
-		wp:  HeaderSize,
+		BuffSize: buffSizes,
+		Buf:      make([]byte, buffSizes),
+		wp:       HeaderSize,
 	}
 }
 

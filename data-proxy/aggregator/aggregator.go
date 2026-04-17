@@ -182,7 +182,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 
 	if len(msg.data) >= 1024 {
 		msg.emerge = true
-		buffSize = len(msg.data) + 2*packet.HeaderSize
+		buffSize = len(msg.data) + packet.HeaderSize
 	}
 
 	w.mu.Lock()
@@ -203,7 +203,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		b.pkt.SetPort(msg.port)
 		b.pkt.SetHopPos(1)
 
-		w.batches[msg.routingKey] = b
+		w.batches[msg.routingKey] = b //todo one key can map to many batches
 		w.logger.Info("create batch", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String())
 	}
 
@@ -280,7 +280,7 @@ func (w *worker) flush(b *Batch, buffSize int) {
 	buf := b.pkt.Buf[:b.pkt.TotalBytes()]
 
 	go func() {
-		w.logger.Info("flush batch", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
+		w.logger.Info("send packet", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
 		_ = manager.TunnelMgr.SendPacket(context.Background(), b.NextHop, buf, b.NextHop.String(), w.logger)
 	}()
 
