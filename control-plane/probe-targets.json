@@ -2,6 +2,14 @@
   {
     "server_port":8081,
     "provider": "Vultr",
+    "ip": "141.164.43.8",
+    "port": 8081,
+    "region": "Asia",
+    "id": "Seoul"
+  },
+  {
+    "server_port":8082,
+    "provider": "Vultr",
     "ip": "76.223.1.167",
     "port": 80,
     "region": "Asia",
