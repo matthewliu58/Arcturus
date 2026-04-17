@@ -38,20 +38,22 @@ type EndPoints struct {
 
 func GetRoutingFromControlPlane(port int, l *slog.Logger) *util.RoutingInfo {
 
-	for _, tp := range config.Config_.TestRouting {
-		if tp.Port == port && tp.Path != "" {
-			hops := strings.Split(tp.Path, ",")
-			hostIP := config.Config_.Node.IP.Public
-			if hostIP != hops[0] {
-				l.Error("Invalid test routing configuration", slog.String("path", tp.Path),
-					slog.String("public_ip", hostIP))
-				continue
-			}
-			l.Info("Using local test routing", slog.Int("port", port), slog.Any("hops", hops))
-			return &util.RoutingInfo{
-				Routing: []util.PathInfo{
-					{Hops: hops},
-				},
+	if len(config.Config_.TestRouting) > 0 {
+		for _, tp := range config.Config_.TestRouting {
+			if tp.Port == port && tp.Path != "" {
+				hops := strings.Split(tp.Path, ",")
+				hostIP := config.Config_.Node.IP.Public
+				if hostIP != hops[0] {
+					l.Error("Invalid test routing configuration", slog.String("path", tp.Path),
+						slog.String("public_ip", hostIP))
+					continue
+				}
+				l.Info("Using local test routing", slog.Int("port", port), slog.Any("hops", hops))
+				return &util.RoutingInfo{
+					Routing: []util.PathInfo{
+						{Hops: hops},
+					},
+				}
 			}
 		}
 	}
