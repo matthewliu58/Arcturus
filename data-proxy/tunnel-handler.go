@@ -42,6 +42,10 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 			}
 
 			originIP := util.Uint32ToIP(header.HopIP[int(header.HopPos)+1])
+			if originIP.String() == "0.0.0.0" {
+				l.Error("Origin IP is 0.0.0.0", slog.String("remoteAddr", remoteAddr), slog.Any("pktLen", len(pkt)))
+				return
+			}
 			originAddr := net.JoinHostPort(originIP.String(), strconv.Itoa(int(header.Port)))
 
 			for _, sub := range subs {

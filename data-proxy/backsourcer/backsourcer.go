@@ -3,6 +3,7 @@ package backsourcer
 import (
 	"log/slog"
 	"net"
+	"strings"
 	"sync"
 	"time"
 
@@ -82,15 +83,14 @@ func (bs *BackSourcer) doOriginRequest(task *BackSourceTask, l *slog.Logger) {
 		return
 	}
 
-	l.Info("doOriginRequest", slog.String("originAddr", task.OriginAddr),
-		slog.Any("UserID", task.UserID), slog.Any("port", task.Port))
+	l.Info("doOriginRequest", slog.Any("UserID", task.UserID), slog.String("originAddr", task.OriginAddr),
+		slog.Any("port", task.Port), slog.Any("req HopIP", task.HopIP))
 
 	resp, err := bs.protocol.DoRequest(task.OriginAddr, task.ReqData)
 	if err != nil || len(resp) == 0 {
+		l.Error("doOriginRequest failed", slog.Any("UserID", task.UserID), "err", err, slog.Any("resp", len(resp)))
 		return
 	}
-
-	l.Info("doOriginRequest HopIP", slog.Any("HopIP", task.HopIP))
 
 	var hops []net.IP
 	for i := len(task.HopIP) - 1; i >= 0; i-- {
@@ -107,11 +107,12 @@ func (bs *BackSourcer) doOriginRequest(task *BackSourceTask, l *slog.Logger) {
 	hopStrs := make([]string, 0, len(hops))
 	routingKey := ""
 	for _, hop := range hops {
-		routingKey += "," + hop.String()
 		hopStrs = append(hopStrs, hop.String())
 	}
+	routingKey = strings.Join(hopStrs, ",")
 
-	l.Info("doOriginRequest response HopIP", slog.Any("HopIP", hopStrs))
+	l.Info("doOriginRequest response", slog.Any("UserID", task.UserID), slog.String("originAddr", task.OriginAddr),
+		slog.Any("resp", len(resp)), slog.Any("response HopIP", hopStrs))
 
 	routingInfo := util.PathInfo{Hops: hopStrs}
 	nextHop := hops[1]

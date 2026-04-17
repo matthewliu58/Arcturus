@@ -211,6 +211,7 @@ func handleUDPConnection(
 		}
 		hops = append(hops, h)
 	}
+	pathInfo_ := util.PathInfo{Hops: hops}
 	routingKey := strings.Join(hops, ",")
 	p64, _ := strconv.ParseUint(port_, 10, 16)
 
@@ -221,7 +222,7 @@ func handleUDPConnection(
 		true, // UDP=true
 		routingKey,
 		uint16(p64),
-		pathInfo,
+		pathInfo_,
 		nextHop,
 		reqID,
 		data,

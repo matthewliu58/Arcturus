@@ -222,7 +222,8 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 	waitCh, cleanup := disaggregator.GlobalDisagg.Register(userID)
 	defer cleanup()
 
-	aggregator.GlobalAggRequest.AddToBatch(false, routingKey, uint16(p64), pathInfo, nextHop, userID, data)
+	pathInfo_ := util.PathInfo{Hops: hops}
+	aggregator.GlobalAggRequest.AddToBatch(false, routingKey, uint16(p64), pathInfo_, nextHop, userID, data)
 
 	select {
 	case respData, ok := <-waitCh:
