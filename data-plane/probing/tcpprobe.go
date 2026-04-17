@@ -145,6 +145,9 @@ func doProbeLossRTT(targets []ProbeTask, cfg Config, pre string, logger *slog.Lo
 				if successes > 0 {
 					avgRTT = totalRTT / time.Duration(successes)
 				}
+				if avgRTT <= 0 {
+					avgRTT = time.Duration(1)
+				}
 
 				result := Result{
 					Target:   target,

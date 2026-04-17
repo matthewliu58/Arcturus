@@ -120,11 +120,14 @@ func (g *GraphManager) AddNode(node *agg.NodeTelemetry, logPre string) {
 		} else {
 			in = node.PublicIP
 			out = v.Target.IP
+
 			outNode, ok := g.nodes[out]
 			if !ok {
 				g.logger.Warn("out node not found", slog.String("pre", logPre), slog.String("out", out))
 				continue
 			}
+
+			newLine = in + "->" + out
 			r = EdgeRisk(outNode.CpuPressure, v.PacketLoss, v.AverageLatency, logPre, g.logger)
 		}
 
