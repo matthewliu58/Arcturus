@@ -1,0 +1,45 @@
+# Arcturus Cluster Information
+
+# Node 1 - Master Node
+node1:
+  ip: 202.182.96.100
+  provider: Vultr
+  continent: Asia
+  country: Japan
+  city: Tokyo
+  private_ip: 192.168.1.100
+  role: master
+  server: ""
+
+# Node 2 - Master Node
+node2:
+  ip: 202.182.96.101
+  provider: DigitalOcean
+  continent: Asia
+  country: Singapore
+  city: Singapore
+  private_ip: 192.168.1.101
+  role: master
+  server: ""
+
+# Node 3 - Slave Node
+node3:
+  ip: 202.182.96.102
+  provider: AWS
+  continent: Asia
+  country: China
+  city: Hong Kong
+  private_ip: 192.168.1.102
+  role: slave
+  server: 192.168.1.100
+
+# Node 4 - Slave Node
+node4:
+  ip: 202.182.96.103
+  provider: GoogleCloud
+  continent: Asia
+  country: SouthKorea
+  city: Seoul
+  private_ip: 192.168.1.103
+  role: slave
+  server: 192.168.1.101
