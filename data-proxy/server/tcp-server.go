@@ -9,11 +9,35 @@ import (
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 type TCPServer struct {
 	protocol string
+}
+
+var (
+	accessLogMap sync.Map
+	accessWindow = 5 * time.Second
+)
+
+func shouldLogAccess(clientIP string) bool {
+	now := time.Now()
+
+	lastTimeVal, exists := accessLogMap.Load(clientIP)
+	if !exists {
+		accessLogMap.Store(clientIP, now)
+		return true
+	}
+
+	lastTime := lastTimeVal.(time.Time)
+	if now.Sub(lastTime) >= accessWindow {
+		accessLogMap.Store(clientIP, now)
+		return true
+	}
+
+	return false
 }
 
 func NewTCPServer() *TCPServer {
@@ -128,8 +152,12 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 		return
 	}
 
-	a.Info("access", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
-		slog.Float64("conn_rt_ms", rtMs), slog.Int("data_len", len(data)))
+	go func() {
+		if shouldLogAccess(clientIP) {
+			a.Info("access", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
+				slog.Float64("conn_rt_ms", rtMs), slog.Int("data_len", len(data)))
+		}
+	}()
 
 	routingMutex.RLock()
 	ri, hasRoute := routingMap[port]
