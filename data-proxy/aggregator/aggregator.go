@@ -243,7 +243,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 
 func (w *worker) checkTimeout() {
 
-	w.logger.Info("checkTimeout")
+	//w.logger.Info("checkTimeout")
 
 	var toSend []*Batch
 
@@ -290,8 +290,8 @@ func (w *worker) flush(b *Batch, buffSize int) {
 
 func (w *worker) evictStaleBatches() {
 
-	w.logger.Info("evictStaleBatches")
-	
+	//w.logger.Info("evictStaleBatches")
+
 	now := time.Now()
 
 	w.mu.RLock()
