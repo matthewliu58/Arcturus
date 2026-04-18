@@ -243,7 +243,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		if lList <= 1 {
 			b = bList[0]
 		} else {
-			idx := int(msg.userID) % lList
+			idx := int(msg.userID % uint32(lList))
 			b = bList[idx]
 		}
 
@@ -347,27 +347,18 @@ func (w *worker) flush(p *packet.Packet, nextHop net.IP) {
 func (w *worker) evictStaleBatches() {
 	now := time.Now()
 
+	batches := make(map[string][]*Batch)
 	w.mu.RLock()
-	keys := make([]string, 0, len(w.batches))
-	for k := range w.batches {
-		keys = append(keys, k)
+	for k, v := range w.batches {
+		batches[k] = v
 	}
 	w.mu.RUnlock()
 
-	for _, key := range keys {
-
-		w.mu.RLock()
-		bList, exist := w.batches[key]
-		w.mu.RUnlock()
-		if !exist {
-			continue
-		}
+	for k, v := range batches {
 
 		bDel := false
-		for _, b := range bList {
-			b.mu.RLock()
+		for _, b := range v {
 			stale := now.Sub(b.createTime) > batchMaxAge
-			b.mu.RUnlock()
 			if !stale {
 				continue
 			} else {
@@ -377,15 +368,15 @@ func (w *worker) evictStaleBatches() {
 
 		if bDel {
 			w.mu.Lock()
-			for _, b := range bList {
+			for _, b := range v {
 				if b.heapItem != nil {
 					heap.Remove(&w.heap, b.heapItem.index)
 				}
 			}
-			delete(w.batches, key)
+			delete(w.batches, k)
 			w.mu.Unlock()
 		}
 
-		w.logger.Info("evict stale batch", "routingKey", key)
+		w.logger.Info("evict stale batch", "routingKey", k)
 	}
 }
