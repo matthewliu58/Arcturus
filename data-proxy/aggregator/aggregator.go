@@ -258,16 +258,23 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		b.mu.Unlock()
 
 		w.mu.Lock()
-		if b.heapItem != nil {
-			heap.Remove(&w.heap, b.heapItem.index)
+		b_ := &Batch{
+			BuffSize:   buffSize,
+			RoutingKey: msg.routingKey,
+			NextHop:    msg.nextHop,
+			pkt:        packet.NewPacket(buffSize),
+			createTime: time.Now(),
 		}
+		for j, h := range msg.routingInfo.Hops {
+			b_.pkt.SetHopIP(j, util.HopIPToNet(h))
+		}
+		b_.pkt.SetPort(msg.port)
+		b_.pkt.SetHopPos(1)
+		w.batches[msg.routingKey] = append(w.batches[msg.routingKey], b_)
+		b = b_
 		w.mu.Unlock()
 
 		b.mu.Lock()
-		toSend = append(toSend, sendInfo{b.pkt, b.NextHop})
-		b.pkt = packet.NewPacket(b.BuffSize)
-		b.createTime = time.Now()
-		b.heapItem = nil
 		b.pkt.AppendUserPacket(msg.userID, msg.data)
 	}
 
