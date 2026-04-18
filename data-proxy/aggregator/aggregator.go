@@ -30,7 +30,7 @@ type aggregatorMsg struct {
 }
 
 type Batch struct {
-	mu         sync.RWMutex // 🔥 读写锁
+	mu         sync.RWMutex
 	BuffSize   int
 	RoutingKey string
 	NextHop    net.IP
@@ -212,7 +212,6 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 				NextHop:    msg.nextHop,
 				pkt:        packet.NewPacket(buffSize),
 				createTime: time.Now(),
-				inHeap:     false,
 			}
 			for i, h := range msg.routingInfo.Hops {
 				b.pkt.SetHopIP(i, util.HopIPToNet(h))
@@ -226,19 +225,19 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 	}
 
 	b.mu.Lock()
-	var toSend []sendInfo
 	ok := b.pkt.AppendUserPacket(msg.userID, msg.data)
+	var toSend []sendInfo
+
 	if !ok {
+		b.mu.Unlock()
 
+		w.mu.Lock()
 		if b.inHeap && b.heapItem != nil {
-
-			w.mu.Lock()
 			heap.Remove(&w.heap, b.heapItem.index)
-			w.mu.Unlock()
-
-			b.heapItem = nil
 		}
+		w.mu.Unlock()
 
+		b.mu.Lock()
 		toSend = append(toSend, sendInfo{b.pkt, b.NextHop})
 		b.pkt = packet.NewPacket(b.BuffSize)
 		b.createTime = time.Now()
@@ -250,21 +249,20 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 	w.logger.Info("add packet success", "routingKey", b.RoutingKey,
 		"nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
 
-	if !b.inHeap {
-		w.logger.Info("add to heap", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String())
-		item := &HeapItem{
-			batch:    b,
-			deadline: time.Now().Add(batchTimeout),
-		}
+	needPush := !b.inHeap
+	b.mu.Unlock()
 
+	if needPush {
+		item := &HeapItem{batch: b, deadline: time.Now().Add(batchTimeout)}
 		w.mu.Lock()
 		heap.Push(&w.heap, item)
 		w.mu.Unlock()
 
+		b.mu.Lock()
 		b.inHeap = true
 		b.heapItem = item
+		b.mu.Unlock()
 	}
-	b.mu.Unlock()
 
 	for _, p := range toSend {
 		w.flush(p.p, p.next)
@@ -272,17 +270,22 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 }
 
 func (w *worker) checkTimeout() {
-	var toSend []sendInfo
 
 	w.mu.Lock()
 	now := time.Now()
-	for w.heap.Len() > 0 {
+	var expired []*HeapItem
 
+	for w.heap.Len() > 0 {
 		item := w.heap[0]
 		if item.deadline.After(now) {
 			break
 		}
-		heap.Pop(&w.heap)
+		expired = append(expired, heap.Pop(&w.heap).(*HeapItem))
+	}
+	w.mu.Unlock()
+
+	var toSend []sendInfo
+	for _, item := range expired {
 		b := item.batch
 
 		b.mu.Lock()
@@ -293,7 +296,6 @@ func (w *worker) checkTimeout() {
 		b.heapItem = nil
 		b.mu.Unlock()
 	}
-	w.mu.Unlock()
 
 	for _, p := range toSend {
 		w.flush(p.p, p.next)
@@ -306,7 +308,6 @@ func (w *worker) flush(p *packet.Packet, nextHop net.IP) {
 	if p == nil || p.PayloadLen == 0 {
 		return
 	}
-
 	p.SerializeHead()
 	buf := p.Buf[:p.TotalBytes()]
 
@@ -324,30 +325,30 @@ func (w *worker) evictStaleBatches() {
 
 	w.mu.RLock()
 	keys := make([]string, 0, len(w.batches))
-	for key := range w.batches {
-		keys = append(keys, key)
+	for k := range w.batches {
+		keys = append(keys, k)
 	}
 	w.mu.RUnlock()
 
 	for _, key := range keys {
-
 		w.mu.RLock()
-		b, exists := w.batches[key]
+		b, exist := w.batches[key]
 		w.mu.RUnlock()
-
-		if !exists {
+		if !exist {
 			continue
 		}
 
 		b.mu.RLock()
-		isStale := now.Sub(b.createTime) > batchMaxAge
+		stale := now.Sub(b.createTime) > batchMaxAge
 		b.mu.RUnlock()
-
-		if !isStale {
+		if !stale {
 			continue
 		}
 
 		w.mu.Lock()
+		if b.inHeap && b.heapItem != nil {
+			heap.Remove(&w.heap, b.heapItem.index)
+		}
 		delete(w.batches, key)
 		w.mu.Unlock()
 
