@@ -36,6 +36,7 @@ type Batch struct {
 	pkt        *packet.Packet
 	closed     bool
 	inHeap     bool
+	heapItem   *HeapItem // Reference to the heap item for this batch
 	createTime time.Time
 }
 
@@ -171,8 +172,13 @@ func (a *Aggregator) AddToBatch(
 	}
 }
 
+type sendInfo struct {
+	p    *packet.Packet
+	next net.IP
+}
+
 func (w *worker) handleMsg(msg *aggregatorMsg) {
-	var toSend []*Batch
+	var toSend []sendInfo
 
 	w.logger.Info("handleMsg", "routingKey", msg.routingKey, "nextHop", msg.nextHop.String(), "payloadLen", len(msg.data))
 
@@ -185,6 +191,18 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		buffSize = len(msg.data) + packet.HeaderSize
 	}
 
+	if msg.emerge {
+		pkt := packet.NewPacket(buffSize)
+		for i, h := range msg.routingInfo.Hops {
+			pkt.SetHopIP(i, util.HopIPToNet(h))
+		}
+		pkt.SetPort(msg.port)
+		pkt.SetHopPos(1)
+		pkt.AppendUserPacket(msg.userID, msg.data)
+		w.flush(pkt, msg.nextHop)
+		return
+	}
+
 	w.mu.Lock()
 
 	b := w.batches[msg.routingKey]
@@ -195,6 +213,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 			NextHop:    msg.nextHop,
 			pkt:        packet.NewPacket(buffSize),
 			createTime: time.Now(),
+			inHeap:     false,
 		}
 
 		for i, h := range msg.routingInfo.Hops {
@@ -203,23 +222,22 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 		b.pkt.SetPort(msg.port)
 		b.pkt.SetHopPos(1)
 
-		w.batches[msg.routingKey] = b //todo one key can map to many batches
+		w.batches[msg.routingKey] = b
 		w.logger.Info("create batch", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String())
-	}
-
-	if msg.emerge {
-		w.flush(b, buffSize)
-		return
 	}
 
 	ok := b.pkt.AppendUserPacket(msg.userID, msg.data)
 	if !ok {
-		toSend = append(toSend, b)
-
+		if b.inHeap {
+			// Remove from heap
+			heap.Remove(&w.heap, b.heapItem.index)
+			b.heapItem = nil
+		}
+		toSend = append(toSend, sendInfo{b.pkt, b.NextHop})
 		b.pkt = packet.NewPacket(buffSize)
-
 		b.createTime = time.Now()
 		b.inHeap = false
+		b.heapItem = nil // Reset heap item reference
 		b.pkt.AppendUserPacket(msg.userID, msg.data)
 	}
 	w.logger.Info("add packet success", "routingKey", b.RoutingKey,
@@ -227,25 +245,25 @@ func (w *worker) handleMsg(msg *aggregatorMsg) {
 
 	if !b.inHeap {
 		w.logger.Info("add to heap", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String())
-		heap.Push(&w.heap, &HeapItem{
+		item := &HeapItem{
 			batch:    b,
 			deadline: time.Now().Add(batchTimeout),
-		})
+		}
+		heap.Push(&w.heap, item)
 		b.inHeap = true
+		b.heapItem = item // Store heap item reference
 	}
 
 	w.mu.Unlock()
 
-	for _, b = range toSend {
-		w.flush(b, buffSize)
+	for _, p := range toSend {
+		w.flush(p.p, p.next)
 	}
 }
 
 func (w *worker) checkTimeout() {
 
-	//w.logger.Info("checkTimeout")
-
-	var toSend []*Batch
+	var toSend []sendInfo
 
 	w.mu.Lock()
 
@@ -258,42 +276,40 @@ func (w *worker) checkTimeout() {
 		w.logger.Info("checkTimeout", "routingKey", item.batch.RoutingKey, "nextHop", item.batch.NextHop.String())
 		heap.Pop(&w.heap)
 		item.batch.inHeap = false
-		toSend = append(toSend, item.batch)
+		item.batch.heapItem = nil // Reset heap item reference
+		toSend = append(toSend, sendInfo{item.batch.pkt, item.batch.NextHop})
+		item.batch.pkt = packet.NewPacket(item.batch.BuffSize)
+		item.batch.createTime = time.Now()
 	}
 
 	w.mu.Unlock()
 
-	for _, b := range toSend {
-		w.flush(b, b.BuffSize)
+	for _, p := range toSend {
+		w.flush(p.p, p.next)
 	}
 }
 
-func (w *worker) flush(b *Batch, buffSize int) {
+func (w *worker) flush(p *packet.Packet, nextHop net.IP) {
 
-	w.logger.Info("flush batch", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
+	w.logger.Info("flush batch", slog.Any("port", p.Port), slog.Any("nextHop", nextHop.String()))
 
-	if b.closed || b.pkt == nil || b.pkt.PayloadLen == 0 {
+	if p == nil || p.PayloadLen == 0 {
 		return
 	}
 
-	b.pkt.SerializeHead()
-	buf := b.pkt.Buf[:b.pkt.TotalBytes()]
+	p.SerializeHead()
+	buf := p.Buf[:p.TotalBytes()]
 
 	go func() {
-		w.logger.Info("send packet", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "buf", len(buf))
-		err := manager.TunnelMgr.SendPacket(context.Background(), b.NextHop, buf, b.NextHop.String(), w.logger)
+		w.logger.Info("send packet", slog.Any("port", p.Port), slog.Any("buf", len(buf)))
+		err := manager.TunnelMgr.SendPacket(context.Background(), nextHop, buf, nextHop.String(), w.logger)
 		if err != nil {
-			w.logger.Error("send packet failed", "routingKey", b.RoutingKey, "nextHop", b.NextHop.String(), "err", err)
+			w.logger.Error("send packet failed", slog.Any("port", p.Port), slog.Any("err", err))
 		}
 	}()
-
-	b.pkt = packet.NewPacket(buffSize)
-	b.createTime = time.Now()
 }
 
 func (w *worker) evictStaleBatches() {
-
-	//w.logger.Info("evictStaleBatches")
 
 	now := time.Now()
 
