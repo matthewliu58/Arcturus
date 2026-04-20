@@ -196,15 +196,17 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 		return
 	}
 
+	var b *Batch = nil
 	w.mu.RLock()
 	bList := w.batches[msg.routingKey]
-	var b *Batch = nil
 	lList := len(bList)
-	if lList <= 1 {
-		b = bList[0]
-	} else {
-		idx := int(msg.userID) % lList
-		b = bList[idx]
+	if lList > 0 {
+		if lList <= 1 {
+			b = bList[0]
+		} else {
+			idx := int(msg.userID) % lList
+			b = bList[idx]
+		}
 	}
 	w.mu.RUnlock()
 
