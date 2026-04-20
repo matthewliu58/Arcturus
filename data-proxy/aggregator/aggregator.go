@@ -123,7 +123,7 @@ func (a *Aggregator) Start(pre string, logger *slog.Logger) {
 		a.wg.Add(1)
 		go func(ww *worker) {
 			defer a.wg.Done()
-			ticker := time.NewTicker(5 * time.Millisecond)
+			ticker := time.NewTicker(20 * time.Millisecond)
 			defer ticker.Stop()
 			for range ticker.C {
 				ww.checkTimeout(logger)

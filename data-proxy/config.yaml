@@ -34,7 +34,7 @@ rate_limit:
 
 aggregator:
   buffer_size: 5120
-  batch_timeout_ms: 10
+  batch_timeout_ms: 20
 
 node:
   provider: "Vultr"
