@@ -173,7 +173,7 @@ type sendInfo struct {
 }
 
 func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
-	logger.Info("handleMsg", "routingKey", msg.routingKey,
+	logger.Info("handleMsg", slog.Any("userID", msg.userID), "routingKey", msg.routingKey,
 		"nextHop", msg.nextHop.String(), "payloadLen", len(msg.data))
 
 	buffSize := config.Config_.Aggregator.BufferSize
@@ -211,91 +211,93 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 	w.mu.RUnlock()
 
 	if b == nil {
+
+		var batches []*Batch
+		num, ok_ := config.BatchNumMap[msg.port]
+		if !ok_ || num <= 0 {
+			num = 1
+		}
+		for i := 0; i < num; i++ {
+			b_ := &Batch{
+				BuffSize:   buffSize,
+				RoutingKey: msg.routingKey,
+				NextHop:    msg.nextHop,
+				pkt:        packet.NewPacket(buffSize),
+				createTime: time.Now(),
+			}
+			for j, h := range msg.routingInfo.Hops {
+				b_.pkt.SetHopIP(j, util.HopIPToNet(h))
+			}
+			b_.pkt.SetPort(msg.port)
+			b_.pkt.SetHopPos(1)
+			batches = append(batches, b_)
+		}
+		logger.Info("create batch", slog.Any("userID", msg.userID),
+			"routingKey", msg.routingKey, "nextHop", msg.nextHop)
+
 		w.mu.Lock()
 		var ok bool
 		bList, ok = w.batches[msg.routingKey]
 		if !ok {
-
-			num, ok_ := config.BatchNumMap[msg.port]
-			if !ok_ {
-				num = 1
-			}
-
-			for i := 0; i < num; i++ {
-				b_ := &Batch{
-					BuffSize:   buffSize,
-					RoutingKey: msg.routingKey,
-					NextHop:    msg.nextHop,
-					pkt:        packet.NewPacket(buffSize),
-					createTime: time.Now(),
-				}
-				for j, h := range msg.routingInfo.Hops {
-					b_.pkt.SetHopIP(j, util.HopIPToNet(h))
-				}
-				b_.pkt.SetPort(msg.port)
-				b_.pkt.SetHopPos(1)
-				w.batches[msg.routingKey] = append(w.batches[msg.routingKey], b_)
-				logger.Info("create batch", "routingKey", b_.RoutingKey, "nextHop", b_.NextHop.String())
-			}
-
+			w.batches[msg.routingKey] = batches
 		}
-
 		bList, _ = w.batches[msg.routingKey]
 		lList = len(bList)
-		if lList <= 1 {
-			b = bList[0]
-		} else {
-			idx := int(msg.userID % uint32(lList))
-			b = bList[idx]
+		if lList > 0 {
+			if lList <= 1 {
+				b = bList[0]
+			} else {
+				idx := int(msg.userID % uint32(lList))
+				b = bList[idx]
+			}
 		}
-
 		w.mu.Unlock()
 	}
 
-	b.mu.Lock()
-	ok := b.pkt.AppendUserPacket(msg.userID, msg.data)
 	var toSend []sendInfo
-
-	if !ok {
-		b.mu.Unlock()
-
-		w.mu.Lock()
-		b_ := &Batch{
-			BuffSize:   buffSize,
-			RoutingKey: msg.routingKey,
-			NextHop:    msg.nextHop,
-			pkt:        packet.NewPacket(buffSize),
-			createTime: time.Now(),
-		}
-		for j, h := range msg.routingInfo.Hops {
-			b_.pkt.SetHopIP(j, util.HopIPToNet(h))
-		}
-		b_.pkt.SetPort(msg.port)
-		b_.pkt.SetHopPos(1)
-		w.batches[msg.routingKey] = append(w.batches[msg.routingKey], b_)
-		b = b_
-		w.mu.Unlock()
+	if b != nil {
 
 		b.mu.Lock()
-		b.pkt.AppendUserPacket(msg.userID, msg.data)
-	}
+		ok := b.pkt.AppendUserPacket(msg.userID, msg.data)
+		if !ok {
 
-	logger.Info("add packet success", "routingKey", b.RoutingKey,
-		"nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
+			b_ := &Batch{
+				BuffSize:   buffSize,
+				RoutingKey: msg.routingKey,
+				NextHop:    msg.nextHop,
+				pkt:        packet.NewPacket(buffSize),
+				createTime: time.Now(),
+			}
+			for j, h := range msg.routingInfo.Hops {
+				b_.pkt.SetHopIP(j, util.HopIPToNet(h))
+			}
+			b_.pkt.SetPort(msg.port)
+			b_.pkt.SetHopPos(1)
 
-	needPush := b.heapItem == nil
-	b.mu.Unlock()
+			w.mu.Lock()
+			w.batches[msg.routingKey] = append(w.batches[msg.routingKey], b_)
+			w.mu.Unlock()
 
-	if needPush {
-		item := &HeapItem{batch: b, deadline: time.Now().Add(batchTimeout)}
+			b = b_
+			b.pkt.AppendUserPacket(msg.userID, msg.data)
+		}
+		logger.Info("add packet success", slog.Any("userID", msg.userID), "routingKey", b.RoutingKey,
+			"nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
 
-		w.mu.Lock()
-		heap.Push(&w.heap, item)
-		w.mu.Unlock()
+		if b.heapItem == nil {
+			item := &HeapItem{batch: b, deadline: time.Now().Add(batchTimeout)}
+			w.mu.Lock()
+			heap.Push(&w.heap, item)
+			w.mu.Unlock()
+			b.heapItem = item
+		}
 
-		b.mu.Lock()
-		b.heapItem = item
 		b.mu.Unlock()
+
+	} else {
+		logger.Error("create batch failed", slog.Any("userID", msg.userID), "routingKey", msg.routingKey,
+			"nextHop", msg.nextHop.String(), "payloadLen", len(msg.data))
+		return
 	}
 
 	for _, p := range toSend {

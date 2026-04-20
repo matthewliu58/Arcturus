@@ -18,8 +18,8 @@ var (
 )
 
 const (
-	routeTimeout = 30 * time.Second
-	proxyTimeout = 5 * time.Second
+	routeTimeout = 10 * time.Second
+	proxyTimeout = 10 * time.Second
 )
 
 type ServerFuncs interface {

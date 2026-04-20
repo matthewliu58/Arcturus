@@ -9,7 +9,7 @@ test_routing:
 listeners:
   - proto: "tcp"
     port: 8081
-    batch_num: 5
+    batch_num: 1
 #  - proto: "tcp"
 #    port: 8002
 #  - proto: "udp"

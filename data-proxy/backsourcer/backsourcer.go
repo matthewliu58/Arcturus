@@ -15,7 +15,7 @@ const (
 	workerCount   = 18
 	taskQueueSize = 4096
 	dialTimeout   = 3 * time.Second
-	ioTimeout     = 5 * time.Second
+	ioTimeout     = 10 * time.Second
 )
 
 type BackSourceTask struct {
