@@ -15,7 +15,7 @@ import (
 
 const (
 	inputChanSize = 100000
-	workerCount   = 8
+	workerCount   = 1 //todo temporarily change for testing
 	batchMaxAge   = 60 * time.Second
 )
 
@@ -77,6 +77,7 @@ type worker struct {
 	heap    MinHeap
 	mu      sync.RWMutex
 	//logger  *slog.Logger
+	id     int
 	stopCh chan struct{}
 }
 
@@ -102,6 +103,7 @@ func NewAggregator(pre string, l *slog.Logger) *Aggregator {
 			batches: make(map[string][]*Batch),
 			heap:    make(MinHeap, 0),
 			//logger:  l.With("worker", i),
+			id:     i,
 			stopCh: make(chan struct{}),
 		}
 	}
@@ -168,13 +170,14 @@ func (a *Aggregator) AddToBatch(
 }
 
 type sendInfo struct {
-	p    *packet.Packet
-	next net.IP
+	p          *packet.Packet
+	routingKey string
+	next       net.IP
 }
 
 func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
-	logger.Info("handleMsg", slog.Any("userID", msg.userID), "routingKey", msg.routingKey,
-		"nextHop", msg.nextHop.String(), "payloadLen", len(msg.data))
+	logger.Info("handleMsg", slog.Int("workId", w.id), slog.Any("userID", msg.userID),
+		"routingKey", msg.routingKey, "payloadLen", len(msg.data))
 
 	buffSize := config.Config_.Aggregator.BufferSize
 	batchTimeout := time.Duration(config.Config_.Aggregator.BatchTimeoutMs) * time.Millisecond
@@ -192,7 +195,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 		pkt.SetPort(msg.port)
 		pkt.SetHopPos(1)
 		pkt.AppendUserPacket(msg.userID, msg.data)
-		w.flush(pkt, msg.nextHop, logger)
+		w.flush(pkt, msg.routingKey, msg.nextHop, logger)
 		return
 	}
 
@@ -232,14 +235,13 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 			b_.pkt.SetHopPos(1)
 			batches = append(batches, b_)
 		}
-		logger.Info("create batch", slog.Any("userID", msg.userID),
-			"routingKey", msg.routingKey, "nextHop", msg.nextHop)
 
 		w.mu.Lock()
 		var ok bool
 		bList, ok = w.batches[msg.routingKey]
 		if !ok {
 			w.batches[msg.routingKey] = batches
+			logger.Info("create batch", slog.Int("workId", w.id), slog.Any("userID", msg.userID))
 		}
 		bList, _ = w.batches[msg.routingKey]
 		lList = len(bList)
@@ -254,7 +256,6 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 		w.mu.Unlock()
 	}
 
-	var toSend []sendInfo
 	if b != nil {
 
 		b.mu.Lock()
@@ -281,8 +282,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 			b = b_
 			b.pkt.AppendUserPacket(msg.userID, msg.data)
 		}
-		logger.Info("add packet success", slog.Any("userID", msg.userID), "routingKey", b.RoutingKey,
-			"nextHop", b.NextHop.String(), "payloadLen", b.pkt.PayloadLen)
+		logger.Info("add packet", slog.Int("workId", w.id), slog.Any("userID", msg.userID))
 
 		if b.heapItem == nil {
 			item := &HeapItem{batch: b, deadline: time.Now().Add(batchTimeout)}
@@ -291,17 +291,11 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 			w.mu.Unlock()
 			b.heapItem = item
 		}
-
 		b.mu.Unlock()
 
 	} else {
-		logger.Error("create batch failed", slog.Any("userID", msg.userID), "routingKey", msg.routingKey,
-			"nextHop", msg.nextHop.String(), "payloadLen", len(msg.data))
+		logger.Error("create batch failed", slog.Int("workId", w.id), slog.Any("userID", msg.userID))
 		return
-	}
-
-	for _, p := range toSend {
-		w.flush(p.p, p.next, logger)
 	}
 }
 
@@ -312,8 +306,8 @@ func (w *worker) checkTimeout(logger *slog.Logger) {
 
 	w.mu.Lock()
 	for w.heap.Len() > 0 {
-		item := w.heap[0]
-		if item.deadline.After(now) {
+		b := w.heap[0]
+		if b.deadline.After(now) {
 			break
 		}
 		expired = append(expired, heap.Pop(&w.heap).(*HeapItem))
@@ -323,9 +317,8 @@ func (w *worker) checkTimeout(logger *slog.Logger) {
 	var toSend []sendInfo
 	for _, item := range expired {
 		b := item.batch
-
 		b.mu.Lock()
-		toSend = append(toSend, sendInfo{b.pkt, b.NextHop})
+		toSend = append(toSend, sendInfo{b.pkt, b.RoutingKey, b.NextHop})
 		b.pkt = packet.NewPacket(b.BuffSize)
 		b.createTime = now
 		b.heapItem = nil
@@ -333,24 +326,27 @@ func (w *worker) checkTimeout(logger *slog.Logger) {
 	}
 
 	for _, p := range toSend {
-		w.flush(p.p, p.next, logger)
+		w.flush(p.p, p.routingKey, p.next, logger)
 	}
 }
 
-func (w *worker) flush(p *packet.Packet, nextHop net.IP, logger *slog.Logger) {
-	logger.Info("flush batch", slog.Any("port", p.Port), slog.Any("nextHop", nextHop.String()))
+func (w *worker) flush(p *packet.Packet, routingKey string, nextHop net.IP, logger *slog.Logger) {
+
+	logger.Info("flush batch", slog.Int("workId", w.id), slog.Any("port", p.Port))
 
 	if p.PayloadLen == 0 {
+		logger.Warn("empty batch", slog.Int("workId", w.id), slog.Any("port", p.Port))
 		return
 	}
 	p.SerializeHead()
 	buf := p.Buf[:p.TotalBytes()]
 
 	go func() {
-		logger.Info("send packet", slog.Any("port", p.Port), slog.Any("buf", len(buf)))
+		logger.Info("send packet", slog.Int("workId", w.id), slog.String("routingKey", routingKey),
+			slog.Any("port", p.Port), slog.Any("buf", len(buf)))
 		err := manager.TunnelMgr.SendPacket(context.Background(), nextHop, buf, nextHop.String(), logger)
 		if err != nil {
-			logger.Error("send packet failed", slog.Any("port", p.Port), slog.Any("err", err))
+			logger.Error("send packet failed", slog.Int("workId", w.id), slog.Any("port", p.Port), slog.Any("nextHop", nextHop))
 		}
 	}()
 }
@@ -386,7 +382,7 @@ func (w *worker) evictStaleBatches(logger *slog.Logger) {
 			}
 			delete(w.batches, k)
 			w.mu.Unlock()
-			logger.Info("evict stale batch", "routingKey", k)
+			logger.Info("evict stale batch", slog.Int("workId", w.id), "routingKey", k)
 		}
 	}
 }
