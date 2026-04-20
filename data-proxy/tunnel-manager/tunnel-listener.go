@@ -42,12 +42,12 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 
 	defer conn.CloseWithError(0, "exit")
 	remote := conn.RemoteAddr().String()
-	l.Info("Connected", slog.String("pre", pre), slog.String("remote", remote))
+	l.Info("Connected", slog.String("remote", remote))
 
 	for {
 		stream, err := conn.AcceptUniStream(context.Background())
 		if err != nil {
-			l.Info("Disconnected", slog.String("pre", pre), slog.String("remote", remote))
+			l.Info("Disconnected", slog.String("remote", remote))
 			return
 		}
 

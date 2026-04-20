@@ -7,6 +7,7 @@ import (
 	manager "data-proxy/tunnel-manager"
 	packet "data-proxy/tunnel-packet"
 	"data-proxy/util"
+	"fmt"
 	"log/slog"
 	"net"
 	"strconv"
@@ -24,7 +25,10 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 		return
 	}
 
-	l.Info("Received QUIC packet", slog.String("remoteAddr", remoteAddr), slog.Any("header", header))
+	hopIPStr := fmt.Sprintf("%d.%d.%d.%d", header.HopIP[0]>>24,
+		header.HopIP[0]>>16&0xFF, header.HopIP[0]>>8&0xFF, header.HopIP[0]&0xFF)
+	l.Info("Received QUIC packet", slog.String("remoteAddr", remoteAddr), slog.String("HopIP", hopIPStr),
+		slog.Any("port", header.Port), slog.Any("HopPos", header.HopPos), slog.Any("pktLen", len(pkt)))
 
 	if header.Port != 0 {
 		isLastHop := header.HopPos == 2

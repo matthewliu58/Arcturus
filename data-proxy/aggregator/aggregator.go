@@ -384,8 +384,7 @@ func (w *worker) evictStaleBatches(logger *slog.Logger) {
 			}
 			delete(w.batches, k)
 			w.mu.Unlock()
+			logger.Info("evict stale batch", "routingKey", k)
 		}
-
-		logger.Info("evict stale batch", "routingKey", k)
 	}
 }
