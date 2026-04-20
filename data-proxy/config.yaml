@@ -4,7 +4,7 @@ control_host: "http://127.0.0.1:7081"
 
 test_routing:
   - port: 8081
-    path: "139.180.159.203,141.164.55.197,141.164.43.8:8081"
+    path: "139.180.133.201,45.76.150.82,149.28.157.161:8081"
 
 listeners:
   - proto: "tcp"
@@ -39,8 +39,8 @@ aggregator:
 node:
   provider: "Vultr"
   continent: "Asia"
-  country: "Korea"
-  city: "Seoul"
+  country: "Singapore"
+  city: "Singapore"
   ip:
     private: "0.0.0.0"
-    public: "141.164.55.197"
+    public: "139.180.133.201"
