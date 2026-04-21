@@ -165,7 +165,7 @@ func TestDijkstraSolverZeroWeight(t *testing.T) {
 	}
 }
 
-func TestDijkstraSolverLongestPath(t *testing.T) {
+func TestDijkstraSolverOptimalPath(t *testing.T) {
 	// Test path with more hops but potentially lower RTT due to weights
 	edges := []*graph.Edge{
 		{SourceIp: "A", DestinationIp: "B", EdgeWeight: 10.0},
@@ -186,7 +186,7 @@ func TestDijkstraSolverLongestPath(t *testing.T) {
 		t.Fatal("Expected at least one path")
 	}
 
-	// Shortest path should be A->C->D->E->B with weight 4.0, RTT = 4.8
+	// Optimal path should be A->C->D->E->B with weight 4.0, RTT = 4.8
 	// Not A->B with weight 10.0, RTT = 12.0
 	if len(paths[0].Hops) != 5 {
 		t.Errorf("Expected 5-hop path, got %v", paths[0].Hops)
@@ -198,7 +198,7 @@ func TestDijkstraSolverLongestPath(t *testing.T) {
 		t.Errorf("Expected RTT %f, got %f", expectedRtt, paths[0].Rtt)
 	}
 
-	t.Logf("Longest path test: %v, RTT: %f", paths[0].Hops, paths[0].Rtt)
+	t.Logf("Optimal path test: %v, RTT: %f", paths[0].Hops, paths[0].Rtt)
 }
 
 func TestDijkstraSolverSelfLoop(t *testing.T) {

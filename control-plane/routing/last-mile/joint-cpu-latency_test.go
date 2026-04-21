@@ -4,10 +4,21 @@ import (
 	agg "control-plane/aggregator"
 	rece "control-plane/receive-info"
 	"control-plane/routing/routing"
+	"control-plane/util"
 	"log/slog"
 	"os"
 	"testing"
 )
+
+func init() {
+	util.Config_ = &util.Config{
+		Node: util.NodeConfig{
+			IP: util.NodeIP{
+				Public: "192.168.1.1",
+			},
+		},
+	}
+}
 
 func TestJointRouter_Computing(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -141,9 +152,10 @@ func TestJointRouter_LatencyHeavy(t *testing.T) {
 		},
 	}
 
+	// Key format: "Continent-NodeIP"
 	edgeAgg := map[string]*rece.LastCongestion{
-		"Asia-192.168.1.1": {AvgRT: 40.0, Count: 10},  // Low latency
-		"Asia-192.168.1.2": {AvgRT: 100.0, Count: 10}, // High latency
+		"Asia-192.168.1.1": {AvgRT: 40.0, Count: 10},   // Low latency
+		"Asia-192.168.1.2": {AvgRT: 100.0, Count: 10},  // High latency
 	}
 
 	router := NewJointRouter(edgeAgg, nodeTel)
@@ -162,11 +174,6 @@ func TestJointRouter_LatencyHeavy(t *testing.T) {
 }
 
 func TestJointRouter_SetWeights(t *testing.T) {
-	router := NewJointRouter(
-		map[string]*rece.LastCongestion{},
-		map[string]*agg.NodeTelemetry{},
-	)
-
 	tests := []struct {
 		cpuW     float64
 		latencyW float64
@@ -177,12 +184,17 @@ func TestJointRouter_SetWeights(t *testing.T) {
 		{1.0, 1.0, 0.5, 0.5}, // Normalized
 		{0.0, 1.0, 0.0, 1.0},
 		{1.0, 0.0, 1.0, 0.0},
-		{0.0, 0.0, 0.5, 0.5},  // Invalid, should keep defaults
-		{-1.0, 1.0, 0.5, 0.5}, // Invalid, should keep defaults
+		{0.0, 0.0, 0.5, 0.5},  // Invalid, should keep defaults (0.5, 0.5)
+		{-1.0, 1.0, 0.5, 0.5}, // Invalid, should keep defaults (0.5, 0.5)
 		{0.3, 0.7, 0.3, 0.7},  // Custom ratio
 	}
 
 	for _, tt := range tests {
+		// Create new router each time to avoid state pollution
+		router := NewJointRouter(
+			map[string]*rece.LastCongestion{},
+			map[string]*agg.NodeTelemetry{},
+		)
 		router.SetWeights(tt.cpuW, tt.latencyW)
 		if router.cpuWeight != tt.wantCpu || router.latencyWeight != tt.wantLat {
 			t.Errorf("SetWeights(%f, %f) = (%f, %f), want (%f, %f)",
@@ -201,13 +213,13 @@ func TestJointRouter_NegativeValues(t *testing.T) {
 			PublicIP:   "192.168.1.1",
 			Continent:  "Asia",
 			CpuPressure: 50.0,
-			Cpu:        rece.CPUInfo{Usage: -1.0}, // Invalid negative CPU
+			Cpu:        rece.CPUInfo{Usage: -1.0}, // Invalid negative CPU -> treated as 100
 		},
 	}
 
-	edgeAgg := map[string]*rece.LastCongestion{
-		"Asia-192.168.1.1": {AvgRT: -10.0, Count: 10}, // Invalid negative latency
-	}
+	// Empty edgeAgg: GetNodeRT returns &LastCongestion{} (AvgRT=0)
+	// delay <= 0 -> treated as 100
+	edgeAgg := map[string]*rece.LastCongestion{}
 
 	router := NewJointRouter(edgeAgg, nodeTel)
 	router.SetWeights(0.5, 0.5)
@@ -221,10 +233,11 @@ func TestJointRouter_NegativeValues(t *testing.T) {
 		t.Errorf("Computing failed: %v", err)
 	}
 
-	// Negative values should be treated as defaults (CPU=100, latency=100)
-	// score = 0.5*100 + 0.5*100 = 100
-	if paths[0].Rtt != 100.0 {
-		t.Errorf("Expected score 100 (defaults for negatives), got %f", paths[0].Rtt)
+	// Negative CPU (-1) -> treated as 100
+	// Missing latency stats (Count=0) -> delay=500 (code default)
+	// score = 0.5*100 + 0.5*500 = 300
+	if paths[0].Rtt != 300.0 {
+		t.Errorf("Expected score 300, got %f", paths[0].Rtt)
 	}
 }
 

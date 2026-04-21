@@ -4,11 +4,23 @@ import (
 	agg "control-plane/aggregator"
 	rece "control-plane/receive-info"
 	"control-plane/routing/routing"
+	"control-plane/util"
 	"log/slog"
 	"os"
 	"sort"
 	"testing"
 )
+
+func init() {
+	// Initialize util.Config_ for tests
+	util.Config_ = &util.Config{
+		Node: util.NodeConfig{
+			IP: util.NodeIP{
+				Public: "192.168.1.1",
+			},
+		},
+	}
+}
 
 func TestCPUOnlyRouter_Computing(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -146,7 +158,7 @@ func TestCPUOnlyRouter_MissingTelemetry(t *testing.T) {
 		Level: slog.LevelDebug,
 	}))
 
-	// Empty telemetry map
+	// Empty telemetry map, but util.Config_ fallback IP exists
 	router := NewCPUOnlyRouter(map[string]*agg.NodeTelemetry{})
 	endPoints := routing.EndPoints{
 		Source: routing.EndPoint{Continent: "Asia"},
@@ -157,9 +169,9 @@ func TestCPUOnlyRouter_MissingTelemetry(t *testing.T) {
 		t.Errorf("Should not return error: %v", err)
 	}
 
-	// Should fallback to default node
-	if len(paths) != 1 {
-		t.Errorf("Expected 1 fallback path, got %d", len(paths))
+	// Empty map + no fallback telemetry = no valid paths
+	if len(paths) != 0 {
+		t.Errorf("Expected 0 paths for empty telemetry map, got %d", len(paths))
 	}
 }
 

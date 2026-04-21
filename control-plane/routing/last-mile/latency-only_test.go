@@ -4,10 +4,21 @@ import (
 	agg "control-plane/aggregator"
 	rece "control-plane/receive-info"
 	"control-plane/routing/routing"
+	"control-plane/util"
 	"log/slog"
 	"os"
 	"testing"
 )
+
+func init() {
+	util.Config_ = &util.Config{
+		Node: util.NodeConfig{
+			IP: util.NodeIP{
+				Public: "192.168.1.1",
+			},
+		},
+	}
+}
 
 func TestLatencyOnlyRouter_Computing(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{

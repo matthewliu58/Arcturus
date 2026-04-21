@@ -30,11 +30,18 @@ func NewJointRouter(
 
 // SetWeights sets the weights for CPU and latency
 func (r *JointRouter) SetWeights(cpuWeight, latencyWeight float64) {
-	if cpuWeight >= 0 && latencyWeight >= 0 && cpuWeight+latencyWeight > 0 {
+	if cpuWeight > 0 && latencyWeight > 0 {
 		total := cpuWeight + latencyWeight
 		r.cpuWeight = cpuWeight / total
 		r.latencyWeight = latencyWeight / total
+	} else if cpuWeight == 0 && latencyWeight > 0 {
+		r.cpuWeight = 0
+		r.latencyWeight = 1
+	} else if latencyWeight == 0 && cpuWeight > 0 {
+		r.cpuWeight = 1
+		r.latencyWeight = 0
 	}
+	// If both are 0 or any is negative, keep current values (default 0.5, 0.5)
 }
 
 func (r *JointRouter) Computing(endPoints routing.EndPoints, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
