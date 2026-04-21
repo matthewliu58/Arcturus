@@ -16,7 +16,7 @@ const (
 	middleRoutingURL = "/api/v1/routing/middle"
 )
 
-type ControlPlaneRoutingResponse struct {
+type RoutingResponse struct {
 	Code int             `json:"code"`
 	Msg  string          `json:"msg"`
 	Data []util.PathInfo `json:"data"`
@@ -78,7 +78,7 @@ func GetRoutingFromControlPlane(port int, l *slog.Logger) *util.RoutingInfo {
 		return &util.RoutingInfo{}
 	}
 
-	var routingResp ControlPlaneRoutingResponse
+	var routingResp RoutingResponse
 	if err = json.Unmarshal(respBody, &routingResp); err != nil {
 		l.Error("Failed to unmarshal routing response", slog.Any("err", err))
 		return &util.RoutingInfo{}

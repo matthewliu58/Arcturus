@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	inputChanSize = 100000
-	workerCount   = 1 //todo temporarily change for testing
-	batchMaxAge   = 60 * time.Second
+	inputChanSize         = 100000
+	aggregatorWorkerCount = 8 //todo temporarily change for testing
+	batchMaxAge           = 60 * time.Second
 )
 
 type aggregatorMsg struct {
@@ -76,9 +76,8 @@ type worker struct {
 	batches map[string][]*Batch // TODO: collect PayloadLen at timeout to adjust initial BuffSize, and adjust batch count per key
 	heap    MinHeap
 	mu      sync.RWMutex
-	//logger  *slog.Logger
-	id     int
-	stopCh chan struct{}
+	id      int
+	stopCh  chan struct{}
 }
 
 type Aggregator struct {
@@ -91,20 +90,25 @@ var GlobalAggRequest *Aggregator
 var GlobalAggResponse *Aggregator
 
 func NewAggregator(pre string, l *slog.Logger) *Aggregator {
-	l.Info("NewAggregator", "pre", pre)
+
+	aggregatorCount := config.Config_.AggregatorCount
+	if aggregatorCount <= 0 {
+		aggregatorCount = aggregatorWorkerCount
+	}
+
+	l.Info("NewAggregator", "pre", pre, "aggregatorCount", aggregatorCount)
 
 	agg := &Aggregator{
 		inputChan: make(chan *aggregatorMsg, inputChanSize),
-		workers:   make([]*worker, workerCount),
+		workers:   make([]*worker, aggregatorCount),
 	}
 
-	for i := 0; i < workerCount; i++ {
+	for i := 0; i < aggregatorCount; i++ {
 		agg.workers[i] = &worker{
 			batches: make(map[string][]*Batch),
 			heap:    make(MinHeap, 0),
-			//logger:  l.With("worker", i),
-			id:     i,
-			stopCh: make(chan struct{}),
+			id:      i,
+			stopCh:  make(chan struct{}),
 		}
 	}
 	return agg

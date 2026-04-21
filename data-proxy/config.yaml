@@ -6,6 +6,8 @@ test_routing:
   - port: 8081
     path: "139.180.133.201,45.76.150.82,149.28.157.161:8081"
 
+aggregator_count: 8
+
 listeners:
   - proto: "tcp"
     port: 8081
