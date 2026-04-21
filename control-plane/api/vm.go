@@ -104,8 +104,6 @@ func (h *VmReceiveAPIHandler) PostVMReceive(c *gin.Context) {
 		return
 	}
 
-	//h.activityVM.Set(reportData.VMID, reportData)
-
 	resp.Code = 200
 	resp.Msg = "VM information reported successfully"
 	resp.Data = reportData
@@ -119,7 +117,6 @@ func (h *VmReceiveAPIHandler) PostVMReceive(c *gin.Context) {
 func InitVmReceiveAPIRouter(router *gin.Engine, s *util.FileStorage, logger *slog.Logger) *gin.Engine {
 
 	r := router
-	// 上报接口
 	apiV1 := r.Group("/api/v1")
 	{
 		vmGroup := apiV1.Group("/vm")

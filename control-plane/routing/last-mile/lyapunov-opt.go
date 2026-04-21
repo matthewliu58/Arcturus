@@ -51,7 +51,6 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 	}
 	if len(nodeIps) <= 0 {
 		logger.Warn("no available nodes in continent", slog.String("pre", pre), slog.String("continent", continent))
-		//return []routing.PathInfo{}, nil
 		nodeIps = []string{util.Config_.Node.IP.Public}
 	}
 

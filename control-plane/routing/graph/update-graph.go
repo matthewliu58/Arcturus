@@ -153,12 +153,7 @@ func (g *GraphManager) DumpGraph(logPre string) {
 		g.logger.Info("Graph Node",
 			slog.String("pre", logPre),
 			slog.String("public_ip", node.PublicIP),
-			//slog.String("provider", node.Provider),
-			//slog.String("continent", node.Continent),
-			//slog.String("country", node.Country),
-			//slog.String("city", node.City),
 			slog.Float64("cpu_pressure", node.CpuPressure),
-			// slog.Int("links_count", len(node.LinksCongestion)),
 		)
 	}
 	for key, edge := range g.edges {
@@ -167,8 +162,6 @@ func (g *GraphManager) DumpGraph(logPre string) {
 			slog.String("edge_id", key),
 			slog.String("source_ip", edge.SourceIp),
 			slog.String("destination_ip", edge.DestinationIp),
-			//slog.Float64("latency", edge.Latency),
-			//slog.Float64("loss", edge.Loss),
 			slog.Float64("edge_weight", edge.EdgeWeight),
 		)
 	}

@@ -188,7 +188,7 @@ func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string
 		}
 
 		if currNode == end {
-			// Build path
+			// Build pat
 			var path []string
 			for node := end; node != ""; node = prev[node] {
 				path = append([]string{node}, path...)
