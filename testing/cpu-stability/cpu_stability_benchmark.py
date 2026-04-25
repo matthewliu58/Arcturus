@@ -1,17 +1,11 @@
-# """
-# File: cpu_stability_benchmark.py
-# Purpose:
-#     Measure CPU processing stability under fixed workload
-#     (used in Arcturus evaluation)
-# """
-
 import time
 import statistics
 import hashlib
 
-def cpu_task(n=200000):
+def cpu_task():
     x = 0
-    for i in range(n):
+    # 合理计算量，运行时间 20~30ms
+    for i in range(250000):
         x += (i * i) % 97
     hashlib.sha256(str(x).encode()).hexdigest()
     return x
@@ -20,11 +14,11 @@ def run_once():
     start = time.perf_counter()
     cpu_task()
     end = time.perf_counter()
-    return (end - start) * 1000  # ms
+    return (end - start) * 1000
 
-def run_experiment(trials=100):
-
-    for _ in range(10):
+def run_experiment(trials=50):
+    # Warm-up
+    for _ in range(5):
         run_once()
 
     results = []
@@ -32,7 +26,8 @@ def run_experiment(trials=100):
         results.append(run_once())
 
     mean_val = statistics.mean(results)
-    print(mean_val)
+    std_val = statistics.stdev(results)
+    print(f"{mean_val},{std_val}")
 
 if __name__ == "__main__":
     run_experiment()

@@ -1,35 +1,41 @@
 #!/bin/bash
-mkdir -p results
-LOG="results/cpu_benchmark_all.csv"
 
-echo "time,round,load,mean_latency_ms" > "$LOG"
+LOG="results/cpu_benchmark_final.csv"
+mkdir -p results
+
+echo "time,round,load,mean_latency_ms,std_latency_ms" > $LOG
 
 ROUND=1
 
 while true; do
-    echo "=== ROUND $ROUND ==="
+    echo "===== ROUND $ROUND ====="
 
     for load in 0 30 60 90; do
-        echo "Load: $load%"
+        echo "Testing load: $load%"
 
-        stress-ng --cpu 4 --cpu-load $load --timeout 300s &
-        PID=$!
-        sleep 10
+        if [ $load -eq 0 ]; then
+            sleep 22 &
+            PID=$!
+        else
+            stress-ng --cpu 2 --cpu-load $load --timeout 22s &
+            PID=$!
+        fi
 
-        VAL=$(python3 cpu_stability_benchmark.py)
+        sleep 12
 
-        TIME=$(date "+%Y-%m-%d %H:%M:%S")
-        echo "$TIME,$ROUND,$load,$VAL" >> "$LOG"
+        # Run test
+        RES=$(python3 cpu_stability_benchmark.py)
+        MEAN=$(echo $RES | cut -d',' -f1)
+        STD=$(echo $RES | cut -d',' -f2)
+
+        TIME=$(date '+%Y-%m-%d %H:%M:%S')
+        echo "$TIME,$ROUND,$load,$MEAN,$STD" >> $LOG
 
         kill $PID 2>/dev/null
         wait $PID 2>/dev/null
-        sleep 10
+        sleep 5
     done
 
     ROUND=$((ROUND+1))
-    echo "Waiting 1 hour..."
-    sleep 3600
+    sleep 1800
 done
-
-#chmod +x cpu_run.sh
-#nohup ./cpu_run.sh &
