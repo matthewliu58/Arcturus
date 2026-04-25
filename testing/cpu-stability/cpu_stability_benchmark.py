@@ -8,8 +8,6 @@
 import time
 import statistics
 import hashlib
-import psutil
-
 
 def cpu_task(n=200000):
     x = 0
@@ -18,28 +16,23 @@ def cpu_task(n=200000):
     hashlib.sha256(str(x).encode()).hexdigest()
     return x
 
-
 def run_once():
     start = time.perf_counter()
     cpu_task()
     end = time.perf_counter()
     return (end - start) * 1000  # ms
 
-
 def run_experiment(trials=100):
-    results = []
 
-    # warm-up
     for _ in range(10):
         run_once()
 
+    results = []
     for _ in range(trials):
         results.append(run_once())
 
     mean_val = statistics.mean(results)
-
     print(mean_val)
-
 
 if __name__ == "__main__":
     run_experiment()
