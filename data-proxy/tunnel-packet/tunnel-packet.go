@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-// b[0]: HopPos(1) + b[1:17]: HopIP(16) + b[17:19]: PayloadLen(2) + b[19:21]: Port(2) + b[21:24]: padding(3)
+// b[0]: HopPos(1) + b[1:17]: HopIP(16) + b[17:19]: PayloadLen(2) + b[19:21]: Port(2) + b[21]: Protocol(1) + b[22:24]: padding(2)
 const (
 	HeaderSize = 24
 	MaxHops    = 4
@@ -23,6 +23,7 @@ type Packet struct {
 	HopIP      [4]uint32
 	PayloadLen uint16
 	Port       uint16
+	Protocol   byte
 	wp         int
 }
 
@@ -73,6 +74,10 @@ func (p *Packet) SetPort(port uint16) {
 	p.Port = port
 }
 
+func (p *Packet) SetProtocol(protocol byte) {
+	p.Protocol = protocol
+}
+
 func (p *Packet) AppendUserPacket(userID uint32, data []byte) bool {
 	subSize := 4 + 2 + len(data)
 	if p.wp+subSize > p.BuffSize {
@@ -103,6 +108,7 @@ func (p *Packet) SerializeHead() {
 	binary.BigEndian.PutUint32(b[13:17], p.HopIP[3])
 	binary.BigEndian.PutUint16(b[17:19], p.PayloadLen)
 	binary.BigEndian.PutUint16(b[19:21], p.Port)
+	b[21] = p.Protocol
 }
 
 func (p *Packet) TotalBytes() int {
@@ -128,6 +134,7 @@ func ParseHeader(raw []byte) (*Packet, error) {
 	p.HopIP[3] = binary.BigEndian.Uint32(b[13:17])
 	p.PayloadLen = binary.BigEndian.Uint16(b[17:19])
 	p.Port = binary.BigEndian.Uint16(b[19:21])
+	p.Protocol = b[21]
 
 	return p, nil
 }
@@ -149,6 +156,7 @@ func Parse(raw []byte, bufferSize int) (*Packet, []SubPacket, error) {
 	p.HopIP[3] = binary.BigEndian.Uint32(b[13:17])
 	p.PayloadLen = binary.BigEndian.Uint16(b[17:19])
 	p.Port = binary.BigEndian.Uint16(b[19:21])
+	p.Protocol = b[21]
 
 	payloadEnd := HeaderSize + int(p.PayloadLen)
 	if payloadEnd > len(raw) || payloadEnd > bufferSize {

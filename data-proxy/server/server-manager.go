@@ -2,11 +2,12 @@ package server
 
 import (
 	"data-proxy/util"
-	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"sync"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
