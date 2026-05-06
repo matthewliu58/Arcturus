@@ -120,6 +120,7 @@ func (bs *BackSourcer) doOriginRequest(task *BackSourceTask, l *slog.Logger) {
 	aggregator.GlobalAggResponse.AddToBatch(
 		false,
 		routingKey,
+		"",
 		0,
 		routingInfo,
 		nextHop,

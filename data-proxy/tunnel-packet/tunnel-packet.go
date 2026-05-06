@@ -74,8 +74,12 @@ func (p *Packet) SetPort(port uint16) {
 	p.Port = port
 }
 
-func (p *Packet) SetProtocol(protocol byte) {
-	p.Protocol = protocol
+func (p *Packet) SetProtocol(protocol string) {
+	if protocol == "tcp" {
+		p.Protocol = 6
+	} else {
+		p.Protocol = 17
+	}
 }
 
 func (p *Packet) AppendUserPacket(userID uint32, data []byte) bool {

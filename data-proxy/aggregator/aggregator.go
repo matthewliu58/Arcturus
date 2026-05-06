@@ -22,6 +22,7 @@ const (
 type aggregatorMsg struct {
 	emerge      bool
 	routingKey  string
+	protocol    string
 	port        uint16
 	routingInfo util.PathInfo
 	nextHop     net.IP
@@ -156,6 +157,7 @@ func (a *Aggregator) Start(pre string, logger *slog.Logger) {
 func (a *Aggregator) AddToBatch(
 	emerge bool,
 	routingKey string,
+	protocol string,
 	port uint16,
 	routingInfo util.PathInfo,
 	nextHop net.IP,
@@ -165,6 +167,7 @@ func (a *Aggregator) AddToBatch(
 	a.inputChan <- &aggregatorMsg{
 		emerge:      emerge,
 		routingKey:  routingKey,
+		protocol:    protocol,
 		port:        port,
 		routingInfo: routingInfo,
 		nextHop:     nextHop,
@@ -197,6 +200,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 			pkt.SetHopIP(i, util.HopIPToNet(h))
 		}
 		pkt.SetPort(msg.port)
+		pkt.SetProtocol(msg.protocol)
 		pkt.SetHopPos(1)
 		pkt.AppendUserPacket(msg.userID, msg.data)
 		w.flush(pkt, msg.routingKey, msg.nextHop, logger)
@@ -236,6 +240,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 				b_.pkt.SetHopIP(j, util.HopIPToNet(h))
 			}
 			b_.pkt.SetPort(msg.port)
+			b_.pkt.SetProtocol(msg.protocol)
 			b_.pkt.SetHopPos(1)
 			batches = append(batches, b_)
 		}
@@ -277,6 +282,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 				b_.pkt.SetHopIP(j, util.HopIPToNet(h))
 			}
 			b_.pkt.SetPort(msg.port)
+			b_.pkt.SetProtocol(msg.protocol)
 			b_.pkt.SetHopPos(1)
 
 			w.mu.Lock()

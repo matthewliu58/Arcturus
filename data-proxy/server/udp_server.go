@@ -221,6 +221,7 @@ func handleUDPConnection(
 	aggregator.GlobalAggRequest.AddToBatch(
 		true, // UDP=true
 		routingKey,
+		"udp",
 		uint16(p64),
 		pathInfo_,
 		nextHop,

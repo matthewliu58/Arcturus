@@ -31,6 +31,12 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 		slog.Any("port", header.Port), slog.Any("HopPos", header.HopPos), slog.Any("pktLen", len(pkt)))
 
 	if header.Port != 0 {
+
+		protocal := "tcp"
+		if header.Protocol == 17 {
+			protocal = "udp"
+		}
+
 		isLastHop := header.HopPos == 2
 		if int(header.HopPos)+2 < packet.MaxHops {
 			if header.HopIP[header.HopPos+2] == 0 {
@@ -53,7 +59,7 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 			originAddr := net.JoinHostPort(originIP.String(), strconv.Itoa(int(header.Port)))
 
 			for _, sub := range subs {
-				backsourcer.BackSourcerMap["tcp"].Submit(
+				backsourcer.BackSourcerMap[protocal].Submit(
 					&backsourcer.BackSourceTask{
 						HopIP:      header.HopIP,
 						Port:       header.Port,
