@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bufio"
 	"data-proxy/aggregator"
 	"data-proxy/disaggregator"
 	"data-proxy/util"
@@ -22,7 +23,7 @@ type TCPServer struct {
 var (
 	accessLogMap         sync.Map
 	accessWindow         = 5 * time.Second
-	defaultKeepAliveTime = 30 * time.Minute
+	defaultKeepAliveTime = 30 * time.Second
 )
 
 func shouldLogAccess(clientIP string) bool {
@@ -275,7 +276,11 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 	for {
 		_ = conn.SetReadDeadline(connDeadline)
 		start := time.Now()
-		data, err := io.ReadAll(conn)
+		//data, err := io.ReadAll(conn)
+
+		reader := bufio.NewReader(conn)
+		data, err := reader.ReadBytes('\n')
+
 		rtMs := float64(time.Since(start).Microseconds()) / 1000
 
 		if err != nil {

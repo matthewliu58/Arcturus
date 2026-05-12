@@ -367,6 +367,8 @@ func (w *worker) flush(p *packet.Packet, routingKey string, nextHop net.IP, logg
 	}()
 }
 
+// todo Dynamically scale down the number of buckets adaptively as business traffic drops,
+// todo rather than purging all buckets in bulk only when requests cease completely.
 func (w *worker) evictStaleBatches(logger *slog.Logger) {
 	now := time.Now()
 

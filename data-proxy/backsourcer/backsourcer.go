@@ -16,6 +16,10 @@ const (
 	taskQueueSize = 4096
 	dialTimeout   = 3 * time.Second
 	ioTimeout     = 10 * time.Second
+
+	poolMaxIdle     = 20
+	poolMaxLifetime = 5 * time.Minute
+	poolCleanPeriod = 1 * time.Minute
 )
 
 type BackSourceTask struct {
@@ -34,6 +38,7 @@ type BackSourcer struct {
 	taskChan chan *BackSourceTask
 	wg       sync.WaitGroup
 	protocol OriginProtocol
+	tcpPool  *TCPConnPool
 }
 
 var (
@@ -41,16 +46,20 @@ var (
 )
 
 func NewBackSourcer(protocol string, pre string, l *slog.Logger) *BackSourcer {
-
 	l.Info("NewBackSourcer", slog.String("protocol", protocol), slog.String("pre", pre))
 
-	switch protocol {
-	case "udp":
+	if protocol == "udp" {
 		return NewBackSourcerWithProtocol(NewUDPProtocol(dialTimeout, ioTimeout), l)
-	case "tcp":
-		return NewBackSourcerWithProtocol(NewTCPProtocol(dialTimeout, ioTimeout), l)
 	}
-	return nil
+
+	tcpPool := NewTCPConnPool(poolMaxIdle, poolMaxLifetime, poolCleanPeriod, l)
+	bs := &BackSourcer{
+		taskChan: make(chan *BackSourceTask, taskQueueSize),
+		protocol: NewTCPProtocolWithPool(tcpPool, dialTimeout, ioTimeout, l),
+		tcpPool:  tcpPool,
+	}
+	bs.startWorkers(l)
+	return bs
 }
 
 func NewBackSourcerWithProtocol(p OriginProtocol, l *slog.Logger) *BackSourcer {
@@ -64,6 +73,14 @@ func NewBackSourcerWithProtocol(p OriginProtocol, l *slog.Logger) *BackSourcer {
 
 func (bs *BackSourcer) Submit(task *BackSourceTask) {
 	bs.taskChan <- task
+}
+
+func (bs *BackSourcer) Close() {
+	if bs.tcpPool != nil {
+		bs.tcpPool.Close()
+	}
+	close(bs.taskChan)
+	bs.wg.Wait()
 }
 
 func (bs *BackSourcer) startWorkers(l *slog.Logger) {
