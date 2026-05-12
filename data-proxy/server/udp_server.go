@@ -170,14 +170,15 @@ func handleUDPConnection(
 	} else if time.Now().After(ri.deadline) {
 		routeInfo = ri.info
 		go func() {
-			routeInfo = GetRoutingFromControlPlane(port, logger)
-
-			routingMutex.Lock()
-			routingMap[port] = routingInfo{
-				info:     routeInfo,
-				deadline: time.Now().Add(routeTimeout),
+			newRouteInfo := GetRoutingFromControlPlane(port, logger)
+			if newRouteInfo != nil {
+				routingMutex.Lock()
+				routingMap[port] = routingInfo{
+					info:     newRouteInfo,
+					deadline: time.Now().Add(routeTimeout),
+				}
+				routingMutex.Unlock()
 			}
-			routingMutex.Unlock()
 		}()
 	} else {
 		routeInfo = ri.info

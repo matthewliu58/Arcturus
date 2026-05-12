@@ -22,7 +22,7 @@ type TCPServer struct {
 var (
 	accessLogMap         sync.Map
 	accessWindow         = 5 * time.Second
-	defaultKeepAliveTime = 5 * time.Minute
+	defaultKeepAliveTime = 30 * time.Minute
 )
 
 func shouldLogAccess(clientIP string) bool {
@@ -189,13 +189,15 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 	} else if time.Now().After(ri.deadline) {
 		routeInfo = ri.info
 		go func() {
-			routeInfo = GetRoutingFromControlPlane(port, l)
-			routingMutex.Lock()
-			routingMap[port] = routingInfo{
-				info:     routeInfo,
-				deadline: time.Now().Add(routeTimeout),
+			newRouteInfo := GetRoutingFromControlPlane(port, l)
+			if newRouteInfo != nil {
+				routingMutex.Lock()
+				routingMap[port] = routingInfo{
+					info:     newRouteInfo,
+					deadline: time.Now().Add(routeTimeout),
+				}
+				routingMutex.Unlock()
 			}
-			routingMutex.Unlock()
 		}()
 	} else {
 		routeInfo = ri.info
@@ -316,13 +318,15 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 		} else if time.Now().After(ri.deadline) {
 			routeInfo = ri.info
 			go func() {
-				routeInfo = GetRoutingFromControlPlane(port, l)
-				routingMutex.Lock()
-				routingMap[port] = routingInfo{
-					info:     routeInfo,
-					deadline: time.Now().Add(routeTimeout),
+				newRouteInfo := GetRoutingFromControlPlane(port, l)
+				if newRouteInfo != nil {
+					routingMutex.Lock()
+					routingMap[port] = routingInfo{
+						info:     newRouteInfo,
+						deadline: time.Now().Add(routeTimeout),
+					}
+					routingMutex.Unlock()
 				}
-				routingMutex.Unlock()
 			}()
 		} else {
 			routeInfo = ri.info
