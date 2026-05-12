@@ -24,7 +24,7 @@ type Packet struct {
 	PayloadLen uint16
 	Port       uint16
 	Protocol   byte
-	wp         int
+	Wp         int
 }
 
 type SubPacket struct {
@@ -36,7 +36,7 @@ func NewPacket(buffSizes int) *Packet {
 	return &Packet{
 		BuffSize: buffSizes,
 		Buf:      make([]byte, buffSizes),
-		wp:       HeaderSize,
+		Wp:       HeaderSize,
 	}
 }
 
@@ -84,20 +84,20 @@ func (p *Packet) SetProtocol(protocol string) {
 
 func (p *Packet) AppendUserPacket(userID uint32, data []byte) bool {
 	subSize := 4 + 2 + len(data)
-	if p.wp+subSize > p.BuffSize {
+	if p.Wp+subSize > p.BuffSize {
 		return false
 	}
 
-	binary.BigEndian.PutUint32(p.Buf[p.wp:], userID)
-	p.wp += 4
+	binary.BigEndian.PutUint32(p.Buf[p.Wp:], userID)
+	p.Wp += 4
 
-	binary.BigEndian.PutUint16(p.Buf[p.wp:], uint16(len(data)))
-	p.wp += 2
+	binary.BigEndian.PutUint16(p.Buf[p.Wp:], uint16(len(data)))
+	p.Wp += 2
 
-	copy(p.Buf[p.wp:], data)
-	p.wp += len(data)
+	copy(p.Buf[p.Wp:], data)
+	p.Wp += len(data)
 
-	p.PayloadLen = uint16(p.wp - HeaderSize)
+	p.PayloadLen = uint16(p.Wp - HeaderSize)
 	return true
 }
 

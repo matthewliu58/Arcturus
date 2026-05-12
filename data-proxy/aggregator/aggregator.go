@@ -268,8 +268,8 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 	if b != nil {
 
 		b.mu.Lock()
-		ok := b.pkt.AppendUserPacket(msg.userID, msg.data)
-		if !ok {
+		if b.heapItem == nil ||
+			!b.pkt.AppendUserPacket(msg.userID, msg.data) {
 
 			b_ := &Batch{
 				BuffSize:   buffSize,
@@ -320,7 +320,9 @@ func (w *worker) checkTimeout(logger *slog.Logger) {
 		if b.deadline.After(now) {
 			break
 		}
-		expired = append(expired, heap.Pop(&w.heap).(*HeapItem))
+		popItem := heap.Pop(&w.heap).(*HeapItem)
+		popItem.batch.heapItem = nil
+		expired = append(expired, popItem)
 	}
 	w.mu.Unlock()
 
@@ -329,7 +331,7 @@ func (w *worker) checkTimeout(logger *slog.Logger) {
 		b := item.batch
 		b.mu.Lock()
 		toSend = append(toSend, sendInfo{b.pkt, b.RoutingKey, b.NextHop})
-		b.pkt = packet.NewPacket(b.BuffSize)
+		b.pkt.Wp = packet.HeaderSize
 		b.createTime = now
 		b.heapItem = nil
 		b.mu.Unlock()
