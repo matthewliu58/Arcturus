@@ -32,6 +32,7 @@ func ListenAndServeQUIC(handler func(remoteAddr string, data []byte, l *slog.Log
 	for {
 		conn, err := ln.Accept(context.Background())
 		if err != nil {
+			l.Error("Failed to accept QUIC connection", slog.String("pre", pre), slog.Any("err", err))
 			return err
 		}
 		go handleConn(conn, handler, pre, l)
@@ -47,13 +48,14 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 	for {
 		stream, err := conn.AcceptUniStream(context.Background())
 		if err != nil {
-			l.Info("Disconnected", slog.String("remote", remote))
+			l.Error("AcceptUniStream failed", slog.String("remote", remote), slog.Any("err", err))
 			return
 		}
 
 		headerBuf := make([]byte, packet.HeaderSize)
 		_, err = io.ReadFull(stream, headerBuf)
 		if err != nil {
+			l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
 			continue
 		}
 
@@ -65,6 +67,7 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 
 		_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
 		if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
+			l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
 			continue
 		}
 
