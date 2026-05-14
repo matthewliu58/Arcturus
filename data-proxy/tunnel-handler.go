@@ -14,6 +14,9 @@ import (
 )
 
 func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
+
+	l.Debug("receive from uni stream", slog.String("remoteAddr", remoteAddr), slog.String("data", string(pkt)))
+
 	if len(pkt) < packet.HeaderSize {
 		l.Error("Invalid packet length", slog.Any("remoteAddr", remoteAddr), slog.Any("pktLen", len(pkt)))
 		return

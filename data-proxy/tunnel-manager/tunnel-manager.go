@@ -76,6 +76,8 @@ func (m *TunnelManager) SendPacket(
 	if err != nil {
 		l.Error("write to uni stream failed", slog.String("pre", pre), slog.Any("err", err))
 		m.CloseTunnel(remoteIP, pre, l)
+	} else {
+		l.Debug("write to uni stream", slog.String("pre", pre), slog.String("addr", remoteIP.String()), slog.String("data", string(data)))
 	}
 	return err
 }
