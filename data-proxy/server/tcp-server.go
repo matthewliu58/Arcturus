@@ -260,15 +260,15 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 	clientAddr := conn.RemoteAddr().(*net.TCPAddr)
 	clientIP := clientAddr.IP.String()
 
-	if globalRL != nil && !globalRL.Allow(port, clientIP) {
-		l.Warn("rate limit exceeded", slog.String("client_ip", clientIP), slog.Int("port", port))
-		return
-	}
+	//todo shut down connections that have been idle for a long time
+	//if globalRL != nil && !globalRL.Allow(port, clientIP) {
+	//	l.Warn("rate limit exceeded", slog.String("client_ip", clientIP), slog.Int("port", port))
+	//	return
+	//}
 
 	reqID := util.GenShortReqID(clientIP)
-	l.Info("new connection (keep-alive)", slog.String("client_ip", clientIP),
-		slog.String("protocol", "tcp"), slog.Int("port", port), slog.Any("req_id", reqID),
-		slog.Duration("keep_alive_time", server.keepAliveTime))
+	l.Info("new connection (keep-alive)", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
+		slog.String("protocol", "tcp"), slog.Int("port", port), slog.Duration("keep_alive_time", server.keepAliveTime))
 
 	connStart := time.Now()
 	connDeadline := connStart.Add(server.keepAliveTime)
@@ -285,8 +285,8 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 
 		if err != nil {
 			if err == io.EOF {
-				l.Info("client closed connection", slog.String("client_ip", clientIP),
-					slog.Duration("conn_duration", time.Since(connStart)))
+				l.Info("client closed connection", slog.Any("req_id", reqID),
+					slog.String("client_ip", clientIP), slog.Duration("conn_duration", time.Since(connStart)))
 			} else {
 				l.Error("read failed", slog.Any("req_id", reqID), slog.String("client_ip", clientIP), slog.Any("err", err))
 			}
@@ -294,8 +294,10 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 		}
 
 		if len(data) == 0 {
-			l.Info("client sent empty request, closing connection", slog.String("client_ip", clientIP))
+			l.Info("client sent empty request, closing connection", slog.Any("req_id", reqID), slog.String("client_ip", clientIP))
 			return
+		} else {
+			l.Debug("client sent request", slog.Any("req_id", reqID), slog.String("data", string(data)))
 		}
 
 		go func(reqData []byte, currentReqID uint32) {
@@ -349,7 +351,7 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 				l.Error("direct origin proxy failed", slog.Any("req_id", reqID))
 			}
 		} else {
-			userID := util.GenShortReqID(clientIP)
+			//userID := util.GenShortReqID(clientIP)
 			nextHop := util.HopIPToNet(pathInfo.Hops[1])
 
 			var hops []string
@@ -365,10 +367,10 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 			routingKey := strings.Join(hops, ",")
 			p64, _ := strconv.ParseUint(port_, 10, 16)
 
-			waitCh, cleanup := disaggregator.GlobalDisagg.Register(userID)
+			waitCh, cleanup := disaggregator.GlobalDisagg.Register(reqID)
 
 			pathInfo_ := util.PathInfo{Hops: hops}
-			aggregator.GlobalAggRequest.AddToBatch(false, routingKey, "tcp", uint16(p64), pathInfo_, nextHop, userID, data)
+			aggregator.GlobalAggRequest.AddToBatch(false, routingKey, "tcp", uint16(p64), pathInfo_, nextHop, reqID, data)
 
 			select {
 			case respData, ok := <-waitCh:
@@ -378,6 +380,7 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 					return
 				}
 				_ = conn.SetWriteDeadline(time.Now().Add(proxyTimeout))
+				l.Debug("client receive response", slog.Any("req_id", reqID), slog.String("respData", string(respData)))
 				_, _ = conn.Write(respData)
 				l.Info("aggregated proxy response sent", slog.Any("req_id", reqID))
 
@@ -390,8 +393,8 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 		reqID = util.GenShortReqID(clientIP)
 
 		if time.Now().After(connDeadline) {
-			l.Info("connection keep-alive timeout", slog.String("client_ip", clientIP),
-				slog.Duration("conn_duration", time.Since(connStart)))
+			l.Info("connection keep-alive timeout", slog.Any("req_id", reqID),
+				slog.String("client_ip", clientIP), slog.Duration("conn_duration", time.Since(connStart)))
 			return
 		}
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 )
 
@@ -82,7 +83,10 @@ func (p *Packet) SetProtocol(protocol string) {
 	}
 }
 
-func (p *Packet) AppendUserPacket(userID uint32, data []byte) bool {
+func (p *Packet) AppendUserPacket(userID uint32, data []byte, logger *slog.Logger) bool {
+
+	logger.Debug("AppendUserPacket", slog.Any("userID", userID), slog.String("data", string(data)))
+
 	subSize := 4 + 2 + len(data)
 	if p.Wp+subSize > p.BuffSize {
 		return false

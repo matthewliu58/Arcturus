@@ -202,7 +202,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 		pkt.SetPort(msg.port)
 		pkt.SetProtocol(msg.protocol)
 		pkt.SetHopPos(1)
-		pkt.AppendUserPacket(msg.userID, msg.data)
+		pkt.AppendUserPacket(msg.userID, msg.data, logger)
 		w.flush(pkt, msg.routingKey, msg.nextHop, logger)
 		return
 	}
@@ -269,7 +269,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 
 		b.mu.Lock()
 		if (b.heapItem == nil && b.pkt.Wp > packet.HeaderSize) ||
-			!b.pkt.AppendUserPacket(msg.userID, msg.data) {
+			!b.pkt.AppendUserPacket(msg.userID, msg.data, logger) {
 
 			b.mu.Unlock()
 
@@ -293,8 +293,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 			w.mu.Lock()
 			w.batches[msg.routingKey] = append(w.batches[msg.routingKey], b_)
 			w.mu.Unlock()
-
-			b.pkt.AppendUserPacket(msg.userID, msg.data)
+			b.pkt.AppendUserPacket(msg.userID, msg.data, logger)
 		}
 		logger.Info("add packet", slog.Int("workId", w.id), slog.Any("userID", msg.userID))
 

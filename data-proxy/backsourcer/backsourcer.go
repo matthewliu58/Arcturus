@@ -103,11 +103,15 @@ func (bs *BackSourcer) doOriginRequest(task *BackSourceTask, l *slog.Logger) {
 	l.Info("doOriginRequest", slog.Any("UserID", task.UserID),
 		slog.String("originAddr", task.OriginAddr), slog.Any("port", task.Port))
 
+	l.Debug("doOriginRequest request", slog.Any("UserID", task.UserID), slog.String("ReqData", string(task.ReqData)))
+
 	resp, err := bs.protocol.DoRequest(task.OriginAddr, task.ReqData)
 	if err != nil || len(resp) == 0 {
 		l.Error("doOriginRequest failed", slog.Any("UserID", task.UserID), "err", err, slog.Any("resp", len(resp)))
 		return
 	}
+
+	l.Debug("doOriginRequest response", slog.Any("UserID", task.UserID), slog.String("originAddr", task.OriginAddr), slog.Any("resp", string(resp)))
 
 	var hops []net.IP
 	for i := len(task.HopIP) - 1; i >= 0; i-- {
