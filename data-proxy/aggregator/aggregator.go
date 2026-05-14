@@ -359,6 +359,8 @@ func (w *worker) flush(p *packet.Packet, routingKey string, nextHop net.IP, logg
 	go func() {
 		logger.Info("send packet", slog.Int("workId", w.id), slog.String("routingKey", routingKey),
 			slog.Any("port", p.Port), slog.Any("buf", len(buf)))
+		logger.Debug("send packet", slog.Int("workId", w.id), slog.String("routingKey", routingKey),
+			slog.Any("port", p.Port), slog.String("buf", string(buf)))
 		err := manager.TunnelMgr.SendPacket(context.Background(), nextHop, buf, nextHop.String(), logger)
 		if err != nil {
 			logger.Error("send packet failed", slog.Int("workId", w.id), slog.Any("port", p.Port), slog.Any("nextHop", nextHop))
