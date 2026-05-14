@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"data-proxy/config"
 	"encoding/binary"
 	"encoding/pem"
 	"errors"
@@ -19,7 +20,61 @@ import (
 	"github.com/quic-go/quic-go"
 )
 
+const defaultPoolSize = 1024
+const defaultPoolCount = 256
+
+// bufferedPool is a bounded pool of byte buffers
+type bufferedPool struct {
+	pool     chan []byte
+	bufSize  int
+}
+
+func newBufferedPool(count, bufSize int) *bufferedPool {
+	p := &bufferedPool{
+		pool:    make(chan []byte, count),
+		bufSize: bufSize,
+	}
+	for i := 0; i < count; i++ {
+		p.pool <- make([]byte, bufSize)
+	}
+	return p
+}
+
+func (p *bufferedPool) Get() []byte {
+	select {
+	case buf := <-p.pool:
+		return buf[:p.bufSize]
+	default:
+		return make([]byte, p.bufSize)
+	}
+}
+
+func (p *bufferedPool) Put(buf []byte) {
+	if cap(buf) < p.bufSize {
+		return
+	}
+	select {
+	case p.pool <- buf[:p.bufSize]:
+	default:
+		// pool full, discard
+	}
+}
+
+// global buffer pool instance
+var bufferPool *bufferedPool
+
+func initBufferPool() {
+	size := defaultPoolSize
+	count := defaultPoolCount
+	if config.Config_ != nil && config.Config_.Aggregator.BufferSize > 0 {
+		size = config.Config_.Aggregator.BufferSize
+	}
+	bufferPool = newBufferedPool(count, size)
+}
+
 func ListenAndServeQUIC(handler func(remoteAddr string, data []byte, l *slog.Logger), pre string, l *slog.Logger) error {
+	initBufferPool()
+
 	tlsConfig := GenerateTLSConfig()
 	addr := net.JoinHostPort("0.0.0.0", QUIC_PORT)
 
@@ -63,7 +118,15 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 			payloadLen := binary.BigEndian.Uint16(headerBuf[17:19])
 			totalLen := packet.HeaderSize + int(payloadLen)
 
-			buf := make([]byte, totalLen)
+			// Get buffer from pool
+			buf := bufferPool.Get()
+			if cap(buf) < totalLen {
+				buf = make([]byte, totalLen)
+			} else {
+				buf = buf[:totalLen]
+			}
+			defer bufferPool.Put(buf)
+
 			copy(buf, headerBuf)
 
 			_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
