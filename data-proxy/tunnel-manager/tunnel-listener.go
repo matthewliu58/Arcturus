@@ -25,8 +25,8 @@ const defaultPoolCount = 256
 
 // bufferedPool is a bounded pool of byte buffers
 type bufferedPool struct {
-	pool     chan []byte
-	bufSize  int
+	pool    chan []byte
+	bufSize int
 }
 
 func newBufferedPool(count, bufSize int) *bufferedPool {
@@ -95,7 +95,6 @@ func ListenAndServeQUIC(handler func(remoteAddr string, data []byte, l *slog.Log
 }
 
 func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l *slog.Logger), pre string, l *slog.Logger) {
-
 	defer conn.CloseWithError(0, "exit")
 	remote := conn.RemoteAddr().String()
 	l.Info("Connected", slog.String("remote", remote))
@@ -107,36 +106,43 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 			return
 		}
 
-		go func() {
-			headerBuf := make([]byte, packet.HeaderSize)
-			_, err := io.ReadFull(stream, headerBuf)
-			if err != nil {
-				l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
-				return
+		headerBuf := make([]byte, packet.HeaderSize)
+		_, err = io.ReadFull(stream, headerBuf)
+		if err != nil {
+			l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
+			continue
+		}
+
+		payloadLen := binary.BigEndian.Uint16(headerBuf[17:19])
+		totalLen := packet.HeaderSize + int(payloadLen)
+
+		buf := bufferPool.Get()
+		usePool := true
+
+		if cap(buf) < totalLen {
+			buf = make([]byte, totalLen)
+			usePool = false
+		} else {
+			buf = buf[:totalLen]
+		}
+
+		copy(buf, headerBuf)
+
+		_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
+		if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
+			l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
+			if usePool {
+				bufferPool.Put(buf)
 			}
+			continue
+		}
 
-			payloadLen := binary.BigEndian.Uint16(headerBuf[17:19])
-			totalLen := packet.HeaderSize + int(payloadLen)
-
-			// Get buffer from pool
-			buf := bufferPool.Get()
-			if cap(buf) < totalLen {
-				buf = make([]byte, totalLen)
-			} else {
-				buf = buf[:totalLen]
+		go func(handleBuf []byte, fromPool bool) {
+			if fromPool {
+				defer bufferPool.Put(handleBuf)
 			}
-			defer bufferPool.Put(buf)
-
-			copy(buf, headerBuf)
-
-			_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
-			if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
-				l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
-				return
-			}
-
-			handler(remote, buf, l)
-		}()
+			handler(remote, handleBuf, l)
+		}(buf, usePool)
 	}
 }
 
