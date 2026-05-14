@@ -52,26 +52,28 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 			return
 		}
 
-		headerBuf := make([]byte, packet.HeaderSize)
-		_, err = io.ReadFull(stream, headerBuf)
-		if err != nil {
-			l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
-			continue
-		}
+		go func() {
+			headerBuf := make([]byte, packet.HeaderSize)
+			_, err := io.ReadFull(stream, headerBuf)
+			if err != nil {
+				l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
+				return
+			}
 
-		payloadLen := binary.BigEndian.Uint16(headerBuf[17:19])
-		totalLen := packet.HeaderSize + int(payloadLen)
+			payloadLen := binary.BigEndian.Uint16(headerBuf[17:19])
+			totalLen := packet.HeaderSize + int(payloadLen)
 
-		buf := make([]byte, totalLen)
-		copy(buf, headerBuf)
+			buf := make([]byte, totalLen)
+			copy(buf, headerBuf)
 
-		_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
-		if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
-			l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
-			continue
-		}
+			_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
+			if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
+				l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
+				return
+			}
 
-		handler(remote, buf, l)
+			handler(remote, buf, l)
+		}()
 	}
 }
 
