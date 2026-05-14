@@ -13,6 +13,7 @@ import (
 	"log/slog"
 	"math/big"
 	"net"
+	"time"
 
 	packet "data-proxy/tunnel-packet"
 
@@ -23,7 +24,13 @@ func ListenAndServeQUIC(handler func(remoteAddr string, data []byte, l *slog.Log
 	tlsConfig := GenerateTLSConfig()
 	addr := net.JoinHostPort("0.0.0.0", QUIC_PORT)
 
-	ln, err := quic.ListenAddr(addr, tlsConfig, &quic.Config{})
+	quicConf := &quic.Config{
+		MaxIncomingUniStreams: 1000,
+		MaxIncomingStreams:    1000,
+		KeepAlivePeriod:       30 * time.Second,
+	}
+
+	ln, err := quic.ListenAddr(addr, tlsConfig, quicConf)
 	if err != nil {
 		return err
 	}
@@ -32,8 +39,8 @@ func ListenAndServeQUIC(handler func(remoteAddr string, data []byte, l *slog.Log
 	for {
 		conn, err := ln.Accept(context.Background())
 		if err != nil {
-			l.Error("Failed to accept QUIC connection", slog.String("pre", pre), slog.Any("err", err))
-			return err
+			l.Warn("Failed to accept QUIC connection", slog.String("pre", pre), slog.Any("err", err))
+			continue
 		}
 		go handleConn(conn, handler, pre, l)
 	}

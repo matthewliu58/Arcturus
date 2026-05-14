@@ -364,7 +364,7 @@ func (w *worker) flush(buf []byte, routingKey string, nextHop net.IP, logger *sl
 		logger.Debug("send packet content", slog.Int("workId", w.id), slog.String("routingKey", routingKey), slog.String("buf", string(buf)))
 		err := manager.TunnelMgr.SendPacket(context.Background(), nextHop, buf, nextHop.String(), logger)
 		if err != nil {
-			logger.Error("send packet failed", slog.Int("workId", w.id), slog.Any("nextHop", nextHop))
+			logger.Error("send packet failed", slog.Int("workId", w.id), slog.Any("nextHop", nextHop), slog.Any("err", err))
 		}
 	}()
 }
