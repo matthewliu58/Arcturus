@@ -46,7 +46,7 @@ var (
 )
 
 func NewBackSourcer(protocol string, pre string, l *slog.Logger) *BackSourcer {
-	l.Info("NewBackSourcer", slog.String("protocol", protocol), slog.String("pre", pre))
+	l.Info("NewBackSourcer", slog.String("pre", pre), slog.String("protocol", protocol))
 
 	if protocol == "udp" {
 		return NewBackSourcerWithProtocol(NewUDPProtocol(dialTimeout, ioTimeout), l)
@@ -103,15 +103,18 @@ func (bs *BackSourcer) doOriginRequest(task *BackSourceTask, l *slog.Logger) {
 	l.Info("doOriginRequest", slog.Any("UserID", task.UserID),
 		slog.String("originAddr", task.OriginAddr), slog.Any("port", task.Port))
 
-	l.Debug("doOriginRequest request", slog.Any("UserID", task.UserID), slog.String("ReqData", string(task.ReqData)))
+	l.Debug("doOriginRequest request content", slog.Any("UserID", task.UserID),
+		slog.String("ReqData", string(task.ReqData)))
 
 	resp, err := bs.protocol.DoRequest(task.OriginAddr, task.ReqData)
 	if err != nil || len(resp) == 0 {
-		l.Error("doOriginRequest failed", slog.Any("UserID", task.UserID), "err", err, slog.Any("resp", len(resp)))
+		l.Error("doOriginRequest failed", slog.Any("UserID", task.UserID),
+			slog.Any("resp", len(resp)), slog.Any("err", err))
 		return
 	}
 
-	l.Debug("doOriginRequest response", slog.Any("UserID", task.UserID), slog.String("originAddr", task.OriginAddr), slog.Any("resp", string(resp)))
+	l.Debug("doOriginRequest response content", slog.Any("UserID", task.UserID),
+		slog.Any("resp", string(resp)))
 
 	var hops []net.IP
 	for i := len(task.HopIP) - 1; i >= 0; i-- {
@@ -126,7 +129,7 @@ func (bs *BackSourcer) doOriginRequest(task *BackSourceTask, l *slog.Logger) {
 	}
 
 	hopStrs := make([]string, 0, len(hops))
-	routingKey := ""
+	var routingKey string
 	for _, hop := range hops {
 		hopStrs = append(hopStrs, hop.String())
 	}

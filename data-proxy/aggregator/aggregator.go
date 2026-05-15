@@ -297,7 +297,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 			w.mu.Unlock()
 			b.pkt.AppendUserPacket(msg.userID, msg.data, logger)
 		}
-		logger.Info("add packet", slog.Int("workId", w.id), slog.Any("userID", msg.userID))
+		//logger.Debug("add packet", slog.Int("workId", w.id), slog.Any("userID", msg.userID))
 
 		if b.heapItem == nil {
 			item := &HeapItem{batch: b, deadline: time.Now().Add(batchTimeout)}
@@ -402,7 +402,7 @@ func (w *worker) evictStaleBatches(logger *slog.Logger) {
 			}
 			delete(w.batches, k)
 			w.mu.Unlock()
-			logger.Info("evict stale batch", slog.Int("workId", w.id), "routingKey", k)
+			logger.Info("evict stale batch", slog.Int("workId", w.id), slog.String("routingKey", k))
 		}
 	}
 }

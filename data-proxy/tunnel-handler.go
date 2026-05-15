@@ -56,13 +56,15 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 
 			originIP := util.Uint32ToIP(header.HopIP[int(header.HopPos)+1])
 			if originIP.String() == "0.0.0.0" {
-				l.Error("Origin IP is 0.0.0.0", slog.String("remoteAddr", remoteAddr), slog.Any("pktLen", len(pkt)))
+				l.Error("Origin IP is 0.0.0.0", slog.String("remoteAddr", remoteAddr),
+					slog.Any("pktLen", len(pkt)))
 				return
 			}
 			originAddr := net.JoinHostPort(originIP.String(), strconv.Itoa(int(header.Port)))
 
 			for _, sub := range subs {
-				l.Debug("back sourcer submit", slog.Any("UserID", sub.UserID), slog.String("ReqData", string(sub.Data)))
+				l.Debug("back sourcer submit", slog.Any("UserID", sub.UserID),
+					slog.String("ReqData", string(sub.Data)))
 				backsourcer.BackSourcerMap[protocal].Submit(
 					&backsourcer.BackSourceTask{
 						HopIP:      header.HopIP,
@@ -96,14 +98,15 @@ func HandleQUICPacket(remoteAddr string, pkt []byte, l *slog.Logger) {
 			}
 
 			for _, sub := range subs {
-				l.Debug("back client submit", slog.Any("UserID", sub.UserID), slog.String("ReqData", string(sub.Data)))
+				l.Debug("back client submit", slog.Any("UserID", sub.UserID),
+					slog.String("ReqData", string(sub.Data)))
 				disaggregator.GlobalDisagg.Deliver(sub.UserID, sub.Data)
 			}
 		} else {
 			nextIP := util.Uint32ToIP(header.HopIP[header.HopPos+1])
 			packet.AdvanceRawHop(pkt)
 			if err = manager.TunnelMgr.SendPacket(context.Background(), nextIP, pkt, nextIP.String(), l); err != nil {
-				l.Error("Return forwarding failed", "err", err)
+				l.Error("Return forwarding failed", slog.Any("err", err))
 			}
 		}
 	}

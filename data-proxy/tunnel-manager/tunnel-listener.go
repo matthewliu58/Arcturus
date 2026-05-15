@@ -55,7 +55,7 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 	for {
 		stream, err := conn.AcceptUniStream(context.Background())
 		if err != nil {
-			l.Error("AcceptUniStream failed", slog.String("remote", remote), slog.Any("err", err))
+			l.Error("Accept Uni Stream failed", slog.String("remote", remote), slog.Any("err", err))
 			return
 		}
 
@@ -63,7 +63,7 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 			headerBuf := make([]byte, packet.HeaderSize)
 			_, err := io.ReadFull(stream, headerBuf)
 			if err != nil {
-				l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
+				l.Error("Read header buf failed", slog.String("remote", remote), slog.Any("err", err))
 				return
 			}
 
@@ -75,7 +75,7 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 
 			_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
 			if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
-				l.Error("ReadFull failed", slog.String("remote", remote), slog.Any("err", err))
+				l.Error("Read content failed", slog.String("remote", remote), slog.Any("err", err))
 				return
 			}
 

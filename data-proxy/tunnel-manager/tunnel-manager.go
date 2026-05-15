@@ -42,9 +42,6 @@ func (m *TunnelManager) SendPacket(
 		return errors.New("remote ip is nil")
 	}
 
-	//pkt.SerializeHead()
-	//data := pkt.Buf[:pkt.TotalBytes()]
-
 	conn, err := m.GetOrCreateTunnel(ctx, remoteIP, pre, l)
 	if err != nil {
 		return err
@@ -62,14 +59,6 @@ func (m *TunnelManager) SendPacket(
 	}
 
 	if !success {
-		//conn, err = m.GetOrCreateTunnel(ctx, remoteIP, pre, l)
-		//if err != nil {
-		//	return err
-		//}
-		//stream, err = conn.OpenUniStreamSync(ctx)
-		//if err != nil {
-		//	return err
-		//}
 		return err
 	}
 	defer stream.Close()
@@ -79,7 +68,8 @@ func (m *TunnelManager) SendPacket(
 		l.Error("write to uni stream failed", slog.String("pre", pre), slog.Any("err", err))
 		//m.CloseTunnel(remoteIP, pre, l)
 	} else {
-		l.Debug("write to uni stream", slog.String("pre", pre), slog.String("addr", remoteIP.String()), slog.String("data", string(data)))
+		l.Debug("write to uni stream", slog.String("pre", pre), slog.String("addr", remoteIP.String()),
+			slog.String("data", string(data)))
 	}
 	return err
 }
