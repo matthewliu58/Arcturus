@@ -8,13 +8,15 @@ import (
 	"data-proxy/disaggregator"
 	"data-proxy/server"
 	manager "data-proxy/tunnel-manager"
-	"github.com/gin-gonic/gin"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"log/slog"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"path/filepath"
 	"runtime"
+
+	"github.com/gin-gonic/gin"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 type SourceHandler struct {
@@ -119,6 +121,14 @@ func main() {
 	})
 
 	server.ServerManager(router, accessLogger, logger)
+
+	go func() {
+		pprofPort := "6060"
+		logger.Info("pprof server started", slog.String("pre", pre), "port", pprofPort)
+		if err := http.ListenAndServe(":"+pprofPort, nil); err != nil {
+			logger.Error("pprof server failed", slog.String("pre", pre), slog.Any("err", err))
+		}
+	}()
 
 	port := "7083"
 	logger.Info("Listening", slog.String("pre", pre), "port", port)

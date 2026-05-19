@@ -20,6 +20,10 @@ import (
 	"github.com/quic-go/quic-go"
 )
 
+const streamConcurrentLimit = 200
+
+var streamSem = make(chan struct{}, streamConcurrentLimit)
+
 func ListenAndServeQUIC(handler func(remoteAddr string, data []byte, l *slog.Logger), pre string, l *slog.Logger) error {
 	tlsConfig := GenerateTLSConfig()
 	addr := net.JoinHostPort("0.0.0.0", QUIC_PORT)
@@ -60,6 +64,9 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 		}
 
 		go func() {
+			streamSem <- struct{}{}
+			defer func() { <-streamSem }()
+
 			headerBuf := make([]byte, packet.HeaderSize)
 			_, err := io.ReadFull(stream, headerBuf)
 			if err != nil {

@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const udpConcurrentLimit = 200
+
+var udpSem = make(chan struct{}, udpConcurrentLimit)
+
 type UDPServer struct {
 	protocol string
 }
@@ -61,6 +65,9 @@ func (u *UDPServer) StartServerRun(port int, accessLogger *slog.Logger, req stri
 		}
 
 		go func() {
+			udpSem <- struct{}{}
+			defer func() { <-udpSem }()
+
 			data := make([]byte, n)
 			copy(data, buf[:n])
 			handleUDPConnection(conn, clientAddr, port, data, accessLogger, logger)
