@@ -20,7 +20,7 @@ import (
 	"github.com/quic-go/quic-go"
 )
 
-const streamConcurrentLimit = 200
+const streamConcurrentLimit = 16
 
 var streamSem = make(chan struct{}, streamConcurrentLimit)
 

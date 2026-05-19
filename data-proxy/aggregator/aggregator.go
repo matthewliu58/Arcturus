@@ -15,9 +15,9 @@ import (
 
 const (
 	inputChanSize         = 100000
-	aggregatorWorkerCount = 8 //todo temporarily change for testing
+	aggregatorWorkerCount = 4 //todo temporarily change for testing
 	batchMaxAge           = 60 * time.Second
-	sendConcurrentLimit   = 30
+	sendConcurrentLimit   = 4
 )
 
 type aggregatorMsg struct {

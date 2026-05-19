@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-const udpConcurrentLimit = 200
+const udpConcurrentLimit = 16
 
 var udpSem = make(chan struct{}, udpConcurrentLimit)
 
