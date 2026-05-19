@@ -24,6 +24,9 @@ var (
 	accessLogMap         sync.Map
 	accessWindow         = 5 * time.Second
 	defaultKeepAliveTime = 30 * time.Second
+
+	tcpConcurrentLimit = 16
+	tcpSem             = make(chan struct{}, tcpConcurrentLimit)
 )
 
 func shouldLogAccess(clientIP string) bool {
@@ -87,9 +90,17 @@ func (t *TCPServer) StartServerRun(port int, access *slog.Logger, req string, l 
 			continue
 		}
 		if t.keepAlive {
-			go handleConnectionKeepAlive(conn, port, access, l, t)
+			go func() {
+				tcpSem <- struct{}{}
+				defer func() { <-tcpSem }()
+				handleConnectionKeepAlive(conn, port, access, l, t)
+			}()
 		} else {
-			go handleConnection(conn, port, access, l)
+			go func() {
+				tcpSem <- struct{}{}
+				defer func() { <-tcpSem }()
+				handleConnection(conn, port, access, l)
+			}()
 		}
 	}
 }
