@@ -25,7 +25,7 @@ var (
 	accessWindow         = 5 * time.Second
 	defaultKeepAliveTime = 30 * time.Second
 
-	tcpConcurrentLimit = 16
+	tcpConcurrentLimit = 500
 	tcpSem             = make(chan struct{}, tcpConcurrentLimit)
 )
 

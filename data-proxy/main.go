@@ -49,6 +49,10 @@ func (h *SourceHandler) WithGroup(name string) slog.Handler {
 func main() {
 	pre := "main"
 
+	// Set GOMAXPROCS to number of CPU cores for better performance
+	cpuCount := runtime.NumCPU()
+	runtime.GOMAXPROCS(cpuCount)
+
 	logDir := filepath.Join(".", "log")
 	os.MkdirAll(logDir, 0755)
 
