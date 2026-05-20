@@ -12,8 +12,8 @@ import (
 )
 
 const (
-	workerCount   = 16
-	taskQueueSize = 4096
+	workerCount   = 256
+	taskQueueSize = 10000
 	dialTimeout   = 3 * time.Second
 	ioTimeout     = 10 * time.Second
 
