@@ -199,10 +199,12 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 
 	if len(msg.data) >= 512 {
 		msg.emerge = true
-		buffSize = len(msg.data) + packet.HeaderSize
+		buffSize = packet.HeaderSize + 4 + 2 + len(msg.data) // +userID(4) + dataLen(2)
 	}
 
 	if msg.emerge {
+		logger.Info("emerge message", slog.Int("workId", w.id), slog.Any("userID", msg.userID),
+			slog.Int("dataLen", len(msg.data)))
 		pkt := packet.NewPacket(buffSize)
 		for i, h := range msg.routingInfo.Hops {
 			pkt.SetHopIP(i, util.HopIPToNet(h))
@@ -210,7 +212,12 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 		pkt.SetPort(msg.port)
 		pkt.SetProtocol(msg.protocol)
 		pkt.SetHopPos(1)
-		pkt.AppendUserPacket(msg.userID, msg.data, logger)
+		if !pkt.AppendUserPacket(msg.userID, msg.data, logger) {
+			logger.Error("AppendUserPacket failed for emerge message",
+				slog.Int("workId", w.id), slog.Int("buffSize", buffSize),
+				slog.Int("dataLen", len(msg.data)))
+			return
+		}
 		pkt.SerializeHead()
 		buf := pkt.Buf[:pkt.TotalBytes()]
 		w.flush(buf, msg.routingKey, msg.nextHop, logger)
