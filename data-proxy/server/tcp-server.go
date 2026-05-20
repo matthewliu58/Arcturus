@@ -220,7 +220,11 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 
 	_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
 	start := time.Now()
-	data, err := io.ReadAll(conn)
+	//data, err := io.ReadAll(conn)
+
+	reader := bufio.NewReader(conn)
+	data, err := reader.ReadBytes('\n')
+
 	rtMs := float64(time.Since(start).Microseconds()) / 1000
 	if err != nil {
 		l.Error("read content failed", slog.Any("reqId", reqID),
