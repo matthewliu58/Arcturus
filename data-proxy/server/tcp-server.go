@@ -26,12 +26,12 @@ var (
 	defaultKeepAliveTime = 30 * time.Second
 
 	// Worker pool configuration for short connections
-	workerCount     = 32    // Fixed worker count, adjust based on CPU cores
-	maxPendingConns = 10000 // Max pending connections in queue
+	workerCount     = 512    // Fixed worker count, adjust based on CPU cores
+	maxPendingConns = 100000 // Max pending connections in queue
 	connChan        = make(chan *connTask, maxPendingConns)
 
 	// Long connection concurrency limit
-	longConnLimit = 500 // Max long connections allowed
+	longConnLimit = 512 // Max long connections allowed
 	longConnSem   = make(chan struct{}, longConnLimit)
 )
 
