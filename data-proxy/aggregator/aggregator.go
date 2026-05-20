@@ -363,15 +363,15 @@ func (w *worker) flush(buf []byte, routingKey string, nextHop net.IP, logger *sl
 	}
 
 	w.sendSem <- struct{}{}
-	go func() {
+	go func(b []byte, rk string, nh net.IP) {
 		defer func() { <-w.sendSem }()
-		logger.Info("send packet", slog.Int("workId", w.id), slog.String("routingKey", routingKey), slog.Any("buf", len(buf)))
-		logger.Debug("send packet content", slog.Int("workId", w.id), slog.String("routingKey", routingKey), slog.String("buf", string(buf)))
-		err := manager.TunnelMgr.SendPacket(context.Background(), nextHop, buf, nextHop.String(), logger)
+		logger.Info("send packet", slog.Int("workId", w.id), slog.String("routingKey", rk), slog.Any("buf", len(b)))
+		logger.Debug("send packet content", slog.Int("workId", w.id), slog.String("routingKey", rk), slog.String("buf", string(b)))
+		err := manager.TunnelMgr.SendPacket(context.Background(), nh, b, nh.String(), logger)
 		if err != nil {
-			logger.Error("send packet failed", slog.Int("workId", w.id), slog.Any("nextHop", nextHop), slog.Any("err", err))
+			logger.Error("send packet failed", slog.Int("workId", w.id), slog.Any("nextHop", nh), slog.Any("err", err))
 		}
-	}()
+	}(buf, routingKey, nextHop)
 }
 
 // todo Dynamically scale down the number of buckets adaptively as business traffic drops,

@@ -90,17 +90,17 @@ func (t *TCPServer) StartServerRun(port int, access *slog.Logger, req string, l 
 			continue
 		}
 		if t.keepAlive {
-			go func() {
-				tcpSem <- struct{}{}
+			tcpSem <- struct{}{}
+			go func(c net.Conn) {
 				defer func() { <-tcpSem }()
-				handleConnectionKeepAlive(conn, port, access, l, t)
-			}()
+				handleConnectionKeepAlive(c, port, access, l, t)
+			}(conn)
 		} else {
-			go func() {
-				tcpSem <- struct{}{}
+			tcpSem <- struct{}{}
+			go func(c net.Conn) {
 				defer func() { <-tcpSem }()
-				handleConnection(conn, port, access, l)
-			}()
+				handleConnection(c, port, access, l)
+			}(conn)
 		}
 	}
 }

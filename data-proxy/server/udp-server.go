@@ -64,14 +64,14 @@ func (u *UDPServer) StartServerRun(port int, accessLogger *slog.Logger, req stri
 			continue
 		}
 
-		go func() {
-			udpSem <- struct{}{}
-			defer func() { <-udpSem }()
+		data := make([]byte, n)
+		copy(data, buf[:n])
 
-			data := make([]byte, n)
-			copy(data, buf[:n])
-			handleUDPConnection(conn, clientAddr, port, data, accessLogger, logger)
-		}()
+		udpSem <- struct{}{}
+		go func(d []byte, addr *net.UDPAddr) {
+			defer func() { <-udpSem }()
+			handleUDPConnection(conn, addr, port, d, accessLogger, logger)
+		}(data, clientAddr)
 	}
 }
 

@@ -63,12 +63,16 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 			return
 		}
 
+		streamSem <- struct{}{}
+		localStream := stream
 		go func() {
-			streamSem <- struct{}{}
-			defer func() { <-streamSem }()
+			defer func() {
+				<-streamSem
+				localStream.CancelRead(0)
+			}()
 
 			headerBuf := make([]byte, packet.HeaderSize)
-			_, err := io.ReadFull(stream, headerBuf)
+			_, err := io.ReadFull(localStream, headerBuf)
 			if err != nil {
 				l.Error("Read header buf failed", slog.String("remote", remote), slog.Any("err", err))
 				return
@@ -80,7 +84,7 @@ func handleConn(conn *quic.Conn, handler func(remoteAddr string, data []byte, l 
 			buf := make([]byte, totalLen)
 			copy(buf, headerBuf)
 
-			_, err = io.ReadFull(stream, buf[packet.HeaderSize:])
+			_, err = io.ReadFull(localStream, buf[packet.HeaderSize:])
 			if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
 				l.Error("Read content failed", slog.String("remote", remote), slog.Any("err", err))
 				return
