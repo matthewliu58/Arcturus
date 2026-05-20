@@ -8,10 +8,10 @@ SERVER_IP = "47.83.232.28"
 SERVER_PORT = 8081
 CONCURRENCY = 600
 TOTAL_RUN_SECONDS = 120
-# 两轮连接之间随机休眠区间，错开重连高峰
+# Random sleep between connections to avoid connection spikes
 MIN_SLEEP = 0.2
 MAX_SLEEP = 0.5
-# 套接字超时
+# Socket timeout in seconds
 SOCK_TIMEOUT = 10
 
 LOSS_LOG = "packet_loss.log"
@@ -25,7 +25,7 @@ def write_loss_log(content):
     except Exception:
         pass
 
-# 按换行读取服务端单行回复
+# Read server response line by newline
 def read_server_response(sock):
     buf = b""
     while True:
@@ -39,7 +39,7 @@ def read_server_response(sock):
     return buf.decode().strip()
 
 def client_worker():
-    # 启动阶段随机延迟，分散初始连接
+    # Random delay at startup to spread initial connections
     init_delay = random.uniform(0, 3)
     time.sleep(init_delay)
     req_count = 0
@@ -52,53 +52,53 @@ def client_worker():
             sock.connect((SERVER_IP, SERVER_PORT))
             req_count += 1
 
-            # 组装发送报文
+            # Assemble message with thread name
             #send_dt = datetime.now()
             #time_fmt = send_dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+08:00"
             #send_msg = f"[{req_count:06d}] {time_fmt}\n"
             #sock.sendall(send_msg.encode())
 
-            # 组装发送报文 → 我加了线程名
+            # Assemble message with thread name
             send_dt = datetime.now()
             time_fmt = send_dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+08:00"
-            thread_name = threading.current_thread().name  # 🔥 拿到线程号
-            send_msg = f"[{thread_name}][{req_count:06d}] {time_fmt}\n"  # 🔥 塞进消息里
+            thread_name = threading.current_thread().name  # Get thread name
+            send_msg = f"[{thread_name}][{req_count:06d}] {time_fmt}\n"  # Include in message
             sock.sendall(send_msg.encode())
 
-            # 阻塞等待服务端回复，必须收到再往下走
+            # Blocking wait for server response
             resp = read_server_response(sock)
             recv_dt = datetime.now()
             cost_ms = (recv_dt - send_dt).total_seconds() * 1000
 
             if resp is None:
-                err_info = f"{threading.current_thread().name} 超时未收到回复 {send_msg.strip()}"
+                err_info = f"{threading.current_thread().name} timeout, no response {send_msg.strip()}"
                 write_loss_log(err_info)
-                print(f"⚠️ {err_info}")
+                print(f"[WARN] {err_info}")
             else:
                 if random.random() < 0.02:
-                    print(f"[{threading.current_thread().name}] 发:{send_msg.strip()} 收:{resp} 时延:{cost_ms:.2f}ms")
+                    print(f"[{threading.current_thread().name}] send:{send_msg.strip()} recv:{resp} latency:{cost_ms:.2f}ms")
 
         except Exception as e:
-            err_info = f"{threading.current_thread().name} 异常:{str(e)}"
+            err_info = f"{threading.current_thread().name} error:{str(e)}"
             write_loss_log(err_info)
         finally:
-            # 收到回复/异常后立刻关闭连接
+            # Close connection after response/error
             if sock:
                 try:
                     sock.close()
                 except Exception:
                     pass
 
-        # 随机休眠，每个线程节奏完全不同，不会集体断连重连
+        # Random sleep to avoid synchronized reconnects
         sleep_sec = random.uniform(MIN_SLEEP, MAX_SLEEP)
         time.sleep(sleep_sec)
 
 if __name__ == "__main__":
-    print(f"🚀 启动并发:{CONCURRENCY}，单发单收，收完回复立即断连，平稳压测")
+    print(f"Starting {CONCURRENCY} concurrent clients, send-receive-close pattern, steady benchmark")
     for idx in range(CONCURRENCY):
         t = threading.Thread(target=client_worker, name=f"CLIENT-{idx+1}", daemon=True)
         t.start()
 
     time.sleep(TOTAL_RUN_SECONDS)
     stop_event.set()
-    print("\n✅ 压测结束，日志查看：cat packet_loss.log")
+    print("\nBenchmark completed, check log: cat packet_loss.log")
