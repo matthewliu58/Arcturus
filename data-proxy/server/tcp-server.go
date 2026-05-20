@@ -3,6 +3,7 @@ package server
 import (
 	"bufio"
 	"data-proxy/aggregator"
+	"data-proxy/config"
 	"data-proxy/disaggregator"
 	"data-proxy/util"
 	"io"
@@ -26,8 +27,8 @@ var (
 	defaultKeepAliveTime = 30 * time.Second
 
 	// Worker pool configuration for short connections
-	workerCount     = 512 * 2 // Fixed worker count, adjust based on CPU cores
-	maxPendingConns = 100000  // Max pending connections in queue
+	tcpWorkerCount  = 1000   // Fixed worker count, adjust based on CPU cores
+	maxPendingConns = 100000 // Max pending connections in queue
 	connChan        = make(chan *connTask, maxPendingConns)
 
 	// Long connection concurrency limit
@@ -63,7 +64,11 @@ func shouldLogAccess(clientIP string) bool {
 }
 
 func InitWorkerPool() {
-	for i := 0; i < workerCount; i++ {
+	tcpWorkerCount_ := config.Config_.TcpWorkerCount
+	if tcpWorkerCount_ <= 0 {
+		tcpWorkerCount_ = tcpWorkerCount
+	}
+	for i := 0; i < tcpWorkerCount_; i++ {
 		go func() {
 			for task := range connChan {
 				if task.keepAlive {

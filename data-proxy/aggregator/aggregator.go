@@ -13,11 +13,11 @@ import (
 	"time"
 )
 
-const (
-	inputChanSize         = 100000
-	aggregatorWorkerCount = 4 //todo temporarily change for testing
-	batchMaxAge           = 60 * time.Second
-	sendConcurrentLimit   = 8 * 2
+var (
+	inputChanSize  = 100000
+	aggWorkerNum   = 8
+	aggWorkerCount = 8
+	batchMaxAge    = 60 * time.Second
 )
 
 type aggregatorMsg struct {
@@ -94,25 +94,30 @@ var GlobalAggResponse *Aggregator
 
 func NewAggregator(pre string, l *slog.Logger) *Aggregator {
 
-	aggregatorCount := config.Config_.AggregatorCount
-	if aggregatorCount <= 0 {
-		aggregatorCount = aggregatorWorkerCount
+	aggWorkerNum_ := config.Config_.AggWorkerNum
+	if aggWorkerNum_ <= 0 {
+		aggWorkerNum_ = aggWorkerNum
 	}
 
-	l.Info("NewAggregator", "pre", pre, "aggregatorCount", aggregatorCount)
+	aggWorkerCount_ := config.Config_.AggWorkerCount
+	if aggWorkerCount_ <= 0 {
+		aggWorkerCount_ = aggWorkerCount
+	}
+
+	l.Info("NewAggregator", "pre", pre, "aggWorkerNum_", aggWorkerNum_)
 
 	agg := &Aggregator{
 		inputChan: make(chan *aggregatorMsg, inputChanSize),
-		workers:   make([]*worker, aggregatorCount),
+		workers:   make([]*worker, aggWorkerNum_),
 	}
 
-	for i := 0; i < aggregatorCount; i++ {
+	for i := 0; i < aggWorkerNum_; i++ {
 		agg.workers[i] = &worker{
 			batches: make(map[string][]*Batch),
 			heap:    make(MinHeap, 0),
 			id:      i,
 			stopCh:  make(chan struct{}),
-			sendSem: make(chan struct{}, sendConcurrentLimit),
+			sendSem: make(chan struct{}, aggWorkerCount_),
 		}
 	}
 	return agg

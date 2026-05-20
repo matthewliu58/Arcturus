@@ -11,9 +11,10 @@ import (
 	"time"
 )
 
-const udpConcurrentLimit = 100
-
-var udpSem = make(chan struct{}, udpConcurrentLimit)
+var (
+	udpWorkerCount = 100
+	udpSem         = make(chan struct{}, udpWorkerCount)
+)
 
 type UDPServer struct {
 	protocol string

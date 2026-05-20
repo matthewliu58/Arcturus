@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"data-proxy/config"
 	"encoding/binary"
 	"encoding/pem"
 	"errors"
@@ -20,9 +21,18 @@ import (
 	"github.com/quic-go/quic-go"
 )
 
-const streamConcurrentLimit = 64 * 2
+var (
+	tunnelConcurrentLimit = 100
+	streamSem             chan struct{}
+)
 
-var streamSem = make(chan struct{}, streamConcurrentLimit)
+func NewTunnelStreamSem() {
+	tunnelConcurrentLimit_ := config.Config_.TunnelConcurrentLimit
+	if tunnelConcurrentLimit_ <= 0 {
+		tunnelConcurrentLimit_ = tunnelConcurrentLimit
+	}
+	streamSem = make(chan struct{}, tunnelConcurrentLimit_)
+}
 
 func ListenAndServeQUIC(handler func(remoteAddr string, data []byte, l *slog.Logger), pre string, l *slog.Logger) error {
 	tlsConfig := GenerateTLSConfig()

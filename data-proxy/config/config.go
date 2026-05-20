@@ -16,14 +16,18 @@ var (
 )
 
 type Config struct {
-	Port            string     `yaml:"port"`
-	ControlHost     string     `yaml:"control_host"`
-	TestRouting     []TestPath `yaml:"test_routing"`
-	AggregatorCount int        `yaml:"aggregator_count"`
-	Listeners       []Listener `yaml:"listeners"`
-	RateLimit       RateLimit  `yaml:"rate_limit"`
-	Aggregator      Aggregator `yaml:"aggregator"`
-	Node            NodeConfig `yaml:"node"`
+	Port                  string     `yaml:"port"`
+	ControlHost           string     `yaml:"control_host"`
+	TestRouting           []TestPath `yaml:"test_routing"`
+	AggWorkerNum          int        `yaml:"agg_worker_num"`
+	AggWorkerCount        int        `yaml:"agg_worker_count"`
+	TcpWorkerCount        int        `yaml:"tcp_worker_count"`
+	BackWorkerCount       int        `yaml:"back_worker_count"`
+	TunnelConcurrentLimit int        `yaml:"tunnel_concurrent_limit"`
+	Listeners             []Listener `yaml:"listeners"`
+	RateLimit             RateLimit  `yaml:"rate_limit"`
+	Aggregator            Aggregator `yaml:"aggregator"`
+	Node                  NodeConfig `yaml:"node"`
 }
 
 type TestPath struct {

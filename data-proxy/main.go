@@ -107,7 +107,7 @@ func main() {
 	server.InitWorkerPool()
 
 	manager.TunnelMgr = manager.NewTunnelManager(pre, logger)
-
+	manager.NewTunnelStreamSem()
 	go func() {
 		_ = manager.ListenAndServeQUIC(HandleQUICPacket, pre, logger)
 	}()

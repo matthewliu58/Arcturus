@@ -4,14 +4,18 @@ control_host: "http://127.0.0.1:7081"
 
 test_routing:
   - port: 8081
-    path: "139.180.133.201,45.76.150.82,149.28.157.161:8081"
+    path: "45.77.32.41,66.42.52.138,47.239.189.38,47.86.234.131:8082"
 
-aggregator_count: 8
+agg_worker_num: 8
+agg_worker_count: 8
+tcp_worker_count: 1000
+back_worker_count: 100
+tunnel_concurrent_limit: 100
 
 listeners:
   - proto: "tcp"
     port: 8081
-    batch_num: 1
+    batch_num: 10
 #  - proto: "tcp"
 #    port: 8002
 #  - proto: "udp"
@@ -36,7 +40,7 @@ rate_limit:
 
 aggregator:
   buffer_size: 5120
-  batch_timeout_ms: 20
+  batch_timeout_ms: 50
 
 node:
   provider: "Vultr"

@@ -1,6 +1,7 @@
 package backsourcer
 
 import (
+	"data-proxy/config"
 	"log/slog"
 	"net"
 	"strings"
@@ -12,10 +13,10 @@ import (
 )
 
 const (
-	workerCount   = 128
-	taskQueueSize = 10000
-	dialTimeout   = 3 * time.Second
-	ioTimeout     = 10 * time.Second
+	backWorkerCount = 100
+	taskQueueSize   = 100000
+	dialTimeout     = 3 * time.Second
+	ioTimeout       = 10 * time.Second
 
 	poolMaxIdle     = 20
 	poolMaxLifetime = 5 * time.Minute
@@ -84,7 +85,13 @@ func (bs *BackSourcer) Close() {
 }
 
 func (bs *BackSourcer) startWorkers(l *slog.Logger) {
-	for i := 0; i < workerCount; i++ {
+
+	backWorkerCount_ := config.Config_.BackWorkerCount
+	if backWorkerCount_ <= 0 {
+		backWorkerCount_ = backWorkerCount
+	}
+
+	for i := 0; i < backWorkerCount_; i++ {
 		bs.wg.Add(1)
 		go func() {
 			defer bs.wg.Done()
