@@ -2,9 +2,9 @@ package routing
 
 import (
 	agg "control-plane/aggregator"
+	middle "control-plane/routing/core-domain"
+	last "control-plane/routing/edge-domain"
 	"control-plane/routing/graph"
-	last "control-plane/routing/last-mile"
-	middle "control-plane/routing/middle-mile"
 	"control-plane/routing/routing"
 	"control-plane/util"
 	"log/slog"

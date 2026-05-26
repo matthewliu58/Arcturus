@@ -1,4 +1,4 @@
-package middle_mile
+package core_domain
 
 import (
 	"control-plane/routing/graph"

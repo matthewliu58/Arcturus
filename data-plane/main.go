@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	middle "data-plane/collector"
-	last "data-plane/last-mile"
+	last "data-plane/edge-domain"
 	"data-plane/probing"
 	"data-plane/util"
 	"github.com/gin-gonic/gin"

@@ -1,4 +1,4 @@
-package last_mile
+package edge_domain
 
 import (
 	"bufio"

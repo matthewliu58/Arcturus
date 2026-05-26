@@ -1,4 +1,4 @@
-package last_mile
+package edge_domain
 
 // ============== CPU Threshold Configuration ==============
 
@@ -88,8 +88,8 @@ var CPUConfig = map[int]CPUThresholds{
 		HysteresisDn: 40.0, // Exit penalty at CPULow
 	},
 	4: {
-		Low:          60.0, // CPULow for 4-core
-		Mid:          80.0, // CPUMid for 4-core
+		Low:          60.0,  // CPULow for 4-core
+		Mid:          80.0,  // CPUMid for 4-core
 		High:         100.0, // CPUHigh for 4-core
 		HysteresisUp: 80.0,  // Enter penalty at CPUMid
 		HysteresisDn: 60.0,  // Exit penalty at CPULow
