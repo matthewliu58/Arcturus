@@ -63,7 +63,7 @@ func (g *GlobalStats) GetAggValue(key string) *rece.LastCongestion {
 }
 
 func (g *GlobalStats) StartAggregateWorker(logger *slog.Logger) {
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(5 * time.Second)
 	go func() {
 		for range ticker.C {
 			pre := util.GenerateRandomLetters(5)

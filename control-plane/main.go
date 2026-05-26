@@ -274,7 +274,7 @@ func main() {
 		slog.String("storageDir", storageDir),
 	)
 	s, _ := util.NewFileStorage(storageDir, 0, pre, logger)
-	go agg.CalcClusterWeightedAvg(s, 20*time.Second, cli, pre, logger)
+	go agg.CalcClusterWeightedAvg(s, 5*time.Second, cli, pre, logger)
 
 	router := gin.Default()
 	router.GET("/health", func(c *gin.Context) { c.JSON(http.StatusOK, "success") })

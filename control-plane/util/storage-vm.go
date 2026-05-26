@@ -48,7 +48,7 @@ func NewFileStorage(storageDir string, expireMinutes int, pre string, l *slog.Lo
 	fs := &FileStorage{
 		StorageDir:     storageDir,
 		expireDuration: expireDur,
-		cleanupTicker:  time.NewTicker(1 * time.Minute),
+		cleanupTicker:  time.NewTicker(30 * time.Second),
 		l:              l,
 	}
 
