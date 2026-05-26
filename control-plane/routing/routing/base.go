@@ -1,9 +1,9 @@
 package routing
 
 type PathInfo struct {
-	Hops []string `json:"hops"`
-	Rtt  float64  `json:"rtt"`
-	//Weight int64  `json:"weight"`
+	Hops   []string `json:"hops"`
+	Rtt    float64 `json:"rtt"`
+	Weight float64 `json:"weight"` // Softmax probability for load balancing
 }
 
 type RoutingInfo struct {

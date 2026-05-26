@@ -19,11 +19,19 @@ const (
 	CPUMid         = 60.0
 	CPUHigh        = 80.0
 	defaultV       = 0.5
+	softmaxTemp    = 10.0 // Temperature for softmax (higher = more uniform distribution)
 )
 
 type LyapunovSolver struct {
 	edgeAgg map[string]*rece.LastCongestion
 	nodeTel map[string]*agg.NodeTelemetry
+}
+
+// nodeScore represents a candidate node with its Lyapunov score
+type nodeScore struct {
+	nodeIp string
+	score  float64
+	valid  bool
 }
 
 func NewLyapunovSolver(
@@ -52,12 +60,6 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 	if len(nodeIps) <= 0 {
 		logger.Warn("no available nodes in continent", slog.String("pre", pre), slog.String("continent", continent))
 		nodeIps = []string{util.Config_.Node.IP.Public}
-	}
-
-	type nodeScore struct {
-		nodeIp string
-		score  float64
-		valid  bool
 	}
 
 	var candidates []nodeScore
@@ -124,15 +126,25 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 		return candidates[i].score < candidates[j].score
 	})
 
+	// Compute softmax probabilities for probabilistic routing
+	probabilities := softmaxProbabilities(candidates, softmaxTemp)
+
 	var paths []routing.PathInfo
-	for _, item := range candidates {
+	for i, item := range candidates {
+		weight := 0.0
+		if i < len(probabilities) {
+			weight = probabilities[i]
+		}
 		paths = append(paths, routing.PathInfo{
-			Hops: []string{item.nodeIp},
-			Rtt:  item.score,
+			Hops:   []string{item.nodeIp},
+			Rtt:    item.score,
+			Weight: weight,
 		})
 	}
 
-	logger.Info("Lyapunov routing completed", slog.String("pre", pre), slog.Any("paths", paths))
+	logger.Info("Lyapunov routing completed", slog.String("pre", pre),
+		slog.Int("candidateCount", len(candidates)),
+		slog.Any("probabilities", probabilities))
 
 	return paths, nil
 }
@@ -224,4 +236,31 @@ func computeCPUPenalty(nodeIP string, Qk float64) float64 {
 		return 2.0
 	}
 	return 4.0 + (Qk-CPUHigh)/10.0
+}
+
+// softmaxProbabilities computes softmax probabilities from scores
+// Uses negative scores so lower score = higher probability
+// P(i) = exp(-S_i / T) / sum(exp(-S_j / T))
+func softmaxProbabilities(candidates []nodeScore, temperature float64) []float64 {
+	if len(candidates) == 0 {
+		return nil
+	}
+
+	// Compute exp(-score / temperature) for each candidate
+	expScores := make([]float64, len(candidates))
+	sumExp := 0.0
+	for i, c := range candidates {
+		expScores[i] = math.Exp(-c.score / temperature)
+		sumExp += expScores[i]
+	}
+
+	// Normalize to get probabilities
+	probabilities := make([]float64, len(candidates))
+	for i := range candidates {
+		if sumExp > 0 {
+			probabilities[i] = expScores[i] / sumExp
+		}
+	}
+
+	return probabilities
 }

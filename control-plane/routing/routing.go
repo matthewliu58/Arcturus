@@ -22,6 +22,8 @@ const ( //last
 	LatencyOnly     = "latency_only"
 	CPUOnly         = "cpu_only"
 	JointCpuLatency = "joint_cpu_latency"
+	P2C             = "p2c"
+	EWMABased       = "ewma_based"
 )
 
 type ComputingMiddleInterface interface {
@@ -90,16 +92,32 @@ func InitLastInterface(g *graph.GraphManager, a *agg.GlobalStats, algorithm stri
 		solver := last.NewLyapunovSolver(edgeAgg, nodes)
 		return RoutingLastInterface{Operate: solver}
 	case LatencyOnly:
-		router := last.NewLatencyOnlyRouter(edgeAgg, nodes)
+		// Fallback to JointRouter with CPU weight = 0
+		router := last.NewJointRouter(edgeAgg, nodes)
+		router.SetWeights(0, 1)
 		return RoutingLastInterface{Operate: router}
 	case CPUOnly:
-		router := last.NewCPUOnlyRouter(nodes)
+		// Fallback to JointRouter with latency weight = 0
+		router := last.NewJointRouter(edgeAgg, nodes)
+		router.SetWeights(1, 0)
 		return RoutingLastInterface{Operate: router}
 	case JointCpuLatency:
 		router := last.NewJointRouter(edgeAgg, nodes)
 		// Set weights if provided
 		if cpuWeight >= 0 && latencyWeight >= 0 {
 			router.SetWeights(cpuWeight, latencyWeight)
+		}
+		return RoutingLastInterface{Operate: router}
+	case P2C:
+		// Power-of-Two Choices: randomly pick two nodes, select the lighter one
+		router := last.NewP2CRouter(nodes)
+		return RoutingLastInterface{Operate: router}
+	case EWMABased:
+		// EWMA-based: use exponentially weighted moving average for smoothed control
+		router := last.NewEWMARouter(nodes, edgeAgg)
+		// Set alpha and lambda if provided
+		if cpuWeight >= 0 && latencyWeight >= 0 {
+			router.SetAlpha(cpuWeight, latencyWeight)
 		}
 		return RoutingLastInterface{Operate: router}
 	default:
