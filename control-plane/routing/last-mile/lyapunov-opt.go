@@ -11,16 +11,31 @@ import (
 	"sync"
 )
 
-const (
-	LatencyGood    = 50.0
-	LatencyNormal  = 100.0
-	LatencyWarning = 150.0
-	CPULow         = 40.0
-	CPUMid         = 60.0
-	CPUHigh        = 80.0
-	defaultV       = 0.5
-	softmaxTemp    = 10.0 // Temperature for softmax (higher = more uniform distribution)
-)
+// getLatencyConfig returns appropriate latency thresholds based on source-destination continent pair
+func getLatencyConfig(sourceCont, destCont string) latencyConfig {
+	key := sourceCont + "-" + destCont
+
+	// 1. Check for configured continent pairs first
+	if config, exists := ContinentPairConfigs[key]; exists {
+		return config
+	}
+
+	// 2. Inter-continental routes (different continents)
+	if sourceCont != destCont {
+		return latencyConfig{
+			good:    DefaultInterContGood,
+			normal:  DefaultInterContNormal,
+			warning: DefaultInterContWarning,
+		}
+	}
+
+	// 3. Intra-continental routes (same continent)
+	return latencyConfig{
+		good:    DefaultIntraContGood,
+		normal:  DefaultIntraContNormal,
+		warning: DefaultIntraContWarning,
+	}
+}
 
 type LyapunovSolver struct {
 	edgeAgg map[string]*rece.LastCongestion
@@ -101,8 +116,12 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 			delay = 100
 		}
 
-		cpuPenalty := computeCPUPenalty(nodeIp, Qk+math.Abs(deltaK))
-		delayPenalty := computeDelayPenalty(delay)
+		// Get dynamic latency thresholds based on geographic location
+		nodeContinent := tel.Continent
+		latencyConfig := getLatencyConfig(source.Continent, nodeContinent)
+
+		cpuPenalty := computeCPUPenalty(nodeIp, Qk+math.Abs(deltaK), cpu.LogicalCore)
+		delayPenalty := computeDelayPenalty(delay, latencyConfig)
 		score := w*cpuPenalty + defaultV*delayPenalty
 
 		candidates = append(candidates, nodeScore{
@@ -183,17 +202,17 @@ func (l *LyapunovSolver) getAggFallback(cont, serverKey string) *rece.LastConges
 	return l.edgeAgg[key]
 }
 
-func computeDelayPenalty(rt float64) float64 {
-	if rt <= LatencyGood {
+func computeDelayPenalty(rt float64, config latencyConfig) float64 {
+	if rt <= config.good {
 		return 0.5
 	}
-	if rt <= LatencyNormal {
+	if rt <= config.normal {
 		return 1.0
 	}
-	if rt <= LatencyWarning {
+	if rt <= config.warning {
 		return 1.5
 	}
-	return 2.0 + (rt-LatencyWarning)/50.0
+	return 2.0 + (rt-config.warning)/50.0
 }
 
 var (
@@ -201,41 +220,39 @@ var (
 	penaltyMu  sync.RWMutex
 )
 
-func computeCPUPenalty(nodeIP string, Qk float64) float64 {
-	const (
-		CPU_HIGH = 60.0
-		CPU_LOW  = 45.0
-	)
+func computeCPUPenalty(nodeIP string, Qk float64, logicalCores int) float64 {
+	// Get dynamic CPU thresholds based on core count
+	config := GetCPUThresholds(logicalCores)
 
 	penaltyMu.RLock()
 	inPenalty := penaltyMap[nodeIP]
 	penaltyMu.RUnlock()
 
-	if Qk >= CPU_HIGH {
+	if Qk >= config.HysteresisUp {
 		penaltyMu.Lock()
 		penaltyMap[nodeIP] = true
 		penaltyMu.Unlock()
-	} else if inPenalty && Qk > CPU_LOW {
-	} else if inPenalty && Qk <= CPU_LOW {
+	} else if inPenalty && Qk > config.HysteresisDn {
+	} else if inPenalty && Qk <= config.HysteresisDn {
 		penaltyMu.Lock()
 		penaltyMap[nodeIP] = false
 		penaltyMu.Unlock()
 	}
 
-	if inPenalty && Qk < CPU_HIGH {
-		Qk = CPU_HIGH
+	if inPenalty && Qk < config.HysteresisUp {
+		Qk = config.HysteresisUp
 	}
 
-	if Qk <= CPULow {
+	if Qk <= config.Low {
 		return 0.5
 	}
-	if Qk <= CPUMid {
+	if Qk <= config.Mid {
 		return 1.0
 	}
-	if Qk <= CPUHigh {
+	if Qk <= config.High {
 		return 2.0
 	}
-	return 4.0 + (Qk-CPUHigh)/10.0
+	return 4.0 + (Qk-config.High)/10.0
 }
 
 // softmaxProbabilities computes softmax probabilities from scores

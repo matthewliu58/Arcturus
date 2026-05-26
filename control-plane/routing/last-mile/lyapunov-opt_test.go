@@ -97,38 +97,58 @@ func TestLyapunovSolver_Computing(t *testing.T) {
 }
 
 func TestCPUPenalty(t *testing.T) {
-	testCases := []struct {
-		nodeIP   string
-		Qk       float64
-		expected float64
+	// Test 2-core thresholds: CPULow=40, CPUMid=60, CPUHigh=80
+	testCases2Core := []struct {
+		nodeIP       string
+		Qk           float64
+		logicalCores int
+		expected     float64
 	}{
-		{"test-node-1", 30.0, 0.5}, // Low CPU
-		{"test-node-2", 50.0, 1.0}, // Medium CPU
-		{"test-node-3", 70.0, 2.0}, // High CPU
-		{"test-node-4", 90.0, 5.0}, // Very high CPU
+		{"test-node-1", 30.0, 2, 0.5}, // Low CPU (<40)
+		{"test-node-2", 50.0, 2, 1.0}, // Medium CPU (40-60)
+		{"test-node-3", 70.0, 2, 2.0}, // High CPU (60-80)
+		{"test-node-4", 90.0, 2, 5.0}, // Very high CPU (>80)
 	}
 
-	for _, tc := range testCases {
-		result := computeCPUPenalty(tc.nodeIP, tc.Qk)
+	// Test 4-core thresholds: CPULow=60, CPUMid=80, CPUHigh=100
+	testCases4Core := []struct {
+		nodeIP       string
+		Qk           float64
+		logicalCores int
+		expected     float64
+	}{
+		{"test-node-5", 50.0, 4, 0.5},  // Low CPU (<60)
+		{"test-node-6", 70.0, 4, 1.0},  // Medium CPU (60-80)
+		{"test-node-7", 90.0, 4, 2.0},  // High CPU (80-100)
+		{"test-node-8", 100.0, 4, 4.0}, // Max CPU (=100)
+	}
+
+	for _, tc := range testCases2Core {
+		result := computeCPUPenalty(tc.nodeIP, tc.Qk, tc.logicalCores)
 		if result != tc.expected {
-			t.Errorf("computeCPUPenalty(%s, %f) = %f, expected %f", tc.nodeIP, tc.Qk, result, tc.expected)
+			t.Errorf("computeCPUPenalty(%s, %f, %d) = %f, expected %f", tc.nodeIP, tc.Qk, tc.logicalCores, result, tc.expected)
+		}
+	}
+
+	for _, tc := range testCases4Core {
+		result := computeCPUPenalty(tc.nodeIP, tc.Qk, tc.logicalCores)
+		if result != tc.expected {
+			t.Errorf("computeCPUPenalty(%s, %f, %d) = %f, expected %f", tc.nodeIP, tc.Qk, tc.logicalCores, result, tc.expected)
 		}
 	}
 
 	// Test penalty state persistence
 	nodeIP := "test-node-penalty"
 	// First call with high CPU should set penalty flag
-	computeCPUPenalty(nodeIP, 70.0)
+	computeCPUPenalty(nodeIP, 70.0, 2)
 	// Second call with medium CPU should still return high penalty
-	result := computeCPUPenalty(nodeIP, 50.0)
-	// The expected value might be 1.0 if the penalty state logic works differently
-	// Let's check the actual behavior
+	result := computeCPUPenalty(nodeIP, 50.0, 2)
 	t.Logf("computeCPUPenalty with penalty state = %f", result)
 
 	// Call with low CPU should clear penalty flag
-	computeCPUPenalty(nodeIP, 40.0)
+	computeCPUPenalty(nodeIP, 40.0, 2)
 	// Next call with medium CPU should return medium penalty
-	result = computeCPUPenalty(nodeIP, 50.0)
+	result = computeCPUPenalty(nodeIP, 50.0, 2)
 	expected := 1.0
 	if result != expected {
 		t.Errorf("computeCPUPenalty after clearing penalty = %f, expected %f", result, expected)
@@ -147,8 +167,14 @@ func TestDelayPenalty(t *testing.T) {
 		{200.0, 3.0}, // Very bad latency
 	}
 
+	config := latencyConfig{
+		good:    DefaultLatencyGood,
+		normal:  DefaultLatencyNormal,
+		warning: DefaultLatencyWarning,
+	}
+
 	for _, tc := range testCases {
-		result := computeDelayPenalty(tc.rt)
+		result := computeDelayPenalty(tc.rt, config)
 		if result != tc.expected {
 			t.Errorf("computeDelayPenalty(%f) = %f, expected %f", tc.rt, result, tc.expected)
 		}

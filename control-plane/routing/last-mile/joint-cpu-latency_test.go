@@ -28,28 +28,28 @@ func TestJointRouter_Computing(t *testing.T) {
 	// Mock node telemetry data
 	nodeTel := map[string]*agg.NodeTelemetry{
 		"192.168.1.1": {
-			PublicIP:   "192.168.1.1",
-			Continent:  "Asia",
-			City:       "Shanghai",
-			Country:    "China",
+			PublicIP:    "192.168.1.1",
+			Continent:   "Asia",
+			City:        "Shanghai",
+			Country:     "China",
 			CpuPressure: 30.0,
-			Cpu:        rece.CPUInfo{Usage: 30.0}, // Low CPU
+			Cpu:         rece.CPUInfo{Usage: 30.0}, // Low CPU
 		},
 		"192.168.1.2": {
-			PublicIP:   "192.168.1.2",
-			Continent:  "Asia",
-			City:       "Beijing",
-			Country:    "China",
+			PublicIP:    "192.168.1.2",
+			Continent:   "Asia",
+			City:        "Beijing",
+			Country:     "China",
 			CpuPressure: 70.0,
-			Cpu:        rece.CPUInfo{Usage: 70.0}, // High CPU
+			Cpu:         rece.CPUInfo{Usage: 70.0}, // High CPU
 		},
 		"192.168.1.3": {
-			PublicIP:   "192.168.1.3",
-			Continent:  "Asia",
-			City:       "Guangzhou",
-			Country:    "China",
+			PublicIP:    "192.168.1.3",
+			Continent:   "Asia",
+			City:        "Guangzhou",
+			Country:     "China",
 			CpuPressure: 50.0,
-			Cpu:        rece.CPUInfo{Usage: 50.0}, // Medium CPU
+			Cpu:         rece.CPUInfo{Usage: 50.0}, // Medium CPU
 		},
 	}
 
@@ -99,16 +99,16 @@ func TestJointRouter_CPUHeavy(t *testing.T) {
 
 	nodeTel := map[string]*agg.NodeTelemetry{
 		"192.168.1.1": {
-			PublicIP:   "192.168.1.1",
-			Continent:  "Asia",
+			PublicIP:    "192.168.1.1",
+			Continent:   "Asia",
 			CpuPressure: 30.0,
-			Cpu:        rece.CPUInfo{Usage: 30.0}, // Best CPU
+			Cpu:         rece.CPUInfo{Usage: 30.0}, // Best CPU
 		},
 		"192.168.1.2": {
-			PublicIP:   "192.168.1.2",
-			Continent:  "Asia",
+			PublicIP:    "192.168.1.2",
+			Continent:   "Asia",
 			CpuPressure: 90.0,
-			Cpu:        rece.CPUInfo{Usage: 90.0}, // Worst CPU
+			Cpu:         rece.CPUInfo{Usage: 90.0}, // Worst CPU
 		},
 	}
 
@@ -139,23 +139,23 @@ func TestJointRouter_LatencyHeavy(t *testing.T) {
 
 	nodeTel := map[string]*agg.NodeTelemetry{
 		"192.168.1.1": {
-			PublicIP:   "192.168.1.1",
-			Continent:  "Asia",
+			PublicIP:    "192.168.1.1",
+			Continent:   "Asia",
 			CpuPressure: 90.0,
-			Cpu:        rece.CPUInfo{Usage: 90.0}, // High CPU
+			Cpu:         rece.CPUInfo{Usage: 90.0}, // High CPU
 		},
 		"192.168.1.2": {
-			PublicIP:   "192.168.1.2",
-			Continent:  "Asia",
+			PublicIP:    "192.168.1.2",
+			Continent:   "Asia",
 			CpuPressure: 30.0,
-			Cpu:        rece.CPUInfo{Usage: 30.0}, // Low CPU
+			Cpu:         rece.CPUInfo{Usage: 30.0}, // Low CPU
 		},
 	}
 
 	// Key format: "Continent-NodeIP"
 	edgeAgg := map[string]*rece.LastCongestion{
-		"Asia-192.168.1.1": {AvgRT: 40.0, Count: 10},   // Low latency
-		"Asia-192.168.1.2": {AvgRT: 100.0, Count: 10},  // High latency
+		"Asia-192.168.1.1": {AvgRT: 40.0, Count: 10},  // Low latency
+		"Asia-192.168.1.2": {AvgRT: 100.0, Count: 10}, // High latency
 	}
 
 	router := NewJointRouter(edgeAgg, nodeTel)
@@ -210,10 +210,10 @@ func TestJointRouter_NegativeValues(t *testing.T) {
 
 	nodeTel := map[string]*agg.NodeTelemetry{
 		"192.168.1.1": {
-			PublicIP:   "192.168.1.1",
-			Continent:  "Asia",
+			PublicIP:    "192.168.1.1",
+			Continent:   "Asia",
 			CpuPressure: 50.0,
-			Cpu:        rece.CPUInfo{Usage: -1.0}, // Invalid negative CPU -> treated as 100
+			Cpu:         rece.CPUInfo{Usage: -1.0}, // Invalid negative CPU -> treated as 100
 		},
 	}
 
@@ -248,16 +248,16 @@ func TestJointRouter_NoMatchingContinent(t *testing.T) {
 
 	nodeTel := map[string]*agg.NodeTelemetry{
 		"192.168.1.1": {
-			PublicIP:   "192.168.1.1",
-			Continent:  "Asia",
+			PublicIP:    "192.168.1.1",
+			Continent:   "Asia",
 			CpuPressure: 30.0,
-			Cpu:        rece.CPUInfo{Usage: 30.0},
+			Cpu:         rece.CPUInfo{Usage: 30.0},
 		},
 	}
 
 	router := NewJointRouter(map[string]*rece.LastCongestion{}, nodeTel)
 	endPoints := routing.EndPoints{
-		Source: routing.EndPoint{Continent: "North America", City: "New York"},
+		Source: routing.EndPoint{Continent: "NorthAmerica", City: "New York"},
 	}
 
 	paths, err := router.Computing(endPoints, "test", logger)
@@ -278,21 +278,21 @@ func TestJointRouter_GetNodeRT(t *testing.T) {
 
 	nodeTel := map[string]*agg.NodeTelemetry{
 		"192.168.1.1": {
-			PublicIP:   "192.168.1.1",
-			Continent:  "Asia",
-			Country:    "China",
-			City:       "Shanghai",
+			PublicIP:    "192.168.1.1",
+			Continent:   "Asia",
+			Country:     "China",
+			City:        "Shanghai",
 			CpuPressure: 30.0,
-			Cpu:        rece.CPUInfo{Usage: 30.0},
+			Cpu:         rece.CPUInfo{Usage: 30.0},
 		},
 	}
 
 	edgeAgg := map[string]*rece.LastCongestion{
 		"Shanghai-192.168.1.1": {AvgRT: 40.0, Count: 10},
-		"Shanghai-Shanghai":     {AvgRT: 50.0, Count: 10},
-		"China-China":            {AvgRT: 60.0, Count: 10},
-		"Asia-Asia":             {AvgRT: 70.0, Count: 10},
-		"Asia-general":           {AvgRT: 80.0, Count: 10},
+		"Shanghai-Shanghai":    {AvgRT: 50.0, Count: 10},
+		"China-China":          {AvgRT: 60.0, Count: 10},
+		"Asia-Asia":            {AvgRT: 70.0, Count: 10},
+		"Asia-general":         {AvgRT: 80.0, Count: 10},
 	}
 
 	router := NewJointRouter(edgeAgg, nodeTel)
