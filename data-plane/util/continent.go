@@ -24,10 +24,19 @@ func LoadCountryContinent(pre string, logger *slog.Logger) error {
 		return loadErr
 	}
 
-	var m map[string]string
-	if err = json.Unmarshal(data, &m); err != nil {
+	type CountryEntry struct {
+		Name      string `json:"name"`
+		Continent string `json:"continent"`
+	}
+	var raw map[string]CountryEntry
+	if err = json.Unmarshal(data, &raw); err != nil {
 		loadErr = err
 		return loadErr
+	}
+
+	m := make(map[string]string, len(raw))
+	for code, entry := range raw {
+		m[code] = entry.Continent
 	}
 
 	logger.Info("LoadCountryContinent", slog.String("pre", pre))
