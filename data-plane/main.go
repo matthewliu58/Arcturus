@@ -80,7 +80,7 @@ func main() {
 		probing.Config{
 			Concurrency: 4,
 			Timeout:     2 * time.Second,
-			Interval:    20 * time.Second,
+			Interval:    5 * time.Second,
 			Attempts:    5,
 		}, pre, logger)
 

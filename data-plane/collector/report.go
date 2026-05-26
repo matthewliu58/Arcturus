@@ -15,7 +15,7 @@ import (
 
 const (
 	ReportURL      = "/api/v1/vm/receive"
-	ReportInterval = 20 * time.Second
+	ReportInterval = 5 * time.Second
 )
 
 type HTTPReporter struct {
