@@ -2,12 +2,14 @@ package edge_domain
 
 import (
 	agg "control-plane/aggregator"
-	rece "control-plane/receive-info"
 	"control-plane/routing/routing"
 	"control-plane/util"
+	"fmt"
 	"log/slog"
 	"os"
 	"testing"
+
+	rece "control-plane/receive-info"
 )
 
 func init() {
@@ -178,6 +180,91 @@ func TestDelayPenalty(t *testing.T) {
 		if result != tc.expected {
 			t.Errorf("computeDelayPenalty(%f) = %f, expected %f", tc.rt, result, tc.expected)
 		}
+	}
+}
+
+func TestLyapunovSolver_ThreeNodes(t *testing.T) {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+
+	// Configuration for 3 nodes:
+	// Node1: 2 cores, CPU 40%, deltaK=10, latency=10ms
+	// Node2: 2 cores, CPU 60%, deltaK=10, latency=15ms
+	// Node3: 4 cores, CPU 80%, deltaK=20, latency=5ms
+	nodeTel := map[string]*agg.NodeTelemetry{
+		"192.168.1.1": {
+			PublicIP:  "192.168.1.1",
+			Continent: "Asia",
+			City:      "Shanghai",
+			Cpu: rece.CPUInfo{
+				Usage:       40.0, // 40%
+				LoadDelta:   10.0,
+				LogicalCore: 2,
+			},
+		},
+		"192.168.1.2": {
+			PublicIP:  "192.168.1.2",
+			Continent: "Asia",
+			City:      "Beijing",
+			Cpu: rece.CPUInfo{
+				Usage:       60.0, // 60%
+				LoadDelta:   10.0,
+				LogicalCore: 2,
+			},
+		},
+		"192.168.1.3": {
+			PublicIP:  "192.168.1.3",
+			Continent: "Asia",
+			City:      "Guangzhou",
+			Cpu: rece.CPUInfo{
+				Usage:       80.0, // 80%
+				LoadDelta:   20.0,
+				LogicalCore: 4,
+			},
+		},
+	}
+
+	// Latency data
+	edgeAgg := map[string]*rece.LastCongestion{
+		"Shanghai-192.168.1.1": {AvgRT: 10.0, Count: 10}, // 10ms
+		"Shanghai-192.168.1.2": {AvgRT: 15.0, Count: 10}, // 15ms
+		"Shanghai-192.168.1.3": {AvgRT: 5.0, Count: 10},  // 5ms
+	}
+
+	solver := NewLyapunovSolver(edgeAgg, nodeTel)
+	endPoints := routing.EndPoints{
+		Source: routing.EndPoint{Continent: "Asia", City: "Shanghai"},
+	}
+
+	paths, err := solver.Computing(endPoints, "test-3nodes", logger)
+	if err != nil {
+		t.Errorf("Computing failed: %v", err)
+	}
+
+	if len(paths) != 3 {
+		t.Fatalf("Expected 3 paths, got %d", len(paths))
+	}
+
+	// Print raw scores and softmax probabilities
+	fmt.Println("\n=== Three Nodes Test Results ===")
+	fmt.Println("Node Configuration:")
+	fmt.Println("  Node1 (192.168.1.1): 2 cores, CPU=40%, deltaK=10, latency=10ms")
+	fmt.Println("  Node2 (192.168.1.2): 2 cores, CPU=60%, deltaK=10, latency=15ms")
+	fmt.Println("  Node3 (192.168.1.3): 4 cores, CPU=80%, deltaK=20, latency=5ms")
+	fmt.Println("\nRaw Scores (lower is better):")
+
+	for _, path := range paths {
+		fmt.Printf("  %s: RawScore=%f, SoftmaxProbability=%f\n", path.Hops[0], path.Rtt, path.RawRTT)
+	}
+
+	// Verify softmax probabilities sum to 1
+	sumWeight := 0.0
+	for _, path := range paths {
+		sumWeight += path.RawRTT
+	}
+	if sumWeight < 0.999 || sumWeight > 1.001 {
+		t.Errorf("Softmax probabilities sum = %.4f, expected ~1.0", sumWeight)
 	}
 }
 

@@ -157,8 +157,8 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 		}
 		paths = append(paths, routing.PathInfo{
 			Hops:   []string{item.nodeIp},
-			Rtt:    item.score,
-			Weight: weight,
+			Rtt:    weight,
+			RawRTT: item.score,
 		})
 	}
 
