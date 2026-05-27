@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -e
 
-# Script to build and run Arcturus Docker container
+# Script to build and run SkyAccel Docker container
 
-echo "==> Arcturus Docker Builder"
+echo "==> SkyAccel Docker Builder"
 echo "========================="
 
 # ===== Configuration =====
-IMAGE_NAME="arcturus"
-CONTAINER_NAME="arcturus-container"
+IMAGE_NAME="SkyAccel"
+CONTAINER_NAME="SkyAccel-container"
 
 # ===== Helper functions =====
 echo_step() {
@@ -94,7 +94,7 @@ docker ps -f name="$CONTAINER_NAME"
 
 # ===== Summary =====
 echo "\n========================="
-echo "Arcturus Docker Build Complete!"
+echo "SkyAccel Docker Build Complete!"
 echo "========================="
 echo "Container name: $CONTAINER_NAME"
 echo "Image name: $IMAGE_NAME"

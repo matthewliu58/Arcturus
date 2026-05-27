@@ -1,10 +1,10 @@
-# Arcturus
+# SkyAccel
 
-Arcturus is a high-performance network acceleration project focused on optimizing network transmission performance and stability. It adopts a layered architecture design, combining heuristic algorithms and Lyapunov optimization to implement network routing, providing users with faster and more reliable network experience.
+SkyAccel is a high-performance network acceleration project focused on optimizing network transmission performance and stability. It adopts a layered architecture design, combining heuristic algorithms and Lyapunov optimization to implement network routing, providing users with faster and more reliable network experience.
 
 ## System Architecture
 
-The Arcturus project consists of three main components:
+The SkyAccel project consists of three main components:
 
 1. **Control Plane**: Responsible for route computing, resource management, and network synchronization
 2. **Data Plane**: Responsible for local data collection, analysis, and reporting

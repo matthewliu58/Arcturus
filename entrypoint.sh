@@ -1,9 +1,9 @@
 #!/bin/sh
 set -e
 
-# Entrypoint script for Arcturus Docker container
+# Entrypoint script for SkyAccel Docker container
 
-echo "==> Starting Arcturus services"
+echo "==> Starting SkyAccel services"
 echo "=================================="
 
 # Start control-plane

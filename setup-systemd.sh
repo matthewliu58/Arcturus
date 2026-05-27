@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-# Script to set up Arcturus services as systemd services
+# Script to set up SkyAccel services as systemd services
 
-echo "==> Arcturus Systemd Service Setup"
+echo "==> SkyAccel Systemd Service Setup"
 echo "=================================="
 
 # ===== Configuration =====
@@ -24,7 +24,7 @@ create_service_file() {
     local working_dir=$3
     local exec_start=$4
     
-    local service_file="/etc/systemd/system/arcturus-$service_name.service"
+    local service_file="/etc/systemd/system/SkyAccel-$service_name.service"
     
     echo_step "Creating systemd service file for $service_name"
     
@@ -41,7 +41,7 @@ Restart=always
 RestartSec=5
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=arcturus-$service_name
+SyslogIdentifier=SkyAccel-$service_name
 
 [Install]
 WantedBy=multi-user.target
@@ -54,7 +54,7 @@ EOF
 
 # Check if we're in the correct directory
 if [ ! -d "$CONTROL_PLANE_DIR" ] || [ ! -d "$DATA_PLANE_DIR" ] || [ ! -d "$DATA_PROXY_DIR" ]; then
-    echo "Error: This script must be run from the Arcturus project root directory"
+    echo "Error: This script must be run from the SkyAccel project root directory"
     exit 1
 fi
 
@@ -86,9 +86,9 @@ fi
 cd ..
 
 # Create systemd service files
-create_service_file "control-plane" "Arcturus Control Plane" "$CONTROL_PLANE_DIR" "$CONTROL_PLANE_DIR/control-plane"
-create_service_file "data-plane" "Arcturus Data Plane" "$DATA_PLANE_DIR" "$DATA_PLANE_DIR/data-plane"
-create_service_file "data-proxy" "Arcturus Data Proxy" "$DATA_PROXY_DIR" "$DATA_PROXY_DIR/data-proxy"
+create_service_file "control-plane" "SkyAccel Control Plane" "$CONTROL_PLANE_DIR" "$CONTROL_PLANE_DIR/control-plane"
+create_service_file "data-plane" "SkyAccel Data Plane" "$DATA_PLANE_DIR" "$DATA_PLANE_DIR/data-plane"
+create_service_file "data-proxy" "SkyAccel Data Proxy" "$DATA_PROXY_DIR" "$DATA_PROXY_DIR/data-proxy"
 
 # Reload systemd configuration
 echo_step "Reloading systemd configuration"
@@ -96,31 +96,31 @@ sudo systemctl daemon-reload
 
 # Enable services
 echo_step "Enabling services"
-sudo systemctl enable arcturus-control-plane arcturus-data-plane arcturus-data-proxy
+sudo systemctl enable SkyAccel-control-plane SkyAccel-data-plane SkyAccel-data-proxy
 
 # Start services
 echo_step "Starting services"
-sudo systemctl start arcturus-control-plane arcturus-data-plane arcturus-data-proxy
+sudo systemctl start SkyAccel-control-plane SkyAccel-data-plane SkyAccel-data-proxy
 
 # Check service status
 echo_step "Checking service status"
-sudo systemctl status arcturus-control-plane arcturus-data-plane arcturus-data-proxy
+sudo systemctl status SkyAccel-control-plane SkyAccel-data-plane SkyAccel-data-proxy
 
 # ===== Summary =====
 echo "\n=================================="
-echo "Arcturus Systemd Service Setup Complete!"
+echo "SkyAccel Systemd Service Setup Complete!"
 echo "=================================="
 echo "Services have been registered as systemd services:"
-echo "1. arcturus-control-plane"
-echo "2. arcturus-data-plane"
-echo "3. arcturus-data-proxy"
+echo "1. SkyAccel-control-plane"
+echo "2. SkyAccel-data-plane"
+echo "3. SkyAccel-data-proxy"
 echo "\nKey features:"
 echo "- Auto-start on system boot"
 echo "- Auto-restart on failure"
 echo "- Centralized logging via syslog"
 echo "- Unified management via systemctl"
 echo "\nManagement commands:"
-echo "  sudo systemctl start|stop|restart arcturus-<service>"
-echo "  sudo systemctl status arcturus-<service>"
-echo "  sudo journalctl -u arcturus-<service>"  # View logs
+echo "  sudo systemctl start|stop|restart SkyAccel-<service>"
+echo "  sudo systemctl status SkyAccel-<service>"
+echo "  sudo journalctl -u SkyAccel-<service>"  # View logs
  echo "=================================="

@@ -8,7 +8,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m'
 
-echo -e "${GREEN}=== Arcturus Deployment Script ===${NC}"
+echo -e "${GREEN}=== SkyAccel Deployment Script ===${NC}"
 
 if [ ! -f "$CLUSTER_INFO_FILE" ]; then
     echo -e "${RED}Error: Cluster information file not found${NC}"
@@ -75,9 +75,9 @@ deploy_to_target() {
 
     sed -i "/^server_list:/,/^[^ ]/c\\server_list:\n$server_list" "$cfg"
 
-    tar -czf "$temp_dir/arcturus.tar.gz" -C "$temp_dir" .
-    sshpass -p "$TARGET_PASSWORD" scp "$temp_dir/arcturus.tar.gz" root@$public_ip:/root/
-    sshpass -p "$TARGET_PASSWORD" ssh root@$public_ip "mkdir -p /root/arcturus && tar -xzf /root/arcturus.tar.gz -C /root/arcturus && cd /root/arcturus && bash setup-systemd.sh"
+    tar -czf "$temp_dir/SkyAccel.tar.gz" -C "$temp_dir" .
+    sshpass -p "$TARGET_PASSWORD" scp "$temp_dir/SkyAccel.tar.gz" root@$public_ip:/root/
+    sshpass -p "$TARGET_PASSWORD" ssh root@$public_ip "mkdir -p /root/SkyAccel && tar -xzf /root/SkyAccel.tar.gz -C /root/SkyAccel && cd /root/SkyAccel && bash setup-systemd.sh"
 
     rm -rf "$temp_dir"
     echo -e "${GREEN} $node_name deployed successfully!${NC}"

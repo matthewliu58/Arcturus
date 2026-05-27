@@ -11,7 +11,7 @@ data_dir: "/root/etcd"
 node:
   provider: "Vultr"
   continent: "Asia"
-  country: "Korea"
+  country: "KR"
   city: "Seoul"
   ip:
     private: "0.0.0.0"

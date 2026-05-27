@@ -5,7 +5,7 @@ access_log: "/root/data-proxy/log/access.log"
 node:
   provider: "Vultr"
   continent: "Asia"
-  country: "Korea"
+  country: "KR"
   city: "Seoul"
   ip:
     private: "0.0.0.0"

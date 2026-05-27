@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -e
 
-# Script to build and start Arcturus services
+# Script to build and start SkyAccel services
 
-echo "==> Arcturus Service Manager"
+echo "==> SkyAccel Service Manager"
 echo "=================================="
 
 # ===== Configuration =====
@@ -91,7 +91,7 @@ check_service_status() {
 
 # Check if we're in the correct directory
 if [ ! -d "$CONTROL_PLANE_DIR" ] || [ ! -d "$DATA_PLANE_DIR" ] || [ ! -d "$DATA_PROXY_DIR" ]; then
-    echo "Error: This script must be run from the Arcturus project root directory"
+    echo "Error: This script must be run from the SkyAccel project root directory"
     exit 1
 fi
 
@@ -119,7 +119,7 @@ check_service_status "data-proxy" "$DATA_PROXY_DIR"
 
 # ===== Summary =====
 echo "\n=================================="
-echo "Arcturus Service Manager Complete!"
+echo "SkyAccel Service Manager Complete!"
 echo "=================================="
 echo "Services built and started:"
 echo "1. Control Plane"

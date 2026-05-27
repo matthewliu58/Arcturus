@@ -1,19 +1,19 @@
 #!/usr/bin/env bash
 set -e
 
-# Network and kernel optimization script for Arcturus acceleration project
+# Network and kernel optimization script for SkyAccel acceleration project
 
-echo "==> Arcturus Network Optimization Script"
+echo "==> SkyAccel Network Optimization Script"
 echo "======================================"
 
 # ===== Network performance optimization =====
 echo "\n==> Optimizing network kernel parameters"
 
-# Check if Arcturus network configuration already exists
-if ! grep -q "# Network performance optimization for Arcturus acceleration project" /etc/sysctl.conf; then
+# Check if SkyAccel network configuration already exists
+if ! grep -q "# Network performance optimization for SkyAccel acceleration project" /etc/sysctl.conf; then
     cat << EOF | sudo tee -a /etc/sysctl.conf
 
-# Network performance optimization for Arcturus acceleration project
+# Network performance optimization for SkyAccel acceleration project
 net.core.netdev_max_backlog = 65536
 net.core.somaxconn = 65536
 net.core.rmem_max = 16777216
@@ -111,7 +111,7 @@ BASHRC="$HOME/.bashrc"
 if ! grep -q "GOFLAGS" "$BASHRC"; then
 cat << EOF >> "$BASHRC"
 
-# Go compilation optimizations for Arcturus
+# Go compilation optimizations for SkyAccel
 export GOFLAGS="-ldflags=-s -ldflags=-w"
 export CGO_CFLAGS="-O3 -march=native"
 export CGO_CXXFLAGS="-O3 -march=native"
@@ -152,7 +152,7 @@ sudo rm -f /tmp/*.tmp
 
 # ===== Summary =====
 echo "\n======================================"
-echo "Arcturus Network Optimization Complete!"
+echo "SkyAccel Network Optimization Complete!"
 echo "======================================"
 echo "The following optimizations have been applied:"
 echo "1. Network kernel parameters tuned for high performance"
