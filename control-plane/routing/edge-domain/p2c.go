@@ -70,7 +70,7 @@ func (r *P2CRouter) Computing(endPoints routing.EndPoints, pre string, logger *s
 
 	var candidates []nodeLoad
 
-	// If few nodes, evaluate all
+	// If 4 or fewer nodes, evaluate all directly
 	if len(nodeIps) <= 4 {
 		for _, nodeIp := range nodeIps {
 			tel, telOk := r.nodeTel[nodeIp]

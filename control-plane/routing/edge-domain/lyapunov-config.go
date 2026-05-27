@@ -9,7 +9,25 @@ const (
 	CPUHigh = 80.0
 )
 
-// Default weight for delay penalty in Lyapunov formula
+// Default weight for delay penalty in Lyapunov formula.
+//
+// Score = 1.0 * cpuPenalty + V * delayPenalty
+//
+// With V=0.5, CPU dominates most scenarios (see table below).
+// If latency sensitivity needs to increase, raise V toward 1.0.
+//
+//	Scenario          | cpuPenalty | delayPenalty*V | Score | CPU weight
+//	------------------|------------|----------------|-------|-----------
+//	low CPU + good RT |    0.5     |      0.25      |  0.75 |   67%
+//	mid CPU + good RT |    1.0     |      0.25      |  1.25 |   80%
+//	high CPU + good RT|    2.0     |      0.25      |  2.25 |   89%
+//	low CPU + bad RT  |    0.5     |      1.00      |  1.50 |   33%
+//	mid CPU + bad RT  |    1.0     |      1.00      |  2.00 |   50%
+//	high CPU + bad RT |    2.0     |      1.00      |  3.00 |   67%
+//
+// TODO: Consider making V configurable or tuning it based on observed
+// latency sensitivity in production. Raising V to 1.0 would bring
+// the CPU-weight range down to ~50-67% across scenarios.
 const defaultV = 0.5
 
 // Temperature for softmax distribution (higher = more uniform)

@@ -46,7 +46,6 @@ type LyapunovSolver struct {
 type nodeScore struct {
 	nodeIp string
 	score  float64
-	valid  bool
 }
 
 func NewLyapunovSolver(
@@ -106,11 +105,6 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 			Qk = 0
 		}
 
-		deltaK := cpu.LoadDelta
-		if deltaK < 0 {
-			deltaK = 0
-		}
-
 		delay := stats.AvgRT
 		if delay <= 0 {
 			delay = 100
@@ -120,7 +114,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 		nodeContinent := tel.Continent
 		latencyConfig := getLatencyConfig(source.Continent, nodeContinent)
 
-		cpuPenalty := computeCPUPenalty(nodeIp, Qk+math.Abs(deltaK), cpu.LogicalCore)
+		cpuPenalty := computeCPUPenalty(nodeIp, Qk+math.Abs(cpu.LoadDelta), cpu.LogicalCore)
 		delayPenalty := computeDelayPenalty(delay, latencyConfig)
 		score := w*cpuPenalty + defaultV*delayPenalty
 
@@ -133,7 +127,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 			slog.String("nodeIp", nodeIp), slog.Float64("score", score),
 			slog.Any("w", w), slog.Any("defaultV", defaultV),
 			slog.Float64("cpuPenalty", cpuPenalty), slog.Float64("delayPenalty", delayPenalty),
-			slog.Float64("Qk", Qk), slog.Float64("deltaK", deltaK),
+			slog.Float64("Qk", Qk), slog.Float64("deltaK", cpu.LoadDelta),
 			slog.Float64("delay", delay))
 	}
 
@@ -188,11 +182,6 @@ func (l *LyapunovSolver) GetNodeRT(source routing.EndPoint, nodeIP string, pre s
 	logger.Warn("no latency data, using default 50ms", slog.String("pre", pre),
 		slog.String("userCity", userCity), slog.String("nodeIP", nodeIP))
 	return &rece.LastCongestion{Count: 1, AvgRT: 50.0}
-}
-
-func (l *LyapunovSolver) getAggFallback(cont, serverKey string) *rece.LastCongestion {
-	key := cont + "-" + serverKey
-	return l.edgeAgg[key]
 }
 
 func computeDelayPenalty(rt float64, config latencyConfig) float64 {
