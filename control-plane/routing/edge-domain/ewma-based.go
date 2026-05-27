@@ -237,33 +237,24 @@ func (r *EWMARouter) Computing(endPoints routing.EndPoints, pre string, logger *
 
 // GetNodeRT returns the latency stats for a node (same as LatencyOnlyRouter)
 func (r *EWMARouter) GetNodeRT(source routing.EndPoint, nodeIP string, pre string, logger *slog.Logger) *rece.LastCongestion {
-	userContinent := source.Continent
-	userCountry := source.Country
 	userCity := source.City
 
-	node, nodeExists := r.nodeTel[nodeIP]
+	_, nodeExists := r.nodeTel[nodeIP]
 	if !nodeExists {
 		logger.Warn("node not found in telemetry", slog.String("pre", pre), slog.String("nodeIp", nodeIP))
 		return nil
 	}
 
-	// Try different key formats
-	keys := []string{
-		userCity + "-" + nodeIP,
-		userCity + "-" + node.City,
-		userCountry + "-" + node.Country,
-		userContinent + "-" + node.Continent,
-		userContinent + "-general",
+	key := userCity + "-" + nodeIP
+	congestion, exists := r.edgeAgg[key]
+	if exists {
+		return congestion
 	}
 
-	for _, key := range keys {
-		congestion, exists := r.edgeAgg[key]
-		if exists {
-			return congestion
-		}
-	}
-
-	return &rece.LastCongestion{}
+	// Default 50ms if no data
+	logger.Warn("no latency data, using default 50ms", slog.String("pre", pre),
+		slog.String("userCity", userCity), slog.String("nodeIP", nodeIP))
+	return &rece.LastCongestion{Count: 1, AvgRT: 50.0}
 }
 
 // GetEWMASummary returns the current EWMA state for debugging

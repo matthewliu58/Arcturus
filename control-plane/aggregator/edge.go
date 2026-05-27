@@ -62,7 +62,6 @@ func (g *GlobalStats) GetAggValue(key string) *rece.LastCongestion {
 }
 
 // RebuildAggregate triggers a single-pass rebuild of edge aggregate stats.
-// Call this on every last-mile report instead of using the timer-based worker.
 func (g *GlobalStats) RebuildAggregate(logger *slog.Logger) {
 	pre := util.GenerateRandomLetters(5)
 	g.rebuildAggregate(pre, logger)
@@ -80,37 +79,27 @@ func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 
 	for _, node := range nodeList {
 		for userKey, val := range node.LastsCongestion {
-
-			if userKey.Continent == node.Continent {
-				g.merge(newAgg, userKey.City, node.IP, val)
-				g.merge(newAgg, userKey.City, node.City, val)
-				g.merge(newAgg, userKey.Country, node.Country, val)
-				g.merge(newAgg, userKey.Continent, node.Continent, val)
-			} else {
-				g.merge(newAgg, userKey.Continent, "general", val)
+			// key = userCity -> nodeIP
+			key := userKey.City + "-" + node.IP
+			if newAgg[key] == nil {
+				newAgg[key] = &rece.LastCongestion{}
 			}
-
+			s := newAgg[key]
+			s.Count += val.Count
+			s.SumRT += val.AvgRT * float64(val.Count)
 		}
 	}
+
+	// Calculate average
+	for _, s := range newAgg {
+		if s.Count > 0 {
+			s.AvgRT = s.SumRT / float64(s.Count)
+		}
+	}
+
 	logger.Info("rebuildAggregate", slog.String("pre", pre), slog.Any("newAgg", newAgg))
 
 	g.mu.Lock()
 	g.edgeAgg = newAgg
 	g.mu.Unlock()
-}
-
-func (g *GlobalStats) merge(newAgg map[string]*rece.LastCongestion, userKey, serverKey string, val *rece.LastCongestion) {
-
-	key := userKey + "-" + serverKey
-
-	if newAgg[key] == nil {
-		newAgg[key] = &rece.LastCongestion{}
-	}
-	t := newAgg[key]
-
-	t.Count += val.Count
-	t.AvgRT += val.AvgRT
-	if t.Count > 0 {
-		t.SumRT = t.AvgRT / float64(t.Count)
-	}
 }

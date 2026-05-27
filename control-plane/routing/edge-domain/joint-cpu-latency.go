@@ -120,30 +120,22 @@ func (r *JointRouter) Computing(endPoints routing.EndPoints, pre string, logger 
 }
 
 func (r *JointRouter) GetNodeRT(source routing.EndPoint, nodeIP string, pre string, logger *slog.Logger) *rece.LastCongestion {
-	userContinent := source.Continent
-	userCountry := source.Country
 	userCity := source.City
 
-	node, nodeExists := r.nodeTel[nodeIP]
+	_, nodeExists := r.nodeTel[nodeIP]
 	if !nodeExists {
 		logger.Warn("node not exists", slog.String("pre", pre), slog.String("nodeIp", nodeIP))
 		return nil
 	}
 
-	keys := []string{
-		userCity + "-" + nodeIP,
-		userCity + "-" + node.City,
-		userCountry + "-" + node.Country,
-		userContinent + "-" + node.Continent,
-		userContinent + "-general",
+	key := userCity + "-" + nodeIP
+	val, ok := r.edgeAgg[key]
+	if ok {
+		return val
 	}
 
-	for _, key := range keys {
-		val, ok := r.edgeAgg[key]
-		if ok {
-			return val
-		}
-	}
-
-	return &rece.LastCongestion{}
+	// Default 50ms if no data
+	logger.Warn("no latency data, using default 50ms", slog.String("pre", pre),
+		slog.String("userCity", userCity), slog.String("nodeIP", nodeIP))
+	return &rece.LastCongestion{Count: 1, AvgRT: 50.0}
 }
