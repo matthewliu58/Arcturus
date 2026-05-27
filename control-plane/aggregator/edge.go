@@ -80,7 +80,7 @@ func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	for _, node := range nodeList {
 		for userKey, val := range node.LastsCongestion {
 			// key = userCity -> nodeIP
-			key := userKey.City + "-" + node.IP
+			key := userKey + "-" + node.IP
 			if newAgg[key] == nil {
 				newAgg[key] = &rece.LastCongestion{}
 			}

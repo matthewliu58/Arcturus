@@ -110,9 +110,9 @@ type LastCongestion struct {
 }
 
 type LastTelemetry struct {
-	LastsCongestion map[LastKey]*LastCongestion `json:"lasts_congestion"`
-	IP              string                      `json:"ip"`
-	Continent       string                      `json:"continent"`
-	Country         string                      `json:"country"`
-	City            string                      `json:"city"`
+	LastsCongestion map[string]*LastCongestion `json:"lasts_congestion"`
+	IP              string                     `json:"ip"`
+	Continent       string                     `json:"continent"`
+	Country         string                     `json:"country"`
+	City            string                     `json:"city"`
 }

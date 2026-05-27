@@ -150,7 +150,7 @@ func readLatestLogs(path string, pre string, logger *slog.Logger) {
 	}
 }
 
-func calculateLastCongestion(pre string, logger *slog.Logger) map[LastKey]*LastCongestion {
+func calculateLastCongestion(pre string, logger *slog.Logger) map[string]*LastCongestion {
 	now := time.Now()
 
 	mu.Lock()
@@ -171,15 +171,11 @@ func calculateLastCongestion(pre string, logger *slog.Logger) map[LastKey]*LastC
 
 	mu.Unlock()
 
-	agg := make(map[LastKey]*LastCongestion)
-	rts := make(map[LastKey][]int)
+	agg := make(map[string]*LastCongestion)
+	rts := make(map[string][]int)
 
 	for _, r := range valid {
-		key := LastKey{
-			Continent: util.GetContinentByCountry(r.Country),
-			Country:   r.Country,
-			City:      r.City,
-		}
+		key := r.City
 
 		if agg[key] == nil {
 			agg[key] = &LastCongestion{}
@@ -211,9 +207,7 @@ func calculateLastCongestion(pre string, logger *slog.Logger) map[LastKey]*LastC
 	for key, s := range agg {
 		logger.Info("User latency statistics",
 			slog.String("pre", pre),
-			slog.String("continent", key.Continent),
-			slog.String("country", key.Country),
-			slog.String("city", key.City),
+			slog.String("city", key),
 			slog.Float64("avg_rt_ms", s.AvgRT),
 			slog.Any("p95_rt_ms", s.P95RT),
 			slog.Any("count", s.Count),

@@ -17,14 +17,14 @@ const (
 )
 
 type LastTelemetry struct {
-	LastsCongestion map[LastKey]*LastCongestion `json:"lasts_congestion"`
-	IP              string                      `json:"ip"`
-	Continent       string                      `json:"continent"`
-	Country         string                      `json:"country"`
-	City            string                      `json:"city"`
+	LastsCongestion map[string]*LastCongestion `json:"lasts_congestion"`
+	IP              string                     `json:"ip"`
+	Continent       string                     `json:"continent"`
+	Country         string                     `json:"country"`
+	City            string                     `json:"city"`
 }
 
-func SendLastTelemetry(delayStats map[LastKey]*LastCongestion, pre string, logger *slog.Logger) error {
+func SendLastTelemetry(delayStats map[string]*LastCongestion, pre string, logger *slog.Logger) error {
 
 	c := util.Config_.Node
 
