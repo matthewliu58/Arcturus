@@ -97,9 +97,9 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 
 		cpu := tel.Cpu
 		w := 1.0
-		if cpu.LogicalCore > 0 {
-			w = 1.0 / float64(cpu.LogicalCore)
-		}
+		//if cpu.LogicalCore > 0 {
+		//	w = 1.0 / float64(cpu.LogicalCore)
+		//}
 
 		Qk := cpu.Usage
 		if Qk < 0 {
@@ -131,9 +131,10 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 
 		logger.Info("Lyapunov last-mile routing score", slog.String("pre", pre),
 			slog.String("nodeIp", nodeIp), slog.Float64("score", score),
+			slog.Any("w", w), slog.Any("defaultV", defaultV),
 			slog.Float64("cpuPenalty", cpuPenalty), slog.Float64("delayPenalty", delayPenalty),
 			slog.Float64("Qk", Qk), slog.Float64("deltaK", deltaK),
-			slog.Float64("delay", delay), slog.Float64("w", w))
+			slog.Float64("delay", delay))
 	}
 
 	if len(candidates) == 0 {
@@ -162,7 +163,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 	}
 
 	logger.Info("Lyapunov routing completed", slog.String("pre", pre),
-		slog.Int("candidateCount", len(candidates)),
+		slog.Any("candidate", candidates),
 		slog.Any("probabilities", probabilities))
 
 	return paths, nil
