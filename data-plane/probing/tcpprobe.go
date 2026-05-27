@@ -59,7 +59,7 @@ func StartProbePeriodically(ctx context.Context, controlHost string, cfg Config,
 		cfg.Timeout = 2 * time.Second
 	}
 	if cfg.Interval <= 0 {
-		cfg.Interval = 10 * time.Second
+		cfg.Interval = 5 * time.Second
 	}
 	if cfg.Attempts <= 0 {
 		cfg.Attempts = 5
@@ -76,26 +76,18 @@ func StartProbePeriodically(ctx context.Context, controlHost string, cfg Config,
 			case <-ctx.Done():
 				logger.Info("periodic probe stopped", slog.String("pre", pre))
 				return
-			default:
+			case <-ticker.C:
 			}
 
 			pre_ := util.GenerateRandomLetters(5)
-
 			targets, err := GetProbeTasks(controlHost, pre_)
 			if err != nil {
 				logger.Error("get probe task failed", slog.Any("err", err))
-				time.Sleep(time.Second)
 				continue
 			}
 			logger.Info("get probing tasks", slog.String("pre", pre_), slog.Any("targets", targets))
 
 			doProbeLossRTT(targets, cfg, pre_, logger)
-
-			select {
-			case <-ctx.Done():
-				return
-			case <-ticker.C:
-			}
 		}
 	}()
 }
