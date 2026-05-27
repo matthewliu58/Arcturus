@@ -197,7 +197,7 @@ func (w *worker) handleMsg(msg *aggregatorMsg, logger *slog.Logger) {
 	buffSize := config.Config_.Aggregator.BufferSize
 	batchTimeout := time.Duration(config.Config_.Aggregator.BatchTimeoutMs) * time.Millisecond
 
-	if len(msg.data) >= 512 {
+	if len(msg.data) >= 1024 {
 		msg.emerge = true
 		buffSize = packet.HeaderSize + 4 + 2 + len(msg.data) // +userID(4) + dataLen(2)
 	}

@@ -4,14 +4,14 @@ import threading
 import random
 from datetime import datetime
 
-SERVER_IP = "47.83.232.28"
+SERVER_IP = "47.86.209.23"
 SERVER_PORT = 8081
-CONCURRENCY = 600
+CONCURRENCY = 400
 TOTAL_RUN_SECONDS = 120
-# Random sleep between connections to avoid connection spikes
+# Random sleep interval between two connections to avoid reconnection peaks
 MIN_SLEEP = 0.2
 MAX_SLEEP = 0.5
-# Socket timeout in seconds
+# Socket timeout
 SOCK_TIMEOUT = 10
 
 LOSS_LOG = "packet_loss.log"
@@ -25,7 +25,7 @@ def write_loss_log(content):
     except Exception:
         pass
 
-# Read server response line by newline
+# Read a single line response from server by newline delimiter
 def read_server_response(sock):
     buf = b""
     while True:
@@ -39,7 +39,7 @@ def read_server_response(sock):
     return buf.decode().strip()
 
 def client_worker():
-    # Random delay at startup to spread initial connections
+    # Random delay at startup to disperse initial connections
     init_delay = random.uniform(0, 3)
     time.sleep(init_delay)
     req_count = 0
@@ -52,53 +52,47 @@ def client_worker():
             sock.connect((SERVER_IP, SERVER_PORT))
             req_count += 1
 
-            # Assemble message with thread name
-            #send_dt = datetime.now()
-            #time_fmt = send_dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+08:00"
-            #send_msg = f"[{req_count:06d}] {time_fmt}\n"
-            #sock.sendall(send_msg.encode())
-
-            # Assemble message with thread name
+            # Build and send message
             send_dt = datetime.now()
             time_fmt = send_dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+08:00"
             thread_name = threading.current_thread().name  # Get thread name
-            send_msg = f"[{thread_name}][{req_count:06d}] {time_fmt}\n"  # Include in message
+            send_msg = f"[{thread_name}][{req_count:06d}] {time_fmt}\n"  # Add thread name to message
             sock.sendall(send_msg.encode())
 
-            # Blocking wait for server response
+            # Block and wait for server response
             resp = read_server_response(sock)
             recv_dt = datetime.now()
             cost_ms = (recv_dt - send_dt).total_seconds() * 1000
 
             if resp is None:
-                err_info = f"{threading.current_thread().name} timeout, no response {send_msg.strip()}"
+                err_info = f"{threading.current_thread().name} timeout, no response received {send_msg.strip()}"
                 write_loss_log(err_info)
-                print(f"[WARN] {err_info}")
+                print(f"{err_info}")
             else:
                 if random.random() < 0.02:
-                    print(f"[{threading.current_thread().name}] send:{send_msg.strip()} recv:{resp} latency:{cost_ms:.2f}ms")
+                    print(f"[{threading.current_thread().name}] Send:{send_msg.strip()} Recv:{resp} Latency:{cost_ms:.2f}ms")
 
         except Exception as e:
-            err_info = f"{threading.current_thread().name} error:{str(e)}"
+            err_info = f"{threading.current_thread().name} exception:{str(e)}"
             write_loss_log(err_info)
         finally:
-            # Close connection after response/error
+            # Close connection immediately after response/exception
             if sock:
                 try:
                     sock.close()
                 except Exception:
                     pass
 
-        # Random sleep to avoid synchronized reconnects
+        # Random sleep to make each thread run at different pace
         sleep_sec = random.uniform(MIN_SLEEP, MAX_SLEEP)
         time.sleep(sleep_sec)
 
 if __name__ == "__main__":
-    print(f"Starting {CONCURRENCY} concurrent clients, send-receive-close pattern, steady benchmark")
+    print(f"Starting concurrency:{CONCURRENCY}, single send & single receive, disconnect after response, stable pressure test")
     for idx in range(CONCURRENCY):
         t = threading.Thread(target=client_worker, name=f"CLIENT-{idx+1}", daemon=True)
         t.start()
 
     time.sleep(TOTAL_RUN_SECONDS)
     stop_event.set()
-    print("\nBenchmark completed, check log: cat packet_loss.log")
+    print("\nPressure test finished, check log: cat packet_loss.log")
