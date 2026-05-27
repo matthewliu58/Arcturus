@@ -16,9 +16,11 @@ func StartEmbeddedEtcd(serverList []string, serverIP, dataDir, name, pre string,
 	clientAddr, _ := url.Parse("http://" + serverIP + ":2379")
 	peerAddr, _ := url.Parse("http://" + serverIP + ":2380")
 
-	cfg.ListenClientUrls = []url.URL{*clientAddr}
+	cfg.ListenClientUrls = []url.URL{{Scheme: "http", Host: "0.0.0.0:2379"}}
+	cfg.ListenPeerUrls = []url.URL{{Scheme: "http", Host: "0.0.0.0:2380"}}
+
+	// 对外通告地址保持不变（必须用真实IP）
 	cfg.AdvertiseClientUrls = []url.URL{*clientAddr}
-	cfg.ListenPeerUrls = []url.URL{*peerAddr}
 	cfg.AdvertisePeerUrls = []url.URL{*peerAddr}
 
 	var clusterEntries []string
