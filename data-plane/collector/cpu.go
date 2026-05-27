@@ -18,7 +18,7 @@ const (
 )
 
 var (
-	processName = "" // target process name, empty = system-wide
+	processName = "data-proxy" // target process name, empty = system-wide
 
 	physicalCores int
 	logicalCores  int
