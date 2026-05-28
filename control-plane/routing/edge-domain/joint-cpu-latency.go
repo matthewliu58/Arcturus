@@ -52,9 +52,9 @@ func (r *JointRouter) Computing(endPoints routing.EndPoints, pre string, logger 
 	var nodeIps []string
 
 	for _, node := range r.nodeTel {
-		if node.Continent == continent {
-			nodeIps = append(nodeIps, node.PublicIP)
-		}
+		//if node.Continent == continent {
+		nodeIps = append(nodeIps, node.PublicIP)
+		//}
 	}
 
 	if len(nodeIps) <= 0 {

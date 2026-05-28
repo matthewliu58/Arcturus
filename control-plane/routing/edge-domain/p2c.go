@@ -34,9 +34,9 @@ func (r *P2CRouter) Computing(endPoints routing.EndPoints, pre string, logger *s
 	// Collect all nodes in the same continent
 	var nodeIps []string
 	for _, node := range r.nodeTel {
-		if node.Continent == continent {
-			nodeIps = append(nodeIps, node.PublicIP)
-		}
+		//if node.Continent == continent {
+		nodeIps = append(nodeIps, node.PublicIP)
+		//}
 	}
 
 	// Fallback to local node if no continent match

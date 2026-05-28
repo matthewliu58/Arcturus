@@ -126,9 +126,9 @@ func (r *EWMARouter) Computing(endPoints routing.EndPoints, pre string, logger *
 	// Collect all nodes in the same continent
 	var nodeIps []string
 	for _, node := range r.nodeTel {
-		if node.Continent == continent {
-			nodeIps = append(nodeIps, node.PublicIP)
-		}
+		//if node.Continent == continent {
+		nodeIps = append(nodeIps, node.PublicIP)
+		//}
 	}
 
 	// Fallback to local node if no continent match

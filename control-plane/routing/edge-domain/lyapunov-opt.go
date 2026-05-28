@@ -67,9 +67,9 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 	var nodeIps []string
 
 	for _, node := range l.nodeTel {
-		if node.Continent == continent {
-			nodeIps = append(nodeIps, node.PublicIP)
-		}
+		//if node.Continent == continent {// TODO: temporary for testing, return all nodes without continent filter
+		nodeIps = append(nodeIps, node.PublicIP)
+		//}
 	}
 	if len(nodeIps) <= 0 {
 		logger.Warn("no available nodes in continent", slog.String("pre", pre), slog.String("continent", continent))
