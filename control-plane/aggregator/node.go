@@ -63,7 +63,7 @@ func DoClusterWeightedAvg(report *rece.VMReport, etcdClient *clientv3.Client, lo
 
 		totalLinksCong[v.TargetIP] = t
 	}
-	logger.Info("totalLinksCong info", slog.String("pre", pre), slog.Any("totalLinksCong", totalLinksCong))
+	logger.Debug("totalLinksCong info", slog.String("pre", pre), slog.Any("totalLinksCong", totalLinksCong))
 
 	linkMap := make(map[string]LinkCongestion)
 	for k, vs := range totalLinksCong {
@@ -104,12 +104,12 @@ func DoClusterWeightedAvg(report *rece.VMReport, etcdClient *clientv3.Client, lo
 			slog.String("pre", pre), slog.Any("err", err))
 		return
 	}
-	logger.Info("Struct JSON serialization successful", slog.String("pre", pre),
+	logger.Debug("Struct JSON serialization successful", slog.String("pre", pre),
 		slog.Any("data", string(jsonData)))
 
 	ip := util.Config_.Node.IP.Public
 	key := fmt.Sprintf("/routing-middle/%s", ip)
 	_ = etcd_client.PutKeyWithLease(etcdClient, key, string(jsonData), int64(60*expireTime), pre, logger)
 
-	logger.Info("DoClusterWeightedAvg completed", slog.String("pre", pre), slog.String("data", string(jsonData)))
+	logger.Info("DoClusterWeightedAvg completed", slog.String("pre", pre))
 }

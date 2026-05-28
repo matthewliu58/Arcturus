@@ -75,7 +75,7 @@ func SendLastTelemetry(delayStats map[string]*LastCongestion, pre string, logger
 	if respBody.Code != 200 {
 		logger.Error("control-plane processing failed", slog.String("pre", pre),
 			slog.Int("code", respBody.Code), slog.String("msg", respBody.Msg))
-		return err
+		return fmt.Errorf("control-plane processing failed: code=%d, msg=%s", respBody.Code, respBody.Msg)
 	}
 
 	logger.Info("node statistics reported successfully", slog.String("pre", pre),

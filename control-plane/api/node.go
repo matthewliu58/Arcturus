@@ -102,10 +102,7 @@ func (h *VmReceiveAPIHandler) PostVMReceive(c *gin.Context) {
 
 	resp.Code = 200
 	resp.Msg = "VM information reported successfully"
-	resp.Data = reportData
-
-	b, _ := json.Marshal(reportData)
-	h.logger.Info(string(b))
+	resp.Data = gin.H{"report_id": reportData.ReportID, "collect_time": reportData.CollectTime}
 
 	c.JSON(http.StatusOK, resp)
 }

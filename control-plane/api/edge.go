@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"control-plane/receive-info"
+	receive_info "control-plane/receive-info"
 	"control-plane/sync/etcd_client"
 	"control-plane/util"
 
@@ -75,7 +75,7 @@ func (h *LastReceiveAPIHandler) PostLastReceive(c *gin.Context) {
 
 	resp.Code = 200
 	resp.Msg = "LastStats reported successfully"
-	resp.Data = lastStats
+	resp.Data = gin.H{"received_count": len(lastStats.LastsCongestion)}
 
 	c.JSON(http.StatusOK, resp)
 }

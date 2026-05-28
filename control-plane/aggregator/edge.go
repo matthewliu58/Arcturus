@@ -91,13 +91,14 @@ func (g *GlobalStats) rebuildAggregate(pre string, logger *slog.Logger) {
 	}
 
 	// Calculate average
-	for _, s := range newAgg {
+	for key, s := range newAgg {
 		if s.Count > 0 {
 			s.AvgRT = s.SumRT / float64(s.Count)
 		}
+		logger.Debug("rebuildAggregate final", slog.String("pre", pre), slog.String("key", key), slog.Int("count", s.Count), slog.Float64("avgRT", s.AvgRT))
 	}
 
-	logger.Info("rebuildAggregate", slog.String("pre", pre), slog.Any("newAgg", newAgg))
+	logger.Info("edge aggregate", slog.String("pre", pre), slog.Int("newAgg", len(newAgg)))
 
 	g.mu.Lock()
 	g.edgeAgg = newAgg

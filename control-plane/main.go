@@ -124,6 +124,7 @@ func HandleLastWatchEvent(
 		slog.String("pre", pre),
 		slog.String("eventType", eventType),
 		slog.String("key", key),
+		slog.String("value", val),
 	)
 
 	var lastStats rece.LastTelemetry
