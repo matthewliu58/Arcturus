@@ -148,16 +148,16 @@ func (g *GraphManager) AddNode(node *agg.NodeTelemetry, logPre string) {
 
 func (g *GraphManager) DumpGraph(logPre string) {
 
-	g.logger.Info("DumpGraph", slog.String("pre", logPre))
+	g.logger.Debug("DumpGraph", slog.String("pre", logPre))
 	for _, node := range g.nodes {
-		g.logger.Info("Graph Node",
+		g.logger.Debug("Graph Node",
 			slog.String("pre", logPre),
 			slog.String("public_ip", node.PublicIP),
 			slog.Float64("cpu_pressure", node.CpuPressure),
 		)
 	}
 	for key, edge := range g.edges {
-		g.logger.Info("Graph Edge",
+		g.logger.Debug("Graph Edge",
 			slog.String("pre", logPre),
 			slog.String("edge_id", key),
 			slog.String("source_ip", edge.SourceIp),
@@ -169,15 +169,15 @@ func (g *GraphManager) DumpGraph(logPre string) {
 
 func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) float64 {
 
-	l.Info("EdgeRisk", slog.String("pre", pre),
+	l.Debug("EdgeRisk", slog.String("pre", pre),
 		slog.Float64("cpuPressure", cpuPressure),
 		slog.Float64("loss", loss),
 		slog.Float64("latency", latency))
 
 	const (
 		cpuNormalLine = 40.0
-		cpuWarnLine   = 70.0
-		cpuMaxLine    = 100.0
+		cpuWarnLine   = 60.0
+		cpuMaxLine    = 80.0
 
 		lossInflection = 0.03
 		lossSharpness  = 50.0
@@ -239,7 +239,7 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 		totalRisk = 1.0
 	}
 
-	l.Info("EdgeRisk result", slog.String("pre", pre),
+	l.Debug("EdgeRisk result", slog.String("pre", pre),
 		slog.Float64("cpuRisk", cpuRisk),
 		slog.Float64("lossRisk", lossRisk),
 		slog.Float64("latRisk", latRisk),
