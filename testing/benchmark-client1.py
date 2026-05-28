@@ -28,14 +28,17 @@ def write_loss_log(content):
 # Read a single line response from server by newline delimiter
 def read_server_response(sock):
     buf = b""
-    while True:
-        try:
-            chunk = sock.recv(1)
-        except socket.timeout:
-            return None
-        if not chunk or chunk == b"\n":
-            break
-        buf += chunk
+    try:
+        while True:
+            chunk = sock.recv(1024)  # Optimized: read 1024 bytes at a time instead of 1
+            if not chunk:
+                break
+            if b"\n" in chunk:
+                buf += chunk.split(b"\n")[0]
+                break
+            buf += chunk
+    except socket.timeout:
+        return None
     return buf.decode().strip()
 
 def client_worker():
