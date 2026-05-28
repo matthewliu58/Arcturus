@@ -175,64 +175,57 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 		slog.Float64("latency", latency))
 
 	const (
-		cpuNormalLine = 40.0
-		cpuWarnLine   = 60.0
-		cpuMaxLine    = 80.0
+		// CPU risk: single continuous curve via power function.
+		// cpuPressure / cpuMaxLine clamped to [0,1], then raised to power.
+		// cpuRisk(0)=0, cpuRisk(cpuMaxLine)=1.0, smooth throughout.
+		cpuMaxLine = 80.0
+		cpuPower   = 2.0
 
-		lossInflection = 0.03
-		lossSharpness  = 50.0
+		// Loss risk: sigmoid with inflection at 5% loss, risk~0 at 0%.
+		// At 0% loss risk ≈ 0.006; at 5% risk = 0.5; at 10%+ risk → 1.0.
+		lossInflection = 0.05
+		lossSharpness  = 40.0
 
-		latencyWarn     = 80.0
-		latencyCritical = 200.0
-		latencyMax      = 500.0
+		// Latency risk: single continuous power curve.
+		// 0ms → risk 0, latencyMax → risk 1.0.
+		latencyMax = 200.0
+		latPower   = 1.5
 
 		wCPU  = 0.4
 		wLoss = 0.3
 		wLat  = 0.3
 	)
 
-	var cpuRisk float64
-	if cpuPressure <= cpuNormalLine {
-		cpuRisk = 0
-	} else if cpuPressure <= cpuWarnLine {
-		normal := cpuWarnLine - cpuNormalLine
-		over := cpuPressure - cpuNormalLine
-		cpuRisk = math.Pow(over/normal, 1.3)
-	} else {
-		range_ := cpuMaxLine - cpuWarnLine
-		over := cpuPressure - cpuWarnLine
-		cpuRisk = 0.4 + 0.6*math.Pow(over/range_, 1.8)
+	// CPU risk: continuous power curve, no jump.
+	cpuRatio := cpuPressure / cpuMaxLine
+	if cpuRatio > 1.0 {
+		cpuRatio = 1.0
 	}
-	if cpuRisk > 1.0 {
-		cpuRisk = 1.0
+	if cpuRatio < 0 {
+		cpuRatio = 0
 	}
+	cpuRisk := math.Pow(cpuRatio, cpuPower)
 
+	// Loss risk: sigmoid, near-zero at 0% loss.
 	var lossRisk float64
 	if loss >= 1.0 {
 		lossRisk = 1.0
+	} else if loss <= 0 {
+		lossRisk = 0
 	} else {
 		x := lossSharpness * (loss - lossInflection)
 		lossRisk = 1.0 / (1.0 + math.Exp(-x))
 	}
 
-	var latRisk float64
-	switch {
-	case latency <= latencyWarn:
-		latRisk = 0
-	case latency <= latencyCritical:
-		norm := latencyCritical - latencyWarn
-		over := latency - latencyWarn
-		latRisk = math.Pow(over/norm, 1.5)
-	case latency <= latencyMax:
-		norm := latencyMax - latencyCritical
-		over := latency - latencyCritical
-		latRisk = 0.5 + 0.5*math.Pow(over/norm, 2.0)
-	default:
-		latRisk = 1.0
+	// Latency risk: continuous power curve.
+	latRatio := latency / latencyMax
+	if latRatio > 1.0 {
+		latRatio = 1.0
 	}
-	if latRisk > 1.0 {
-		latRisk = 1.0
+	if latRatio < 0 {
+		latRatio = 0
 	}
+	latRisk := math.Pow(latRatio, latPower)
 
 	totalRisk := wCPU*cpuRisk + wLoss*lossRisk + wLat*latRisk
 	if totalRisk > 1.0 {
