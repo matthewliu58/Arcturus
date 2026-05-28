@@ -239,12 +239,10 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 		l.Debug("client sent request", slog.Any("reqId", reqID), slog.String("data", string(data)))
 	}
 
-	go func() {
-		if shouldLogAccess(clientIP) {
-			a.Info("access", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
-				slog.Float64("conn_rt_ms", rtMs), slog.Int("data_len", len(data)))
-		}
-	}()
+	if len(data) <= 1024 && shouldLogAccess(clientIP) {
+		a.Info("access", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
+			slog.Float64("conn_rt_ms", rtMs), slog.Int("data_len", len(data)))
+	}
 
 	routingMutex.RLock()
 	ri, hasRoute := routingMap[port]

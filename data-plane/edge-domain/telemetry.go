@@ -209,9 +209,9 @@ func calculateLastCongestion(pre string, logger *slog.Logger) map[string]*LastCo
 		}
 	}
 
-	logger.Info("calculateLastCongestion completed", slog.String("pre", pre), slog.Int("valid_records", len(valid)))
+	logger.Info("calculateLastCongestion completed", slog.String("pre", pre), slog.Int("valid records", len(valid)))
 	for key, s := range agg {
-		logger.Info("User latency statistics",
+		logger.Debug("User latency statistics",
 			slog.String("pre", pre),
 			slog.String("city", key),
 			slog.Float64("avg_rt_ms", s.AvgRT),
