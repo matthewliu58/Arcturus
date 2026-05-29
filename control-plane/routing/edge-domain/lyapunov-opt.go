@@ -114,7 +114,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 		nodeContinent := tel.Continent
 		latencyConfig := getLatencyConfig(source.Continent, nodeContinent)
 
-		cpuPenalty := computeCPUPenalty(nodeIp, Qk+math.Abs(cpu.LoadDelta), cpu.LogicalCore)
+		cpuPenalty := computeCPUPenalty(Qk+math.Abs(cpu.LoadDelta), cpu.LogicalCore)
 		delayPenalty := computeDelayPenalty(delay, latencyConfig)
 		score := w*cpuPenalty + defaultV*delayPenalty
 
@@ -127,7 +127,7 @@ func (l *LyapunovSolver) Computing(endPoints routing.EndPoints, pre string, logg
 			slog.String("nodeIp", nodeIp), slog.Float64("score", score),
 			slog.Any("w", w), slog.Any("defaultV", defaultV),
 			slog.Float64("cpuPenalty", cpuPenalty), slog.Float64("delayPenalty", delayPenalty),
-			slog.Float64("Qk", Qk), slog.Float64("deltaK", cpu.LoadDelta),
+			slog.Float64("queue_backlog", Qk), slog.Float64("queue_delta", math.Abs(cpu.LoadDelta)),
 			slog.Float64("delay", delay))
 	}
 
@@ -184,17 +184,17 @@ func (l *LyapunovSolver) GetNodeRT(source routing.EndPoint, nodeIP string, pre s
 	return &rece.LastCongestion{Count: 1, AvgRT: 50.0}
 }
 
+// computeDelayPenalty returns an exponential delay penalty:
+//
+//	delayPenalty = exp(sensitivityDelay * (rt / config.good - 1))
+//
+// At rt=good, penalty=1.0. Below: sub-linear decay. Above: exponential growth.
+// Example with good=20ms, β=0.55: 10ms→0.76, 20ms→1.0, 35ms→1.51, 60ms→3.00, 80ms→5.21
 func computeDelayPenalty(rt float64, config latencyConfig) float64 {
-	if rt <= config.good {
-		return 0.5
+	if config.good <= 0 {
+		return math.Exp(sensitivityDelay * (rt/50.0 - 1)) // fallback
 	}
-	if rt <= config.normal {
-		return 1.0
-	}
-	if rt <= config.warning {
-		return 1.5
-	}
-	return 2.0 + (rt-config.warning)/50.0
+	return math.Exp(sensitivityDelay * (rt/config.good - 1))
 }
 
 var (
@@ -202,40 +202,19 @@ var (
 	penaltyMu  sync.RWMutex
 )
 
-func computeCPUPenalty(nodeIP string, Qk float64, logicalCores int) float64 {
-	// Get dynamic CPU thresholds based on core count
+// computeCPUPenalty returns an exponential CPU penalty:
+//
+//	cpuPenalty = exp(sensitivityCPU * (Qk / config.Mid - 1))
+//
+// At Qk=Mid, penalty=1.0. Below: sub-linear decay. Above: exponential growth.
+// Example with Mid=60%, α=1.7: 20%→0.32, 40%→0.57, 60%→1.0, 80%→1.76, 100%→3.11
+func computeCPUPenalty(Qk float64, logicalCores int) float64 {
 	config := GetCPUThresholds(logicalCores)
 
-	// TODO: Temporarily disable hysteresis penalty for observation
-	// penaltyMu.RLock()
-	// inPenalty := penaltyMap[nodeIP]
-	// penaltyMu.RUnlock()
-
-	// if Qk >= config.HysteresisUp {
-	// 	penaltyMu.Lock()
-	// 	penaltyMap[nodeIP] = true
-	// 	penaltyMu.Unlock()
-	// } else if inPenalty && Qk > config.HysteresisDn {
-	// } else if inPenalty && Qk <= config.HysteresisDn {
-	// 	penaltyMu.Lock()
-	// 	penaltyMap[nodeIP] = false
-	// 	penaltyMu.Unlock()
-	// }
-
-	// if inPenalty && Qk < config.HysteresisUp {
-	// 	Qk = config.HysteresisUp
-	// }
-
-	if Qk <= config.Low {
-		return 0.5
+	if config.Mid <= 0 {
+		return math.Exp(sensitivityCPU * (Qk/60.0 - 1)) // fallback
 	}
-	if Qk <= config.Mid {
-		return 1.0
-	}
-	if Qk <= config.High {
-		return 2.0
-	}
-	return 4.0 + (Qk-config.High)/10.0
+	return math.Exp(sensitivityCPU * (Qk/config.Mid - 1))
 }
 
 // softmaxProbabilities computes softmax probabilities from scores

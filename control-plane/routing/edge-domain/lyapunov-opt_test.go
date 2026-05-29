@@ -6,6 +6,7 @@ import (
 	"control-plane/util"
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"testing"
 
@@ -83,10 +84,10 @@ func TestLyapunovSolver_Computing(t *testing.T) {
 		t.Error("No paths returned")
 	}
 
-	// Verify paths are sorted by score (lower is better)
+	// Verify paths are sorted by score (lower score = better, so RawRTT ascending)
 	for i := 0; i < len(paths)-1; i++ {
-		if paths[i].Rtt > paths[i+1].Rtt {
-			t.Errorf("Paths not sorted by score: path[%d].Rtt=%f > path[%d].Rtt=%f", i, paths[i].Rtt, i+1, paths[i+1].Rtt)
+		if paths[i].RawRTT > paths[i+1].RawRTT {
+			t.Errorf("Paths not sorted by score: path[%d].RawRTT=%f > path[%d].RawRTT=%f", i, paths[i].RawRTT, i+1, paths[i+1].RawRTT)
 		}
 	}
 
@@ -98,87 +99,74 @@ func TestLyapunovSolver_Computing(t *testing.T) {
 	}
 }
 
+const epsilon = 1e-4
+
 func TestCPUPenalty(t *testing.T) {
-	// Test 2-core thresholds: CPULow=40, CPUMid=60, CPUHigh=80
+	// Test 2-core thresholds: Mid=60
+	// cpuPenalty = exp(1.7 * (Qk/60 - 1))
 	testCases2Core := []struct {
-		nodeIP       string
 		Qk           float64
 		logicalCores int
 		expected     float64
 	}{
-		{"test-node-1", 30.0, 2, 0.5}, // Low CPU (<40)
-		{"test-node-2", 50.0, 2, 1.0}, // Medium CPU (40-60)
-		{"test-node-3", 70.0, 2, 2.0}, // High CPU (60-80)
-		{"test-node-4", 90.0, 2, 5.0}, // Very high CPU (>80)
+		{30.0, 2, 0.427415},  // exp(1.7*(30/60-1)) = exp(-0.85)
+		{50.0, 2, 0.753269},  // exp(1.7*(50/60-1)) = exp(-0.283)
+		{70.0, 2, 1.327548},  // exp(1.7*(70/60-1)) = exp(0.283)
+		{90.0, 2, 2.339647},  // exp(1.7*(90/60-1)) = exp(0.85)
 	}
 
-	// Test 4-core thresholds: CPULow=60, CPUMid=80, CPUHigh=100
+	// Test 4-core thresholds: Mid=80
+	// cpuPenalty = exp(1.7 * (Qk/80 - 1))
 	testCases4Core := []struct {
-		nodeIP       string
 		Qk           float64
 		logicalCores int
 		expected     float64
 	}{
-		{"test-node-5", 50.0, 4, 0.5},  // Low CPU (<60)
-		{"test-node-6", 70.0, 4, 1.0},  // Medium CPU (60-80)
-		{"test-node-7", 90.0, 4, 2.0},  // High CPU (80-100)
-		{"test-node-8", 100.0, 4, 4.0}, // Max CPU (=100)
+		{50.0, 4, 0.528636},  // exp(1.7*(50/80-1)) = exp(-0.6375)
+		{70.0, 4, 0.808561},  // exp(1.7*(70/80-1)) = exp(-0.2125)
+		{90.0, 4, 1.236753},  // exp(1.7*(90/80-1)) = exp(0.2125)
+		{100.0, 4, 1.529590}, // exp(1.7*(100/80-1)) = exp(0.425)
 	}
 
 	for _, tc := range testCases2Core {
-		result := computeCPUPenalty(tc.nodeIP, tc.Qk, tc.logicalCores)
-		if result != tc.expected {
-			t.Errorf("computeCPUPenalty(%s, %f, %d) = %f, expected %f", tc.nodeIP, tc.Qk, tc.logicalCores, result, tc.expected)
+		result := computeCPUPenalty(tc.Qk, tc.logicalCores)
+		if math.Abs(result-tc.expected) > epsilon {
+			t.Errorf("computeCPUPenalty(%f, %d) = %f, expected %f", tc.Qk, tc.logicalCores, result, tc.expected)
 		}
 	}
 
 	for _, tc := range testCases4Core {
-		result := computeCPUPenalty(tc.nodeIP, tc.Qk, tc.logicalCores)
-		if result != tc.expected {
-			t.Errorf("computeCPUPenalty(%s, %f, %d) = %f, expected %f", tc.nodeIP, tc.Qk, tc.logicalCores, result, tc.expected)
+		result := computeCPUPenalty(tc.Qk, tc.logicalCores)
+		if math.Abs(result-tc.expected) > epsilon {
+			t.Errorf("computeCPUPenalty(%f, %d) = %f, expected %f", tc.Qk, tc.logicalCores, result, tc.expected)
 		}
-	}
-
-	// Test penalty state persistence
-	nodeIP := "test-node-penalty"
-	// First call with high CPU should set penalty flag
-	computeCPUPenalty(nodeIP, 70.0, 2)
-	// Second call with medium CPU should still return high penalty
-	result := computeCPUPenalty(nodeIP, 50.0, 2)
-	t.Logf("computeCPUPenalty with penalty state = %f", result)
-
-	// Call with low CPU should clear penalty flag
-	computeCPUPenalty(nodeIP, 40.0, 2)
-	// Next call with medium CPU should return medium penalty
-	result = computeCPUPenalty(nodeIP, 50.0, 2)
-	expected := 1.0
-	if result != expected {
-		t.Errorf("computeCPUPenalty after clearing penalty = %f, expected %f", result, expected)
 	}
 }
 
 func TestDelayPenalty(t *testing.T) {
+	// delayPenalty = exp(0.55 * (rt/good - 1))
+	// Using good=20 (intra-continental default)
 	testCases := []struct {
 		rt       float64
+		good     float64
 		expected float64
 	}{
-		{40.0, 0.5},  // Good latency
-		{80.0, 1.0},  // Normal latency
-		{140.0, 1.5}, // Warning latency
-		{160.0, 2.2}, // Bad latency
-		{200.0, 3.0}, // Very bad latency
-	}
+		{10.0, 20, 0.759572},  // exp(0.55*(10/20-1)) = exp(-0.275)
+		{20.0, 20, 1.0},        // exp(0.55*(20/20-1)) = exp(0) = 1
+		{40.0, 20, 1.733253},  // exp(0.55*(40/20-1)) = exp(0.55)
+		{60.0, 20, 3.004166},  // exp(0.55*(60/20-1)) = exp(1.1)
 
-	config := latencyConfig{
-		good:    DefaultLatencyGood,
-		normal:  DefaultLatencyNormal,
-		warning: DefaultLatencyWarning,
+		// Inter-continental: good=60
+		{60.0, 60, 1.0},        // exp(0.55*(60/60-1)) = exp(0) = 1
+		{100.0, 60, 1.442917},  // exp(0.55*(100/60-1)) = exp(0.367)
+		{150.0, 60, 2.281881},  // exp(0.55*(150/60-1)) = exp(0.825)
 	}
 
 	for _, tc := range testCases {
+		config := latencyConfig{good: tc.good}
 		result := computeDelayPenalty(tc.rt, config)
-		if result != tc.expected {
-			t.Errorf("computeDelayPenalty(%f) = %f, expected %f", tc.rt, result, tc.expected)
+		if math.Abs(result-tc.expected) > epsilon {
+			t.Errorf("computeDelayPenalty(%f, good=%f) = %f, expected %f", tc.rt, tc.good, result, tc.expected)
 		}
 	}
 }
@@ -261,7 +249,7 @@ func TestLyapunovSolver_ThreeNodes(t *testing.T) {
 	// Verify softmax probabilities sum to 1
 	sumWeight := 0.0
 	for _, path := range paths {
-		sumWeight += path.RawRTT
+		sumWeight += path.Rtt
 	}
 	if sumWeight < 0.999 || sumWeight > 1.001 {
 		t.Errorf("Softmax probabilities sum = %.4f, expected ~1.0", sumWeight)
