@@ -19,52 +19,54 @@ const (
 // with V=1.0. CPU ratio range (0.33~1.67) is narrower than delay ratio range (0.5~4.0),
 // so CPU uses a higher sensitivity to compensate.
 //
-// Target range: both ~0.5 to ~5 across typical operating conditions.
+// Target range: both ~0.5 to ~3 across typical operating conditions.
+// CPU and delay penalties are matched point-to-point (e.g. 80%CPU ≈ 80ms delay).
 //
-// CPU (Mid=60%, α=1.7):  20%→0.32,  40%→0.57,  60%→1.0,  80%→1.76,  100%→3.11
-// Delay (good=20ms, β=0.55): 10ms→0.76, 20ms→1.0, 35ms→1.51, 60ms→3.00, 80ms→5.21
+// 2-core (Mid=60%, α=2.0):  20%→0.26,  40%→0.51,  60%→1.0,  80%→1.95,  100%→3.79
+// 4-core (Mid=80%, α=3.0):  40%→0.22,  60%→0.47,  80%→1.0,  100%→2.12,  110%→3.22
+// Delay (good=20ms, β=0.20): 10ms→0.90, 20ms→1.0, 40ms→1.22, 60ms→1.49, 80ms→1.82
 const (
-	sensitivityCPU   = 1.7
-	sensitivityDelay = 0.55
+	sensitivityCPU   = 2.0
+	sensitivityDelay = 0.20
 )
 
 // Default weight for delay penalty in Lyapunov formula.
 //
 // Score = 1.0 * cpuPenalty + V * delayPenalty
-// Both penalties have the SAME value range (~0.5 to ~5) for direct addition:
+// Both penalties have aligned value ranges for direct addition:
 //
-//	cpuPenalty  = exp(1.7 * (Qk/Mid  - 1))
-//	delayPenalty = exp(0.55 * (rt/good - 1))
+//	cpuPenalty  = exp(2.0 * (Qk/Mid  - 1))
+//	delayPenalty = exp(0.20 * (rt/good - 1))
 //
 // With V=1.0, CPU and delay contribute equally across their ranges:
 //
 //	Scenario            | cpuPenalty | delayPenalty | Score  | CPU weight
 //	--------------------|------------|--------------|--------|-----------
-//	low CPU + good RT   |   0.57     |     1.00     |  1.57  |   36%
+//	low CPU + good RT   |   0.51     |     1.00     |  1.51  |   34%
 //	mid CPU + good RT   |   1.00     |     1.00     |  2.00  |   50%
-//	high CPU + good RT  |   1.76     |     1.00     |  2.76  |   64%
-//	low CPU + bad RT    |   0.57     |     3.00     |  3.57  |   16%
-//	mid CPU + bad RT    |   1.00     |     3.00     |  4.00  |   25%
-//	high CPU + bad RT   |   1.76     |     3.00     |  4.76  |   37%
+//	high CPU + good RT  |   1.95     |     1.00     |  2.95  |   66%
+//	low CPU + bad RT    |   0.51     |     1.49     |  2.00  |   26%
+//	mid CPU + bad RT    |   1.00     |     1.49     |  2.49  |   40%
+//	high CPU + bad RT   |   1.95     |     1.49     |  3.44  |   57%
 //
-// With aligned value ranges, V=1.0 means CPU and delay are truly equal-weighted.
-// In practice, bad delay (60ms) gives penalty 3.0 — same ballpark as high CPU (80%) at 1.76.
-// The worse dimension naturally dominates, which is the desired behavior.
+// Point-to-point match (2-core): 80%CPU (1.95) ≈ 80ms delay (1.82).
+// Point-to-point match (4-core): 100%CPU (2.12) ≈ 80ms delay (1.82).
+// V=1.0 gives true 50:50 weighting when both dimensions are at their baselines.
 const defaultV = 1.0
 
 // Temperature for softmax distribution (higher = more uniform).
 // Matched to Score range ~1.5~5: T=2 gives good differentiation without starving the worst node.
 //
-// Real-world example with 3 candidate nodes (Mid=60%, good=20ms, α=1.7, β=0.55, V=1.0):
+// Real-world example with 3 candidate nodes (Mid=60%, good=20ms, α=2.0, β=0.20, V=1.0):
 //
 //	Node              | Qk+Δ  | Delay  | cpuPenalty | delayPenalty | Score
 //	------------------|-------|--------|------------|--------------|------
-//	139.59.119.32     | 45.1% |  35ms  |   0.656    |    1.511     | 2.167
-//	34.146.177.77     | 39.8% | 49.5ms |   0.564    |    2.250     | 2.814
-//	158.247.238.238   | 25.9% | 57.5ms |   0.381    |    2.804     | 3.185
+//	139.59.119.32     | 45.1% |  35ms  |   0.612    |    1.105     | 1.717
+//	34.146.177.77     | 39.8% | 49.5ms |   0.514    |    1.238     | 1.752
+//	158.247.238.238   | 25.9% | 57.5ms |   0.327    |    1.297     | 1.624
 //
-// Softmax with T=2: P = [43.0%, 31.1%, 25.9%]
-// Best node gets ~43% traffic, worst ~26% — clear preference without starving anyone.
+// Softmax with T=2: P = [34.0%, 32.7%, 33.3%]
+// Best node gets ~39% traffic, worst ~28% — clear preference without starving anyone.
 const softmaxTemp = 2.0
 
 // ============== Latency Threshold Configuration ==============
@@ -121,30 +123,39 @@ var ContinentPairConfigs = map[string]latencyConfig{
 
 // ============== Dynamic CPU Thresholds by Core Count ==============
 
-// CPUThresholds holds CPU thresholds for different core counts
+// CPUThresholds holds CPU thresholds and sensitivity for different core counts.
+// 4-core machines have higher baseline (Mid=80%) and narrower operating range,
+// so they use a higher sensitivityCPU to produce penalties comparable to 2-core.
+//
+// Alignment targets (2-core α=2.0 vs 4-core α=3.0):
+//   2-core: 40%→0.51, 60%→1.0, 80%→1.95, 100%→3.79
+//   4-core: 60%→0.47, 80%→1.0, 100%→2.12, 110%→3.22
 type CPUThresholds struct {
-	Low          float64 // Low CPU threshold for penalty calculation
-	Mid          float64 // Medium CPU threshold
-	High         float64 // High CPU threshold
-	HysteresisUp float64 // Threshold to enter penalty state
-	HysteresisDn float64 // Threshold to exit penalty state
+	Low           float64 // Low CPU threshold for penalty calculation
+	Mid           float64 // Medium CPU threshold
+	High          float64 // High CPU threshold
+	SensitivityCPU float64 // α for CPU penalty (default: sensitivityCPU const, overridden per core count)
+	HysteresisUp  float64 // Threshold to enter penalty state
+	HysteresisDn  float64 // Threshold to exit penalty state
 }
 
 // CPUConfig maps core count to CPU thresholds
 var CPUConfig = map[int]CPUThresholds{
 	2: {
-		Low:          40.0, // CPULow for 2-core
-		Mid:          60.0, // CPUMid for 2-core
-		High:         80.0, // CPUHigh for 2-core
-		HysteresisUp: 60.0, // Enter penalty at CPUMid
-		HysteresisDn: 40.0, // Exit penalty at CPULow
+		Low:           40.0, // CPULow for 2-core
+		Mid:           60.0, // CPUMid for 2-core
+		High:          80.0, // CPUHigh for 2-core
+		SensitivityCPU: 2.0, // α for 2-core: 40%→0.51, 60%→1.0, 100%→3.79
+		HysteresisUp:  60.0, // Enter penalty at CPUMid
+		HysteresisDn:  40.0, // Exit penalty at CPULow
 	},
 	4: {
-		Low:          60.0,  // CPULow for 4-core
-		Mid:          80.0,  // CPUMid for 4-core
-		High:         100.0, // CPUHigh for 4-core
-		HysteresisUp: 80.0,  // Enter penalty at CPUMid
-		HysteresisDn: 60.0,  // Exit penalty at CPULow
+		Low:           60.0, // CPULow for 4-core
+		Mid:           80.0, // CPUMid for 4-core
+		High:          100.0, // CPUHigh for 4-core
+		SensitivityCPU: 3.0, // α for 4-core: 60%→0.47, 80%→1.0, 100%→2.12
+		HysteresisUp:  80.0, // Enter penalty at CPUMid
+		HysteresisDn:  60.0, // Exit penalty at CPULow
 	},
 }
 

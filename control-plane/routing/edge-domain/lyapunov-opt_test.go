@@ -103,29 +103,29 @@ const epsilon = 1e-4
 
 func TestCPUPenalty(t *testing.T) {
 	// Test 2-core thresholds: Mid=60
-	// cpuPenalty = exp(1.7 * (Qk/60 - 1))
+	// cpuPenalty = exp(2.0 * (Qk/60 - 1))
 	testCases2Core := []struct {
 		Qk           float64
 		logicalCores int
 		expected     float64
 	}{
-		{30.0, 2, 0.427415},  // exp(1.7*(30/60-1)) = exp(-0.85)
-		{50.0, 2, 0.753269},  // exp(1.7*(50/60-1)) = exp(-0.283)
-		{70.0, 2, 1.327548},  // exp(1.7*(70/60-1)) = exp(0.283)
-		{90.0, 2, 2.339647},  // exp(1.7*(90/60-1)) = exp(0.85)
+		{30.0, 2, 0.367879},  // exp(2.0*(30/60-1)) = exp(-1.0)
+		{50.0, 2, 0.716531},  // exp(2.0*(50/60-1)) = exp(-0.333)
+		{70.0, 2, 1.395612},  // exp(2.0*(70/60-1)) = exp(0.333)
+		{90.0, 2, 2.718282},  // exp(2.0*(90/60-1)) = exp(1.0)
 	}
 
-	// Test 4-core thresholds: Mid=80
-	// cpuPenalty = exp(1.7 * (Qk/80 - 1))
+	// Test 4-core thresholds: Mid=80, α=3.0
+	// cpuPenalty = exp(3.0 * (Qk/80 - 1))
 	testCases4Core := []struct {
 		Qk           float64
 		logicalCores int
 		expected     float64
 	}{
-		{50.0, 4, 0.528636},  // exp(1.7*(50/80-1)) = exp(-0.6375)
-		{70.0, 4, 0.808561},  // exp(1.7*(70/80-1)) = exp(-0.2125)
-		{90.0, 4, 1.236753},  // exp(1.7*(90/80-1)) = exp(0.2125)
-		{100.0, 4, 1.529590}, // exp(1.7*(100/80-1)) = exp(0.425)
+		{50.0, 4, 0.324652},  // exp(3.0*(50/80-1)) = exp(-1.125)
+		{70.0, 4, 0.687289},  // exp(3.0*(70/80-1)) = exp(-0.375)
+		{90.0, 4, 1.454991},  // exp(3.0*(90/80-1)) = exp(0.375)
+		{100.0, 4, 2.117000}, // exp(3.0*(100/80-1)) = exp(0.75)
 	}
 
 	for _, tc := range testCases2Core {
@@ -144,22 +144,22 @@ func TestCPUPenalty(t *testing.T) {
 }
 
 func TestDelayPenalty(t *testing.T) {
-	// delayPenalty = exp(0.55 * (rt/good - 1))
+	// delayPenalty = exp(0.20 * (rt/good - 1))
 	// Using good=20 (intra-continental default)
 	testCases := []struct {
 		rt       float64
 		good     float64
 		expected float64
 	}{
-		{10.0, 20, 0.759572},  // exp(0.55*(10/20-1)) = exp(-0.275)
-		{20.0, 20, 1.0},        // exp(0.55*(20/20-1)) = exp(0) = 1
-		{40.0, 20, 1.733253},  // exp(0.55*(40/20-1)) = exp(0.55)
-		{60.0, 20, 3.004166},  // exp(0.55*(60/20-1)) = exp(1.1)
+		{10.0, 20, 0.904837},  // exp(0.20*(10/20-1)) = exp(-0.1)
+		{20.0, 20, 1.0},        // exp(0.20*(20/20-1)) = exp(0) = 1
+		{40.0, 20, 1.221403},  // exp(0.20*(40/20-1)) = exp(0.2)
+		{60.0, 20, 1.491825},  // exp(0.20*(60/20-1)) = exp(0.4)
 
 		// Inter-continental: good=60
-		{60.0, 60, 1.0},        // exp(0.55*(60/60-1)) = exp(0) = 1
-		{100.0, 60, 1.442917},  // exp(0.55*(100/60-1)) = exp(0.367)
-		{150.0, 60, 2.281881},  // exp(0.55*(150/60-1)) = exp(0.825)
+		{60.0, 60, 1.0},        // exp(0.20*(60/60-1)) = exp(0) = 1
+		{100.0, 60, 1.142617},  // exp(0.20*(100/60-1)) = exp(0.1333)
+		{150.0, 60, 1.349859},  // exp(0.20*(150/60-1)) = exp(0.3)
 	}
 
 	for _, tc := range testCases {

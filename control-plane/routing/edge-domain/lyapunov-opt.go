@@ -189,7 +189,7 @@ func (l *LyapunovSolver) GetNodeRT(source routing.EndPoint, nodeIP string, pre s
 //	delayPenalty = exp(sensitivityDelay * (rt / config.good - 1))
 //
 // At rt=good, penalty=1.0. Below: sub-linear decay. Above: exponential growth.
-// Example with good=20ms, β=0.55: 10ms→0.76, 20ms→1.0, 35ms→1.51, 60ms→3.00, 80ms→5.21
+// Example with good=20ms, β=0.20: 10ms→0.90, 20ms→1.0, 40ms→1.22, 60ms→1.49, 80ms→1.82
 func computeDelayPenalty(rt float64, config latencyConfig) float64 {
 	if config.good <= 0 {
 		return math.Exp(sensitivityDelay * (rt/50.0 - 1)) // fallback
@@ -204,17 +204,24 @@ var (
 
 // computeCPUPenalty returns an exponential CPU penalty:
 //
-//	cpuPenalty = exp(sensitivityCPU * (Qk / config.Mid - 1))
+//	cpuPenalty = exp(config.SensitivityCPU * (Qk / config.Mid - 1))
 //
 // At Qk=Mid, penalty=1.0. Below: sub-linear decay. Above: exponential growth.
-// Example with Mid=60%, α=1.7: 20%→0.32, 40%→0.57, 60%→1.0, 80%→1.76, 100%→3.11
+//
+// Examples:
+//   2-core (α=2.0, Mid=60%): 20%→0.26, 40%→0.51, 60%→1.0, 80%→1.95, 100%→3.79
+//   4-core (α=3.0, Mid=80%): 40%→0.22, 60%→0.47, 80%→1.0, 100%→2.12, 110%→3.22
 func computeCPUPenalty(Qk float64, logicalCores int) float64 {
 	config := GetCPUThresholds(logicalCores)
 
-	if config.Mid <= 0 {
-		return math.Exp(sensitivityCPU * (Qk/60.0 - 1)) // fallback
+	alpha := config.SensitivityCPU
+	if alpha <= 0 {
+		alpha = sensitivityCPU // fallback to global default
 	}
-	return math.Exp(sensitivityCPU * (Qk/config.Mid - 1))
+	if config.Mid <= 0 {
+		return math.Exp(alpha * (Qk/60.0 - 1)) // fallback
+	}
+	return math.Exp(alpha * (Qk/config.Mid - 1))
 }
 
 // softmaxProbabilities computes softmax probabilities from scores
