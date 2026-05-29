@@ -4,7 +4,6 @@ import (
 	"context"
 	model "data-plane/report-info"
 	"math"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -87,13 +86,13 @@ func sample() {
 		return
 	}
 
-	// update peak and delta
 	peakMu.Lock()
+	defer peakMu.Unlock()
+
 	if percent > peakUsage {
 		peakUsage = percent
 	}
 
-	// skip first sample for delta calculation
 	if !firstSample {
 		d := math.Abs(percent - prevUsage)
 		if d > maxDelta {
@@ -104,7 +103,6 @@ func sample() {
 	}
 
 	prevUsage = percent
-	peakMu.Unlock()
 }
 
 // getSystemCPU: returns total CPU% (can exceed 100% on multi-core)
@@ -121,7 +119,6 @@ func getSystemCPU() (float64, error) {
 	return total, nil
 }
 
-// getProcessCPU: stable sampling + case-insensitive match
 func getProcessCPU() (float64, error) {
 	procs, err := process.Processes()
 	if err != nil {
@@ -129,7 +126,6 @@ func getProcessCPU() (float64, error) {
 	}
 
 	var totalPercent float64
-	count := 0
 
 	for _, p := range procs {
 		name, err := p.Name()
@@ -137,20 +133,13 @@ func getProcessCPU() (float64, error) {
 			continue
 		}
 
-		// case-insensitive match
 		if strings.EqualFold(name, processName) {
-			// interval-based sampling for accurate values
 			cpuPercent, err := p.CPUPercentWithContext(context.Background())
 			if err != nil {
 				continue
 			}
 			totalPercent += cpuPercent
-			count++
 		}
-	}
-
-	if count == 0 {
-		return 0, os.ErrNotExist
 	}
 
 	return totalPercent, nil
