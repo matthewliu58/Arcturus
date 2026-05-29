@@ -3,10 +3,12 @@ package util
 import (
 	"encoding/json"
 	"errors"
-	"github.com/ip2location/ip2location-go/v9"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/ip2location/ip2location-go/v9"
 )
 
 type ipOverride struct {
@@ -102,8 +104,8 @@ func GetIPInfo(ip string, pre string, logger *slog.Logger) (IPInfoResult, error)
 		City:      res.City,
 	}
 
-	// apply ip-override.json overrides
-	if ov, ok := ipOverrides[ip]; ok {
+	// apply ip-override.json overrides (support IP prefix matching)
+	if ov := findIPOverride(ip); ov != nil {
 		if ov.Country != "" {
 			result.Country = ov.Country
 		}
@@ -120,4 +122,22 @@ func GetIPInfo(ip string, pre string, logger *slog.Logger) (IPInfoResult, error)
 	}
 
 	return result, nil
+}
+
+// findIPOverride finds matching IP override by prefix matching
+// Supports exact match (e.g., "47.86.234.131") and prefix match (e.g., "47.86")
+func findIPOverride(ip string) *ipOverride {
+	// First try exact match
+	if ov, ok := ipOverrides[ip]; ok {
+		return &ov
+	}
+
+	// Then try prefix matching (longest prefix first)
+	for prefix, ov := range ipOverrides {
+		if strings.HasPrefix(ip, prefix) {
+			return &ov
+		}
+	}
+
+	return nil
 }

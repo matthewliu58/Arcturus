@@ -1,19 +1,14 @@
 {
-  "8.8.8.8": {
+  "47.86": {
+    "country": "HK",
+    "continent": "Asia",
+    "province": "HongKong",
+    "city": "HongKong"
+  },
+  "157.230。34.55": {
     "country": "US",
-    "continent": "North America",
-    "province": "California",
-    "city": "Mountain View"
-  },
-  "1.1.1.1": {
-    "country": "AU",
-    "continent": "Oceania",
-    "province": "New South Wales",
-    "city": "Sydney"
-  },
-  "114.114.114.114": {
-    "country": "CN",
-    "province": "Jiangsu",
-    "city": "Nanjing"
+    "continent": "NA",
+    "province": "New York",
+    "city": "New York"
   }
 }

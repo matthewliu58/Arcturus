@@ -131,6 +131,7 @@ func LastRouting(g *graph.GraphManager, a *agg.GlobalStats, endPoints routing.En
 	logger.Info("LastRouting", slog.String("pre", pre), slog.Any("endPoints", endPoints),
 		slog.Float64("cpuWeight", cpuWeight), slog.Float64("latencyWeight", latencyWeight))
 
+	//if len(endPoints.Source.City) <= 0 {
 	result, err := util.GetIPInfo(endPoints.Source.IP)
 	if err != nil {
 		logger.Error("GetIPInfo error", slog.String("pre", pre), slog.Any("err", err))
@@ -139,6 +140,7 @@ func LastRouting(g *graph.GraphManager, a *agg.GlobalStats, endPoints routing.En
 	endPoints.Source.Country = result.Country
 	endPoints.Source.City = result.City
 	endPoints.Source.Continent = result.Continent
+	//}
 
 	solver := InitLastInterface(g, a, algorithm, cpuWeight, latencyWeight, pre, logger)
 	paths, err := solver.Operate.Computing(endPoints, pre, logger)

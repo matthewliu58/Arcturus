@@ -77,7 +77,7 @@ func readLatestLogs(path string, pre string, logger *slog.Logger) {
 	defer f.Close()
 
 	// Read only the last ~64KB to find recent logs
-	const readSize = 64 * 1024
+	const readSize = 32 * 1024
 	fileInfo, err := f.Stat()
 	if err != nil {
 		logger.Error("Stat file failed", slog.String("pre", pre), slog.Any("err", err))
