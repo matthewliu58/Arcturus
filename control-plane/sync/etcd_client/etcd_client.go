@@ -5,22 +5,37 @@ import (
 	"context"
 	"encoding/json"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"log/slog"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
+//func NewEtcdClient(endpoints []string, dialTimeout time.Duration) (*clientv3.Client, error) {
+//	cli, err := clientv3.New(clientv3.Config{
+//		Endpoints:   endpoints,
+//		DialTimeout: dialTimeout,
+//	})
+//	if err != nil {
+//		return nil, err
+//	}
+//	return cli, nil
+//}
+
 func NewEtcdClient(endpoints []string, dialTimeout time.Duration) (*clientv3.Client, error) {
 	cli, err := clientv3.New(clientv3.Config{
-		Endpoints:   endpoints,
-		DialTimeout: dialTimeout,
-		DialOptions: []grpc.DialOption{grpc.WithBlock()},
+		Endpoints:            endpoints,
+		DialTimeout:          dialTimeout,
+		AutoSyncInterval:     10 * time.Second,
+		DialKeepAliveTime:    5 * time.Second,
+		DialKeepAliveTimeout: 3 * time.Second,
+		DialOptions: []grpc.DialOption{
+			grpc.WithBlock(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		},
 	})
-	if err != nil {
-		return nil, err
-	}
-	return cli, nil
+	return cli, err
 }
 
 func PutKey(cli *clientv3.Client, key, value, pre string, logger *slog.Logger) {
