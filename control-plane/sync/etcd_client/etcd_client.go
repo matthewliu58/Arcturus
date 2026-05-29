@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"google.golang.org/grpc"
 	"log/slog"
 	"time"
 
@@ -14,6 +15,7 @@ func NewEtcdClient(endpoints []string, dialTimeout time.Duration) (*clientv3.Cli
 	cli, err := clientv3.New(clientv3.Config{
 		Endpoints:   endpoints,
 		DialTimeout: dialTimeout,
+		DialOptions: []grpc.DialOption{grpc.WithBlock()},
 	})
 	if err != nil {
 		return nil, err
@@ -148,7 +150,7 @@ func GetPrefixAll(cli *clientv3.Client, prefix, pre string, logger *slog.Logger)
 			slog.String("value", compact.String()),
 		)
 	}
-	
+
 	if len(prefixData) == 0 {
 		logger.Warn("No data found under prefix", slog.String("pre", pre), slog.String("prefix", prefix))
 	} else {
