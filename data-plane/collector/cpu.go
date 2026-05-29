@@ -1,9 +1,11 @@
 package collector
 
 import (
-	"context"
+	"fmt"
 	model "data-plane/report-info"
 	"math"
+	"os"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -14,18 +16,24 @@ import (
 
 const (
 	sampleInterval = 1 * time.Second
+	clkTck        = 100 // USER_HZ on Linux, ticks per second
 )
 
 var (
-	processName = "data-proxy" // target process name, empty = system-wide
+	processName = "data-proxy" // target process name
 
 	physicalCores int
 	logicalCores  int
 
+	// per-process CPU tracking: PID → last sample {utime, stime, timestamp}
+	procMu     sync.Mutex
+	procLast   = map[int32]struct{ utime, stime uint64; ts time.Time }{}
+	procPIDs   []int32 // cached PIDs matching processName
+
 	peakMu      sync.Mutex
-	peakUsage   float64
-	maxDelta    float64
 	prevUsage   float64
+	currUsage   float64
+	maxDelta    float64
 	firstSample bool = true
 
 	startOnce sync.Once
@@ -73,15 +81,7 @@ func runSampler() {
 }
 
 func sample() {
-	var percent float64
-	var err error
-
-	if processName == "" {
-		percent, err = getSystemCPU()
-	} else {
-		percent, err = getProcessCPU()
-	}
-
+	percent, err := getProcessCPU()
 	if err != nil {
 		return
 	}
@@ -89,9 +89,7 @@ func sample() {
 	peakMu.Lock()
 	defer peakMu.Unlock()
 
-	if percent > peakUsage {
-		peakUsage = percent
-	}
+	currUsage = percent
 
 	if !firstSample {
 		d := math.Abs(percent - prevUsage)
@@ -105,54 +103,110 @@ func sample() {
 	prevUsage = percent
 }
 
-// getSystemCPU: returns total CPU% (can exceed 100% on multi-core)
-func getSystemCPU() (float64, error) {
-	percent, err := cpu.Percent(0, true)
-	if err != nil || len(percent) == 0 {
-		return 0, err
+// getProcessCPU reads /proc/[pid]/stat for all data-proxy processes and computes
+// CPU% the same way "top" does: Δ(utime+stime) / Δ(wall time) / clkTck * 100.
+// This avoids gopsutil's CPUPercentWithContext which has unreliable sampling intervals.
+func getProcessCPU() (float64, error) {
+	now := time.Now()
+
+	// Resolve PIDs lazily or on process restart
+	if len(procPIDs) == 0 {
+		procPIDs = findProcessPIDs(processName)
+	}
+	if len(procPIDs) == 0 {
+		return 0, fmt.Errorf("process %s not found", processName)
 	}
 
-	total := 0.0
-	for _, p := range percent {
-		total += p
+	var totalCPU float64
+
+	procMu.Lock()
+	defer procMu.Unlock()
+
+	// Prune dead PIDs from cache
+	alive := procPIDs[:0]
+	for _, pid := range procPIDs {
+		utime, stime, err := readProcStat(pid)
+		if err != nil {
+			delete(procLast, pid)
+			continue
+		}
+		alive = append(alive, pid)
+
+		prev, ok := procLast[pid]
+		if ok && prev.ts.Unix() > 0 {
+			// CPU% = Δticks / Δseconds / clkTck * 100
+			deltaTicks := (utime + stime) - (prev.utime + prev.stime)
+			deltaSec := now.Sub(prev.ts).Seconds()
+			if deltaSec > 0 {
+				cpuPct := float64(deltaTicks) / deltaSec / clkTck * 100
+				totalCPU += cpuPct
+			}
+		}
+
+		procLast[pid] = struct{ utime, stime uint64; ts time.Time }{utime, stime, now}
 	}
-	return total, nil
+	procPIDs = alive
+
+	return totalCPU, nil
 }
 
-func getProcessCPU() (float64, error) {
+// findProcessPIDs returns all PIDs matching the given process name.
+func findProcessPIDs(name string) []int32 {
 	procs, err := process.Processes()
 	if err != nil {
-		return 0, err
+		return nil
 	}
-
-	var totalPercent float64
-
+	var pids []int32
 	for _, p := range procs {
-		name, err := p.Name()
+		pname, err := p.Name()
 		if err != nil {
 			continue
 		}
-
-		if strings.EqualFold(name, processName) {
-			cpuPercent, err := p.CPUPercentWithContext(context.Background())
-			if err != nil {
-				continue
-			}
-			totalPercent += cpuPercent
+		if strings.EqualFold(pname, name) {
+			pids = append(pids, p.Pid)
 		}
 	}
-
-	return totalPercent, nil
+	return pids
 }
 
-// collectCPU collects and resets window
+// readProcStat reads /proc/[pid]/stat and returns fields 14 (utime) and 15 (stime).
+func readProcStat(pid int32) (utime, stime uint64, err error) {
+	data, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", pid))
+	if err != nil {
+		return 0, 0, err
+	}
+	// /proc/[pid]/stat: fields are space-separated, but field 2 (comm) may contain
+	// spaces inside parentheses. Find the closing ')' then split the rest.
+	s := string(data)
+	closeParen := strings.LastIndex(s, ")")
+	if closeParen < 0 {
+		return 0, 0, fmt.Errorf("malformed /proc/%d/stat", pid)
+	}
+	fields := strings.Fields(s[closeParen+2:]) // fields after ") "
+	// fields[11] = utime, fields[12] = stime (0-indexed after ") ")
+	if len(fields) < 13 {
+		return 0, 0, fmt.Errorf("too few fields in /proc/%d/stat", pid)
+	}
+	utime, err = strconv.ParseUint(fields[11], 10, 64)
+	if err != nil {
+		return 0, 0, err
+	}
+	stime, err = strconv.ParseUint(fields[12], 10, 64)
+	if err != nil {
+		return 0, 0, err
+	}
+	return utime, stime, nil
+}
+
+// collectCPU returns the latest sampled CPU usage and delta, then resets the window.
+// Returns currUsage (instantaneous, same source as "top") rather than a window peak,
+// so the routing algorithms see a value close to real-time CPU.
 func collectCPU() (model.CPUInfo, error) {
 	peakMu.Lock()
-	usage := peakUsage
+	usage := currUsage
 	delta := maxDelta
 
 	// reset window
-	peakUsage = 0
 	maxDelta = 0
 	firstSample = true
 	peakMu.Unlock()
