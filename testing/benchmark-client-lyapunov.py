@@ -78,7 +78,11 @@ def fetch_routing_table():
                                 routing_servers = servers
                                 routing_probabilities = probabilities
                             
-                            print(f"[ROUTING] Updated {len(routing_servers)} routes")
+                            # Print detailed routing table
+                            ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                            print(f"[{ts}] [ROUTING] Updated {len(routing_servers)} routes:")
+                            for i, (server, weight, prob) in enumerate(zip(servers, rtts, probabilities)):
+                                print(f"[{ts}]   Route {i+1}: IP={server}, Weight={weight}, Probability={prob*100:.2f}%")
         except Exception as e:
             print(f"[ROUTING] Fetch failed: {e}")
         
