@@ -123,7 +123,6 @@ func (t *TCPServer) StartServerRun(port int, access *slog.Logger, req string, l 
 			l.Error("accept failed", slog.String("req", req), slog.Any("err", err))
 			continue
 		}
-
 		// ====================== Key modification ======================
 		if t.keepAlive {
 			// Long connection: dedicated goroutine, not in worker pool, but limited
@@ -224,13 +223,11 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 		slog.String("protocol", "tcp"), slog.Int("port", port), slog.Any("reqId", reqID))
 
 	_ = conn.SetReadDeadline(time.Now().Add(10 * time.Second))
-	start := time.Now()
 	//data, err := io.ReadAll(conn)
 
 	reader := bufio.NewReader(conn)
 	data, err := reader.ReadBytes('\n')
 
-	rtMs := float64(time.Since(start).Microseconds()) / 1000
 	if err != nil {
 		l.Error("read content failed", slog.Any("reqId", reqID),
 			slog.String("clientIp", clientIP), slog.Any("err", err))
@@ -239,9 +236,15 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 		l.Debug("client sent request", slog.Any("reqId", reqID), slog.String("data", string(data)))
 	}
 
-	if len(data) <= 1024 && shouldLogAccess(clientIP) {
-		a.Info("access", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
-			slog.Float64("conn_rt_ms", rtMs), slog.Int("data_len", len(data)))
+	// TCP RTT from kernel TCP_INFO (srtt), real network latency
+	tcpRTT := getTCPRTT(conn)
+
+	// Fallback to elapsed time if TCP_INFO is unavailable
+	if tcpRTT > 0 {
+		if shouldLogAccess(clientIP) {
+			a.Info("access", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
+				slog.Float64("conn_rt_ms", tcpRTT), slog.Int("data_len", len(data)))
+		}
 	}
 
 	routingMutex.RLock()
@@ -353,13 +356,10 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 
 	for {
 		_ = conn.SetReadDeadline(connDeadline)
-		start := time.Now()
 		//data, err := io.ReadAll(conn)
 
 		reader := bufio.NewReader(conn)
 		data, err := reader.ReadBytes('\n')
-
-		rtMs := float64(time.Since(start).Microseconds()) / 1000
 
 		if err != nil {
 			if err == io.EOF {
@@ -380,12 +380,14 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 			l.Debug("client sent request", slog.Any("reqId", reqID), slog.String("data", string(data)))
 		}
 
-		go func(reqData []byte, currentReqID uint32) {
+		// TCP RTT from kernel TCP_INFO (srtt), real network latency
+		tcpRTT := getTCPRTT(conn)
+		if tcpRTT > 0 {
 			if shouldLogAccess(clientIP) {
-				a.Info("access", slog.Any("req_id", currentReqID), slog.String("client_ip", clientIP),
-					slog.Float64("conn_rt_ms", rtMs), slog.Int("data_len", len(reqData)))
+				a.Info("access", slog.Any("req_id", reqID), slog.String("client_ip", clientIP),
+					slog.Float64("conn_rt_ms", tcpRTT), slog.Int("data_len", len(data)))
 			}
-		}(data, reqID)
+		}
 
 		routingMutex.RLock()
 		ri, hasRoute := routingMap[port]
@@ -467,7 +469,6 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 					l.Debug("client receive response", slog.Any("reqId", reqID), slog.String("respData", string(respData)))
 					l.Info("aggregated proxy response sent", slog.Any("reqId", reqID))
 				}
-
 			case <-time.After(proxyTimeout):
 				cleanup()
 				l.Error("wait response timeout", slog.Any("reqId", reqID))

@@ -47,6 +47,10 @@ def fetch_routing_table():
             resp = requests.post(CONTROL_PLANE_URL, json=payload, timeout=5)
             if resp.status_code == 200:
                 data = resp.json()
+                # Print raw response data as single-line JSON
+                ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+                print(f"[{ts}] [ROUTING] {json.dumps(data)}")
+                
                 if data.get("code") == 200 and "data" in data:
                     routing_info = data["data"]
                     if "routing" in routing_info:
