@@ -197,41 +197,17 @@ func (r *EWMARouter) Computing(endPoints routing.EndPoints, pre string, logger *
 		return []routing.PathInfo{}, nil
 	}
 
-	// Find min/max for min-max normalization
-	minCPU, maxCPU := candidates[0].cpuEwma, candidates[0].cpuEwma
-	minLat, maxLat := candidates[0].latEwma, candidates[0].latEwma
-	for _, c := range candidates {
-		if c.cpuEwma < minCPU {
-			minCPU = c.cpuEwma
-		}
-		if c.cpuEwma > maxCPU {
-			maxCPU = c.cpuEwma
-		}
-		if c.latEwma < minLat {
-			minLat = c.latEwma
-		}
-		if c.latEwma > maxLat {
-			maxLat = c.latEwma
-		}
-	}
+	// Per-node scoring: no batch normalization.
+	// CPU is naturally 0–100, latency is also scaled to 0–100 by using raw ms.
+	// A 100ms latency maps to 100, matching the CPU range.
+	// No dependency on peer nodes → stable even with 2–3 nodes, no amplification
+	// of small differences, and scores remain comparable across calls.
+	const latencyScale = 1.0 // 50ms→50, 100ms→100, 200ms→200
 
-	// Second pass: normalize and compute combined score
-	cpuRange := maxCPU - minCPU
-	latRange := maxLat - minLat
 	for i := range candidates {
-		// Min-max normalize to 0-100
-		normCPU := 0.0
-		normLat := 0.0
-		if cpuRange > 0 {
-			normCPU = (candidates[i].cpuEwma - minCPU) / cpuRange * 100
-		}
-		if latRange > 0 {
-			normLat = (candidates[i].latEwma - minLat) / latRange * 100
-		}
-
+		normCPU := candidates[i].cpuEwma                          // 0–100
+		normLat := candidates[i].latEwma / latencyScale           // ~0–200 (typical)
 		candidates[i].normLatEwma = normLat
-
-		// Calculate combined score: λ * CPU_norm + (1-λ) * Lat_norm
 		candidates[i].combined = r.lambda*normCPU + (1-r.lambda)*normLat
 	}
 
