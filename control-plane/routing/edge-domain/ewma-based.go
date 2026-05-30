@@ -240,7 +240,7 @@ func (r *EWMARouter) Computing(endPoints routing.EndPoints, pre string, logger *
 			Rtt:    prob,
 			RawRTT: c.combined,
 		})
-		logger.Debug("EWMA node prob",
+		logger.Info("EWMA node prob",
 			slog.String("pre", pre),
 			slog.String("nodeIp", c.nodeIp),
 			slog.Float64("cpuUsage", c.cpuUsage),

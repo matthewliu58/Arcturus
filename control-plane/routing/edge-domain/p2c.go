@@ -85,7 +85,7 @@ func (r *P2CRouter) Computing(endPoints routing.EndPoints, pre string, logger *s
 			Hops: []string{w.nodeIP},
 			Rtt:  prob,
 		})
-		logger.Debug("P2C node weight",
+		logger.Info("P2C node weight",
 			slog.String("pre", pre),
 			slog.String("nodeIP", w.nodeIP),
 			slog.Float64("load", w.load),
