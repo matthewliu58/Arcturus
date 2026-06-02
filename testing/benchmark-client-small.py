@@ -4,15 +4,17 @@ import threading
 import random
 from datetime import datetime
 
-SERVER_IP = "47.86.209.23"
+SERVER_IP = "104.238.177.110"
 SERVER_PORT = 8081
-CONCURRENCY = 400
+CONCURRENCY = 40
 TOTAL_RUN_SECONDS = 120
 # Random sleep interval between two connections to avoid reconnection peaks
 MIN_SLEEP = 0.2
 MAX_SLEEP = 0.5
 # Socket timeout
 SOCK_TIMEOUT = 10
+# Payload size in bytes (0 = no padding, use original message size)
+PAYLOAD_SIZE = 128
 
 LOSS_LOG = "packet_loss.log"
 stop_event = threading.Event()
@@ -59,7 +61,15 @@ def client_worker():
             send_dt = datetime.now()
             time_fmt = send_dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "+08:00"
             thread_name = threading.current_thread().name  # Get thread name
-            send_msg = f"[{thread_name}][{req_count:06d}] {time_fmt}\n"  # Add thread name to message
+            send_msg = f"[{thread_name}][{req_count:06d}] {time_fmt}"
+            
+            # Pad message to target size if PAYLOAD_SIZE > 0
+            if PAYLOAD_SIZE > 0:
+                current_len = len(send_msg)
+                if current_len < PAYLOAD_SIZE - 1:  # Reserve 1 byte for \n
+                    send_msg += " " * (PAYLOAD_SIZE - 1 - current_len)
+            send_msg += "\n"
+            
             sock.sendall(send_msg.encode())
 
             # Block and wait for server response
@@ -74,7 +84,6 @@ def client_worker():
             else:
                 if random.random() < 0.02:
                     print(f"[{threading.current_thread().name}] Send:{send_msg.strip()} Recv:{resp} Latency:{cost_ms:.2f}ms")
-
         except Exception as e:
             err_info = f"{threading.current_thread().name} exception:{str(e)}"
             write_loss_log(err_info)
@@ -91,7 +100,8 @@ def client_worker():
         time.sleep(sleep_sec)
 
 if __name__ == "__main__":
-    print(f"Starting concurrency:{CONCURRENCY}, single send & single receive, disconnect after response, stable pressure test")
+    payload_info = f"payload size: {PAYLOAD_SIZE}B" if PAYLOAD_SIZE > 0 else "variable payload size"
+    print(f"Starting concurrency:{CONCURRENCY}, {payload_info}, single send & single receive, disconnect after response, stable pressure test")
     for idx in range(CONCURRENCY):
         t = threading.Thread(target=client_worker, name=f"CLIENT-{idx+1}", daemon=True)
         t.start()
