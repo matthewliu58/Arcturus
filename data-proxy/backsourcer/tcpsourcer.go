@@ -1,7 +1,7 @@
 package backsourcer
 
 import (
-	"io"
+	"bufio"
 	"net"
 	"time"
 )
@@ -33,5 +33,12 @@ func (t *TCPProtocol) DoRequest(addr string, reqData []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	return io.ReadAll(conn)
+	// Read until newline delimiter instead of waiting for connection close
+	reader := bufio.NewReader(conn)
+	resp, err := reader.ReadBytes('\n')
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
 }
