@@ -53,14 +53,15 @@ func NewBackSourcer(protocol string, pre string, l *slog.Logger) *BackSourcer {
 		return NewBackSourcerWithProtocol(NewUDPProtocol(dialTimeout, ioTimeout), l)
 	}
 
-	tcpPool := NewTCPConnPool(poolMaxIdle, poolMaxLifetime, poolCleanPeriod, l)
-	bs := &BackSourcer{
-		taskChan: make(chan *BackSourceTask, taskQueueSize),
-		protocol: NewTCPProtocolWithPool(tcpPool, dialTimeout, ioTimeout, l),
-		tcpPool:  tcpPool,
-	}
-	bs.startWorkers(l)
-	return bs
+	//tcpPool := NewTCPConnPool(poolMaxIdle, poolMaxLifetime, poolCleanPeriod, l)
+	//bs := &BackSourcer{
+	//	taskChan: make(chan *BackSourceTask, taskQueueSize),
+	//	protocol: NewTCPProtocolWithPool(tcpPool, dialTimeout, ioTimeout, l),
+	//	tcpPool:  tcpPool,
+	//}
+	//bs.startWorkers(l)
+	//return bs
+	return NewBackSourcerWithProtocol(NewTCPProtocol(dialTimeout, ioTimeout), l)
 }
 
 func NewBackSourcerWithProtocol(p OriginProtocol, l *slog.Logger) *BackSourcer {
