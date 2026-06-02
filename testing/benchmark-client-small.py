@@ -14,7 +14,7 @@ MAX_SLEEP = 0.5
 # Socket timeout
 SOCK_TIMEOUT = 10
 # Payload size in bytes (0 = no padding, use original message size)
-PAYLOAD_SIZE = 128
+PAYLOAD_SIZE = 1024
 
 LOSS_LOG = "packet_loss.log"
 stop_event = threading.Event()
@@ -83,7 +83,7 @@ def client_worker():
                 print(f"{err_info}")
             else:
                 if random.random() < 0.02:
-                    print(f"[{threading.current_thread().name}] Send:{send_msg.strip()} Recv:{resp} Latency:{cost_ms:.2f}ms")
+                    print(f"[{threading.current_thread().name}] SendLen:{len(send_msg)} RecvLen:{len(resp)} Send:{send_msg.strip()} Recv:{resp} Latency:{cost_ms:.2f}ms")
         except Exception as e:
             err_info = f"{threading.current_thread().name} exception:{str(e)}"
             write_loss_log(err_info)
