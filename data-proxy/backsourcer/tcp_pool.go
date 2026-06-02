@@ -64,7 +64,10 @@ func (p *TCPConnPool) cleanup() {
 		for e := lst.Front(); e != nil; {
 			pc := e.Value.(*pooledConn)
 			if now.Sub(pc.lastUsed) > p.maxLifetime || now.Sub(pc.created) > p.maxLifetime*2 {
-				pc.conn.Close()
+				err := pc.conn.Close()
+				if err != nil {
+					p.logger.Error("Close expired conn failed", slog.String("addr", addr), slog.Any("err", err))
+				}
 				next := e.Next()
 				lst.Remove(e)
 				e = next
@@ -91,7 +94,11 @@ func (p *TCPConnPool) Get(addr string, dialTimeout, ioTimeout time.Duration) (ne
 	for e := lst.Front(); e != nil; {
 		pc := e.Value.(*pooledConn)
 		if now := time.Now(); now.Sub(pc.lastUsed) > p.maxLifetime {
-			pc.conn.Close()
+			p.logger.Info("Closing expired conn from pool", slog.String("addr", addr))
+			err := pc.conn.Close()
+			if err != nil {
+				p.logger.Error("Close expired conn failed in Get", slog.String("addr", addr), slog.Any("err", err))
+			}
 			next := e.Next()
 			lst.Remove(e)
 			e = next
@@ -102,13 +109,16 @@ func (p *TCPConnPool) Get(addr string, dialTimeout, ioTimeout time.Duration) (ne
 		pc.elem = nil
 		p.Unlock()
 		_ = pc.conn.SetDeadline(time.Now().Add(ioTimeout))
+		p.logger.Info("Reusing conn from pool", slog.String("addr", addr), slog.Int("poolSize", lst.Len()))
 		return pc.conn, nil
 	}
 
 	p.Unlock()
 
+	p.logger.Info("Creating new conn", slog.String("addr", addr))
 	conn, err := net.DialTimeout("tcp", addr, dialTimeout)
 	if err != nil {
+		p.logger.Error("DialTimeout failed", slog.String("addr", addr), slog.Any("err", err))
 		return nil, err
 	}
 
@@ -127,12 +137,18 @@ func (p *TCPConnPool) Put(addr string, conn net.Conn, healthy bool) {
 
 	lst, exists := p.pools[addr]
 	if !exists {
-		conn.Close()
+		err := conn.Close()
+		if err != nil {
+			p.logger.Error("Close conn failed (no pool)", slog.String("addr", addr), slog.Any("err", err))
+		}
 		return
 	}
 
 	if !healthy || lst.Len() >= p.maxIdle {
-		conn.Close()
+		err := conn.Close()
+		if err != nil {
+			p.logger.Error("Close conn failed (unhealthy/too many)", slog.String("addr", addr), slog.Bool("healthy", healthy), slog.Int("poolSize", lst.Len()), slog.Any("err", err))
+		}
 		return
 	}
 
@@ -142,6 +158,7 @@ func (p *TCPConnPool) Put(addr string, conn net.Conn, healthy bool) {
 		lastUsed: time.Now(),
 	}
 	pc.elem = lst.PushFront(pc)
+	p.logger.Info("Put conn to pool", slog.String("addr", addr), slog.Int("poolSize", lst.Len()))
 }
 
 func (p *TCPConnPool) Close() {
@@ -169,6 +186,7 @@ func NewTCPProtocolWithPool(pool *TCPConnPool, dialTimeout, ioTimeout time.Durat
 func (t *TCPProtocolWithPool) DoRequest(addr string, reqData []byte) ([]byte, error) {
 	conn, err := t.pool.Get(addr, t.dialTimeout, t.ioTimeout)
 	if err != nil {
+		t.logger.Error("Get conn from pool failed", slog.String("addr", addr), slog.Any("err", err))
 		return nil, err
 	}
 
@@ -176,6 +194,7 @@ func (t *TCPProtocolWithPool) DoRequest(addr string, reqData []byte) ([]byte, er
 
 	_, err = conn.Write(reqData)
 	if err != nil {
+		t.logger.Error("Write to conn failed", slog.String("addr", addr), slog.Any("err", err))
 		t.pool.Put(addr, conn, false)
 		return nil, err
 	}
@@ -183,6 +202,7 @@ func (t *TCPProtocolWithPool) DoRequest(addr string, reqData []byte) ([]byte, er
 	reader := bufio.NewReader(conn)
 	line, err := reader.ReadString('\n')
 	if err != nil {
+		t.logger.Error("ReadString from conn failed", slog.String("addr", addr), slog.Any("err", err))
 		t.pool.Put(addr, conn, false)
 		return nil, err
 	}
