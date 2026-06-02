@@ -101,6 +101,7 @@ func (p *TCPConnPool) Get(addr string, dialTimeout, ioTimeout time.Duration) (ne
 		lst.Remove(e)
 		pc.elem = nil
 		p.Unlock()
+		_ = pc.conn.SetDeadline(time.Now().Add(ioTimeout))
 		return pc.conn, nil
 	}
 
