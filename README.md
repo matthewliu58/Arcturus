@@ -1,16 +1,8 @@
 # SkyAccel
 
-Modern cloud services increasingly rely on latency-sensitive workloads (LSWs) characterized by bursty arrivals, CPU-intensive execution, and stringent latency requirements. Existing commercial cloud acceleration services (CCASs) are tightly coupled to vendor-specific infrastructures, resulting in limited deployment flexibility and poor portability across heterogeneous multi-cloud environments. 
+SkyAccel is a cross-cloud traffic acceleration system for latency-sensitive workloads (LSWs). It separates end-to-end traffic control into two domains — execution stability at the edge and inter-cloud routing optimization in the core — dynamically steering requests across heterogeneous VMs spanning multiple cloud providers without vendor lock-in.
 
-We present SkyAccel, a cross-cloud traffic acceleration system for LSWs. We identify an inherent asymmetry in end-to-end traffic control. The edge domain focuses on execution stability under dynamic CPU contention, whereas the core domain focuses on routing optimization across heterogeneous inter-cloud paths. 
-
-Motivated by this observation, SkyAccel adopts an asymmetry-aware control decomposition (ACD) that separates execution stability control at the edge from routing optimization in the core. 
-
-SkyAccel dynamically steers requests and schedules execution across heterogeneous virtual machines (VMs) spanning multiple cloud providers without relying on vendor-specific networking infrastructure. 
-
-Evaluation shows that SkyAccel reduces 90th-percentile latency by 24--60%, maintains stable performance on resource-constrained 2-core instances under workloads of up to 200K connections per minute, and lowers traffic delivery cost by 3×--30× compared to state-of-the-art CCASs.
-
-SkyAccel is a high-performance network acceleration project focused on optimizing network transmission performance and stability. It adopts a layered architecture design, combining heuristic algorithms and Lyapunov optimization to implement network routing, providing users with faster and more reliable network experience.
+**Key results**: 24–60% reduction in 90th-percentile latency, stable performance on 2-core instances under 200K connections per minute, and 3×–30× lower delivery cost versus commercial cloud acceleration services.
 
 ## System Architecture
 
@@ -57,45 +49,17 @@ Client ──► [2. Connect with Route] ──► Data Proxy (:8081) ──► 
 
 ## Quick Start
 
-### Quick Setup Scripts
-
-For rapid deployment, you can use the provided setup scripts:
+### 1. Environment Setup
 
 ```bash
-# 1. Install basic environment (Go, tools)
+# Install Go 1.21.3, git, curl, htop, tmux
 bash basic-env.sh
 
-# 2. Optimize network settings (BBR, kernel parameters)
+# Apply network optimizations (BBR, kernel params, fd limits)
 bash optimize-network.sh
 ```
 
-**basic-env.sh**: Installs Go 1.21.3, git, curl, htop, tmux and configures environment variables.
-
-**optimize-network.sh**: Applies network optimizations including:
-- TCP kernel parameter tuning
-- BBR congestion control
-- File descriptor limits
-- Hardware offloading
-- Memory management
-
-### Start Services
-
-**Option A: Quick start (development/testing)**
-```bash
-bash start-services.sh
-```
-This script builds and starts all services in the background using nohup.
-
-**Option B: Systemd service (production)**
-```bash
-bash setup-systemd.sh
-```
-This script builds services and registers them as systemd services with:
-- Auto-start on boot
-- Auto-restart on failure
-- Centralized logging via syslog
-
-### 1. Define Your Cluster Topology
+### 2. Define Your Cluster Topology
 
 Edit `cluster-info.txt` to describe all nodes in your cluster:
 
@@ -145,7 +109,7 @@ node3:
 | `role` | `master` (runs etcd + control-plane) or `slave` (data-plane + data-proxy only) |
 | `server` | For slaves: private IP of a master node to connect to |
 
-### 2. Configure Components
+### 3. Configure Components
 
 Each component has its own `config.yaml`. The `deploy.sh` script auto-fills IP and location fields; you only need to tweak the rest.
 
@@ -239,7 +203,7 @@ node:                           # Auto-filled by deploy.sh
 | `test_routing[].port` | The user-facing port; must match a `listeners` port |
 | `test_routing[].path` | Target origin servers (comma-separated `IP` or `IP:Port`) |
 
-### 3. Configure Origin Server Probing
+### 4. Configure Origin Server Probing
 
 Place `probe-targets.json` next to the control-plane binary (same directory as the executable):
 
@@ -272,7 +236,17 @@ Place `probe-targets.json` next to the control-plane binary (same directory as t
 
 Each entry defines an origin server (e.g., your web server). The Data Plane nodes will probe these origins and report latency back to the Control Plane. When a user request arrives at `POST /api/v1/routing/last` with `Dest.Port`, the system looks up the corresponding origin via `server_port`.
 
-### 4. Deploy
+### 5. Deploy & Start Services
+
+**Option A: Single-node quick start (development/testing)**
+
+```bash
+bash start-services.sh
+```
+
+Builds and starts all services in the background using nohup.
+
+**Option B: Multi-node deploy (production)**
 
 ```bash
 # Deploy to all nodes defined in cluster-info.txt
@@ -280,16 +254,18 @@ bash deploy.sh --deploy-all
 
 # Deploy to a specific node
 bash deploy.sh --deploy node1
-
-# Docker alternative (single node)
-bash build-docker.sh
 ```
 
 The `deploy.sh` script:
 1. Auto-fills IP, provider, and location fields in all `config.yaml` files
-2. Packages the project into a tarball
-3. SCPs it to each remote node
-4. Runs `setup-systemd.sh` to build Go binaries and register systemd services
+2. Packages the project into a tarball and SCPs it to each remote node
+3. Runs `setup-systemd.sh` to build Go binaries and register systemd services (auto-start on boot, auto-restart on failure)
+
+**Option C: Docker**
+
+```bash
+bash build-docker.sh
+```
 
 ---
 
