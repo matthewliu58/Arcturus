@@ -26,13 +26,26 @@ The SkyAccel project consists of three main components:
 
 ```
 User Traffic ──► Data Proxy (:8081) ──► Edge Node ──► Origin Server
-                      │
-                      ▼
-              Control Plane (:7081) ◄── Query routing decisions
-                      │
+                      │                        │
+                      ▼                        │
+              Control Plane (:7081) ◄─────────┘
+                      │              Query routing path
                       ▼
                  etcd Cluster ◄── Data Plane reports telemetry
 ```
+
+**Architecture Flow Explanation:**
+
+**User Request Path:**
+1. User connects to Data Proxy on port 8081
+2. Data Proxy queries Control Plane for optimal routing decisions
+3. Control Plane returns the best Edge Node and path to Origin Server
+4. Data Proxy forwards traffic through Edge Node to Origin Server
+
+**Telemetry Data Flow:**
+1. Data Plane nodes continuously probe network quality and CPU metrics
+2. Telemetry data is reported to etcd cluster
+3. Control Plane reads real-time data from etcd for routing optimization
 
 ## Core Features
 
@@ -353,34 +366,6 @@ curl -X POST "http://<control-plane-ip>:7081/api/v1/routing/last?ip=<user-ip>&al
 
 - `Rtt` — probability/weight for this path (sums to 1.0 across all paths)
 - `RawRTT` — raw combined score (lower = better)
-
-### Complete User Flow
-
-```
-1. User connects to Data Proxy on port 8081
-2. Data Proxy calls Control Plane:
-   POST /api/v1/routing/middle  → finds best inter-node path
-   POST /api/v1/routing/last   → finds best edge→origin path
-3. Data Proxy forwards traffic through the computed path
-4. Data Plane continuously probes origins and reports to Control Plane
-```
-
-### Health Check
-
-```bash
-curl http://<control-plane-ip>:7081/health
-# → "success"
-```
-
-### Probe Tasks (for Data Plane nodes)
-
-```bash
-curl "http://<control-plane-ip>:7081/api/v1/probe/tasks?ip=<node-ip>"
-```
-
-Returns the list of targets each Data Plane node should probe (other nodes + origin servers from `probe-targets.json`).
-
----
 
 ## Port Reference
 
