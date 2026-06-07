@@ -35,8 +35,8 @@ Client ──► [2. Connect with Route] ──► Data Proxy (:8081) ──► 
 
 **User Request Path:**
 1. Client queries Control Plane (:7081) for routing decision
-2. Control Plane returns optimal Edge Node and path
-3. Client connects to Data Proxy (:8081) with routing info
+2. Control Plane returns optimal Edge Node and path based on destination port
+3. Client connects to Data Proxy (:8081, user-facing service port) with routing info
 4. Data Proxy forwards traffic through Edge Node to Origin Server
 
 **Telemetry Data Flow:**
@@ -56,12 +56,6 @@ Client ──► [2. Connect with Route] ──► Data Proxy (:8081) ──► 
 ---
 
 ## Quick Start
-
-### Prerequisites
-
-- Go 1.21+
-- Linux server (Ubuntu 20.04+ recommended)
-- At least 2 nodes with public IPs
 
 ### Quick Setup Scripts
 
