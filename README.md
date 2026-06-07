@@ -4,6 +4,16 @@
 **Status**: Production-ready  
 **License**: MIT
 
+Modern cloud services increasingly rely on latency-sensitive workloads (LSWs) characterized by bursty arrivals, CPU-intensive execution, and stringent latency requirements. Existing commercial cloud acceleration services (CCASs) are tightly coupled to vendor-specific infrastructures, resulting in limited deployment flexibility and poor portability across heterogeneous multi-cloud environments. 
+
+We present SkyAccel, a cross-cloud traffic acceleration system for LSWs. We identify an inherent asymmetry in end-to-end traffic control. The edge domain focuses on execution stability under dynamic CPU contention, whereas the core domain focuses on routing optimization across heterogeneous inter-cloud paths. 
+
+Motivated by this observation, SkyAccel adopts an asymmetry-aware control decomposition (ACD) that separates execution stability control at the edge from routing optimization in the core. 
+
+SkyAccel dynamically steers requests and schedules execution across heterogeneous virtual machines (VMs) spanning multiple cloud providers without relying on vendor-specific networking infrastructure. 
+
+Evaluation shows that SkyAccel reduces 90th-percentile latency by 24--60%, maintains stable performance on resource-constrained 2-core instances under workloads of up to 200K connections per minute, and lowers traffic delivery cost by 3×--30× compared to state-of-the-art CCASs.
+
 SkyAccel is a high-performance network acceleration project focused on optimizing network transmission performance and stability. It adopts a layered architecture design, combining heuristic algorithms and Lyapunov optimization to implement network routing, providing users with faster and more reliable network experience.
 
 ## System Architecture
