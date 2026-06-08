@@ -4,6 +4,8 @@ SkyAccel is a cross-cloud traffic acceleration system for latency-sensitive work
 
 **Key results**: 24–60% reduction in 90th-percentile latency, stable performance on 2-core instances under 200K connections per minute, and 3×–30× lower delivery cost versus commercial cloud acceleration services.
 
+![SkyAccel Architecture](skyaccel.png)
+
 ## System Architecture
 
 The SkyAccel project consists of three main components:
