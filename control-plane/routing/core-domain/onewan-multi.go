@@ -5,6 +5,7 @@ import (
 	"control-plane/routing/routing"
 	"fmt"
 	"log/slog"
+	"strings"
 )
 
 // ComputingMulti finds diverse paths from one start to multiple destinations.
@@ -35,12 +36,17 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		return nil, fmt.Errorf("start node %s not found", start)
 	}
 
-	// Step 1: Generate candidate paths for each destination
+	// Step 1: Generate candidate paths for each destination using Yen's algorithm with pure Latency
 	type destCandidates struct {
 		end   string
 		paths []routing.PathInfo
 	}
 	var allCandidates []destCandidates
+
+	logger.Info("ONEWAN multi: generating candidate paths for each destination",
+		slog.String("pre", pre),
+		slog.String("start", start),
+		slog.Any("destinations", ends))
 
 	for _, end := range ends {
 		if _, ok := nodes[end]; !ok {
@@ -49,21 +55,42 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 			continue
 		}
 
-		candidates, err := solver.maxFlowPaths(start, end, graph_, solver.maxPaths, logger)
+		// Use Yen's algorithm with pure Latency for candidate path generation
+		kspSolver := NewKShortestSolverWithLatency(solver.edges, solver.maxPaths, true)
+		paths, err := kspSolver.yensAlgorithm(start, end, graph_, logger)
 		if err != nil {
-			logger.Warn("ONEWAN multi: maxFlowPaths failed for destination",
+			logger.Warn("ONEWAN multi: yensAlgorithm failed for destination",
 				slog.String("pre", pre), slog.String("end", end), slog.Any("err", err))
 			continue
 		}
 
-		// Apply maxPaths limit
-		filtered := candidates
-		if len(filtered) > solver.maxPaths {
-			filtered = filtered[:solver.maxPaths]
+		// Convert to PathInfo format
+		var pathInfos []routing.PathInfo
+		for _, path := range paths {
+			pathInfos = append(pathInfos, routing.PathInfo{
+				Hops:   path.hops,
+				Rtt:    path.cost, // This is the Latency-based cost
+				RawRTT: path.rawRTT,
+			})
 		}
 
-		if len(filtered) > 0 {
-			allCandidates = append(allCandidates, destCandidates{end: end, paths: filtered})
+		// Log candidate paths for this destination
+		logger.Info("ONEWAN multi: candidate paths for destination",
+			slog.String("pre", pre),
+			slog.String("end", end),
+			slog.Int("candidate_count", len(pathInfos)))
+		for i, p := range pathInfos {
+			logger.Debug("ONEWAN multi: candidate path",
+				slog.String("pre", pre),
+				slog.String("end", end),
+				slog.Int("index", i),
+				slog.Float64("latency", p.Rtt),
+				slog.Float64("rawRTT", p.RawRTT),
+				slog.String("hops", strings.Join(p.Hops, "->")))
+		}
+
+		if len(pathInfos) > 0 {
+			allCandidates = append(allCandidates, destCandidates{end: end, paths: pathInfos})
 		}
 	}
 
@@ -116,10 +143,25 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 				// Add new paths and update load and score
 				for _, path := range combo {
 					newState.paths = append(newState.paths, path)
-					newState.score += path.Rtt // Use existing path weight directly
+
+					// First pass: update node load (count how many times each node is passed)
+					// Node load = number of times passed through
 					for _, node := range path.Hops {
 						newState.load[node] += 1.0
 					}
+
+					// Calculate path score: base latency + load penalty
+					// Score = path latency + sum(load^2) for all nodes in path
+					// Use square penalty for load balancing: higher node load = higher penalty
+					pathScore := path.Rtt // base latency
+
+					// Add load penalty: higher load = higher penalty (using sum of squares)
+					for _, node := range path.Hops {
+						load := newState.load[node]
+						pathScore += load * load // load square penalty
+					}
+
+					newState.score += pathScore
 				}
 
 				newBeam = append(newBeam, newState)
@@ -172,32 +214,43 @@ func filterPathsByHops(paths []routing.PathInfo, maxHops int) []routing.PathInfo
 	return result
 }
 
-// generatePathCombinationsExactSize generates all combinations of exactly size paths
+// generatePathCombinationsExactSize generates combinations of paths with EXACTLY the specified size.
+// FIXED: No longer returns variable-length combinations (1,2,...size).
+// If insufficient paths are available, returns ALL available paths as a single valid combination.
 func generatePathCombinationsExactSize(paths []routing.PathInfo, size int) [][]routing.PathInfo {
-	if size > len(paths) {
-		// If we don't have enough paths, return all possible combinations of smaller sizes
-		var result [][]routing.PathInfo
-		for actualSize := 1; actualSize <= len(paths); actualSize++ {
-			combinations := generateCombinationsOfSize(paths, actualSize, 0, make([]routing.PathInfo, actualSize))
-			result = append(result, combinations...)
-		}
-		return result
+	// Return empty if no paths are available
+	if len(paths) == 0 {
+		return [][]routing.PathInfo{}
 	}
 
-	return generateCombinationsOfSize(paths, size, 0, make([]routing.PathInfo, size))
+	// Standard case: generate combinations of exactly 'size' paths
+	if len(paths) >= size {
+		return generateCombinationsOfSize(paths, size, 0, make([]routing.PathInfo, size))
+	}
+
+	// Fallback: Not enough paths, return all available paths as a single fixed combination
+	// Ensures stable output length for business logic
+	fixedCombo := make([]routing.PathInfo, len(paths))
+	copy(fixedCombo, paths)
+	return [][]routing.PathInfo{fixedCombo}
 }
 
-// generateCombinationsOfSize generates all combinations of a specific size
+// generateCombinationsOfSize recursively generates all unique combinations of paths with a specific length
+// paths: the list of candidate paths
+// size: remaining number of paths to choose
+// start: starting index to avoid duplicate combinations
+// current: temporary slice to store the current combination being built
 func generateCombinationsOfSize(paths []routing.PathInfo, size, start int, current []routing.PathInfo) [][]routing.PathInfo {
 	var result [][]routing.PathInfo
 
+	// Base case: combination is complete, save a copy
 	if size == 0 {
-		// Make a copy of current combination
 		comb := make([]routing.PathInfo, len(current))
 		copy(comb, current)
 		return [][]routing.PathInfo{comb}
 	}
 
+	// Recursively build combinations
 	for i := start; i <= len(paths)-size; i++ {
 		current[len(current)-size] = paths[i]
 		subCombinations := generateCombinationsOfSize(paths, size-1, i+1, current)

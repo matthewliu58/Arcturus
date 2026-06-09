@@ -108,6 +108,7 @@ func omParseCost266Edges(filePath string) []*graph.Edge {
 						SourceIp:      source,
 						DestinationIp: target,
 						EdgeWeight:    edgeWeight,
+						Load:          defaultCPU,
 						Latency:       rawRTT,
 						Loss:          defaultLoss,
 					})
@@ -115,6 +116,7 @@ func omParseCost266Edges(filePath string) []*graph.Edge {
 						SourceIp:      target,
 						DestinationIp: source,
 						EdgeWeight:    edgeWeight,
+						Load:          defaultCPU,
 						Latency:       rawRTT,
 						Loss:          defaultLoss,
 					})
@@ -123,21 +125,6 @@ func omParseCost266Edges(filePath string) []*graph.Edge {
 		}
 	}
 	return edges
-}
-
-func omCalculateRawRTT(hops []string, edges []*graph.Edge) float64 {
-	rawRTT := 0.0
-	for i := 0; i < len(hops)-1; i++ {
-		source := hops[i]
-		target := hops[i+1]
-		for _, edge := range edges {
-			if edge.SourceIp == source && edge.DestinationIp == target {
-				rawRTT += edge.Latency
-				break
-			}
-		}
-	}
-	return rawRTT
 }
 
 func TestONEWANMultiSolver(t *testing.T) {
@@ -166,9 +153,9 @@ func TestONEWANMultiSolver(t *testing.T) {
 		graph_[e.SourceIp] = append(graph_[e.SourceIp], e)
 	}
 
-	// Step 1: Show individual paths for each destination
-	fmt.Printf("[STEP 1] Individual Paths for Each Destination (Candidate Paths):\n")
-	fmt.Printf("===============================================================\n")
+	// Step 1: Show individual paths for each destination using Latency-based Yen's algorithm
+	fmt.Printf("\n[STEP 1] Individual Paths for Each Destination (Candidate Paths - using Latency):\n")
+	fmt.Printf("================================================================================\n\n")
 
 	type destCandidates struct {
 		end   string
@@ -177,19 +164,63 @@ func TestONEWANMultiSolver(t *testing.T) {
 	var allCandidates []destCandidates
 
 	for _, dest := range dests {
-		fmt.Printf("\n  Destination: %s\n", dest)
-		fmt.Printf("  %s\n", strings.Repeat("-", 60))
+		fmt.Printf("\n")
+		fmt.Printf("  ===================================================================\n")
+		fmt.Printf("  DESTINATION: %s\n", dest)
+		fmt.Printf("  ===================================================================\n")
 
-		paths, err := solver.Computing(source, dest, "TEST", logger)
+		// Use Yen's algorithm with pure Latency (same as ComputingMulti)
+		kspSolver := NewKShortestSolverWithLatency(edges, 5, true)
+		pathResults, err := kspSolver.yensAlgorithm(source, dest, graph_, logger)
 		if err != nil {
 			fmt.Printf("    Error: %v\n", err)
 			continue
 		}
 
+		// Convert to PathInfo
+		var paths []routing.PathInfo
+		for _, p := range pathResults {
+			paths = append(paths, routing.PathInfo{
+				Hops:   p.hops,
+				Rtt:    p.cost,
+				RawRTT: p.rawRTT,
+			})
+		}
+
+		fmt.Printf("    Total candidate paths found: %d\n", len(paths))
+		fmt.Printf("    -------------------------------------------------------------------\n")
+		fmt.Printf("      Idx | Latency  | Hops | Path\n")
+		fmt.Printf("    -------------------------------------------------------------------\n")
+
 		for i, path := range paths {
 			hopStr := strings.Join(path.Hops, " -> ")
-			fmt.Printf("    [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
-				i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
+			// Truncate long paths for display
+			if len(hopStr) > 55 {
+				hopStr = hopStr[:52] + "..."
+			}
+			fmt.Printf("      [%d] | %-8s | %-4d | %s\n",
+				i+1, fmt.Sprintf("%.2fms", path.Rtt), len(path.Hops)-1, hopStr)
+		}
+		fmt.Printf("    -------------------------------------------------------------------\n\n")
+
+		// Detailed path information
+		for i, path := range paths {
+			fmt.Printf("      --- Path [%d] Details ------------------------------------------\n", i+1)
+			fmt.Printf("      Full Path: %s\n", strings.Join(path.Hops, " -> "))
+			fmt.Printf("      Latency: %.2fms, Hops: %d\n", path.Rtt, len(path.Hops)-1)
+			fmt.Printf("      Edge Breakdown:\n")
+			for j := 0; j < len(path.Hops)-1; j++ {
+				src := path.Hops[j]
+				dst := path.Hops[j+1]
+				for _, edge := range graph_[src] {
+					if edge.DestinationIp == dst {
+						fmt.Printf("        %s -> %s: Latency=%.2fms, Load=%.1f, EdgeWeight=%.4f\n",
+							src, dst, edge.Latency, edge.Load, edge.EdgeWeight)
+						break
+					}
+				}
+			}
+			fmt.Printf("      ----------------------------------------------------------------\n\n")
 		}
 
 		if len(paths) > 0 {
