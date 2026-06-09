@@ -16,6 +16,7 @@ const ( //middle
 	CarouselGreedy = "carousel_greed"
 	LiveNet        = "live_net"
 	ONEWAN         = "onewan"
+	ONEWANMulti    = "onewan_multi" // 1-source → N-destinations
 )
 const ( //last
 	Lyapunov        = "lyapunov"
@@ -152,6 +153,56 @@ func LastRouting(g *graph.GraphManager, a *agg.GlobalStats, endPoints routing.En
 
 	rout := routing.RoutingInfo{Routing: paths}
 	logger.Info("LastRouting result", slog.String("pre", pre), slog.Any("rout", rout))
+
+	return rout
+}
+
+// --- Multi-endpoint routing (1 source → N destinations) ---
+
+// ComputingMiddleMultiInterface supports routing from one source to multiple destinations.
+type ComputingMiddleMultiInterface interface {
+	ComputingMulti(start string, ends []string, pre string, logger *slog.Logger) ([]routing.PathInfo, error)
+}
+
+// RoutingMiddleMultiInterface wraps a multi-end middle-router solver.
+type RoutingMiddleMultiInterface struct {
+	Operate ComputingMiddleMultiInterface
+}
+
+// InitMiddleMultiInterface creates a solver for 1→N destination routing.
+func InitMiddleMultiInterface(g *graph.GraphManager, algorithm string, pre string, logger *slog.Logger) RoutingMiddleMultiInterface {
+	edges := g.GetEdges()
+	switch algorithm {
+	case ONEWANMulti:
+		solver := middle.NewONEWANSolver(edges, 2) // 2 paths per destination
+		return RoutingMiddleMultiInterface{Operate: solver}
+	default:
+		return RoutingMiddleMultiInterface{}
+	}
+}
+
+// MiddleRoutingMulti computes routes from one source to multiple destinations.
+// Each destination gets up to maxPaths diverse paths (default 2 for onewan_multi).
+func MiddleRoutingMulti(g *graph.GraphManager, start string, ends []string, algorithm, pre string, logger *slog.Logger) routing.RoutingInfo {
+	logger.Info("MiddleRoutingMulti", slog.String("pre", pre),
+		slog.String("start", start), slog.Any("ends", ends))
+
+	solver := InitMiddleMultiInterface(g, algorithm, pre, logger)
+	if solver.Operate == nil {
+		logger.Warn("MiddleRoutingMulti: unsupported algorithm",
+			slog.String("pre", pre), slog.String("algorithm", algorithm))
+		return routing.RoutingInfo{}
+	}
+
+	paths, err := solver.Operate.ComputingMulti(start, ends, pre, logger)
+	if err != nil {
+		logger.Warn("MiddleRoutingMulti failed", slog.String("pre", pre), slog.Any("err", err))
+		return routing.RoutingInfo{}
+	}
+
+	rout := routing.RoutingInfo{Routing: paths}
+	logger.Info("MiddleRoutingMulti result", slog.String("pre", pre),
+		slog.Int("paths", len(paths)), slog.Any("rout", rout))
 
 	return rout
 }

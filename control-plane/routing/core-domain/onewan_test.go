@@ -208,6 +208,117 @@ func TestONEWANSolverSameStartEnd(t *testing.T) {
 	}
 }
 
+// --- ComputingMulti tests ---
+
+func TestComputingMulti_Basic(t *testing.T) {
+	edges := createTestGraph()
+	solver := NewONEWANSolver(edges, 3) // 3 paths per destination
+	logger := getTestLogger()
+
+	ends := []string{"D", "F"}
+	paths, err := solver.ComputingMulti("A", ends, "test", logger)
+	if err != nil {
+		t.Fatalf("ComputingMulti failed: %v", err)
+	}
+	if len(paths) == 0 {
+		t.Fatal("Expected at least one path, got none")
+	}
+	// 2 destinations * 3 maxPaths = 6 max, but D and F may have fewer
+	t.Logf("ComputingMulti A→%v got %d paths", ends, len(paths))
+	for i, p := range paths {
+		t.Logf("  path %d: %v (start=%s end=%s)", i, p.Hops, p.Hops[0], p.Hops[len(p.Hops)-1])
+	}
+
+	// All paths must start at A
+	for i, p := range paths {
+		if p.Hops[0] != "A" {
+			t.Errorf("path %d does not start at A: %v", i, p.Hops)
+		}
+	}
+}
+
+func TestComputingMulti_SingleDest(t *testing.T) {
+	edges := createTestGraph()
+	solver := NewONEWANSolver(edges, 5)
+	logger := getTestLogger()
+
+	// Single destination should delegate to Computing and return same result
+	multiPaths, err := solver.ComputingMulti("A", []string{"F"}, "test", logger)
+	if err != nil {
+		t.Fatalf("ComputingMulti single dest failed: %v", err)
+	}
+	singlePaths, err := solver.Computing("A", "F", "test", logger)
+	if err != nil {
+		t.Fatalf("Computing failed: %v", err)
+	}
+	if len(multiPaths) != len(singlePaths) {
+		t.Errorf("ComputingMulti single dest got %d paths, Computing got %d", len(multiPaths), len(singlePaths))
+	}
+	t.Logf("multi=%d paths, single=%d paths", len(multiPaths), len(singlePaths))
+}
+
+func TestComputingMulti_EmptyEnds(t *testing.T) {
+	edges := createTestGraph()
+	solver := NewONEWANSolver(edges, 5)
+	logger := getTestLogger()
+
+	// Empty ends falls back to Computing(start, "") — "" is not a node, so expects error
+	_, err := solver.ComputingMulti("A", nil, "test", logger)
+	if err == nil {
+		t.Fatal("Expected error when ends list is empty (fallback to empty end)")
+	}
+	t.Logf("Correctly errored on empty ends: %v", err)
+}
+
+func TestComputingMulti_SomeUnreachable(t *testing.T) {
+	edges := createTestGraph()
+	solver := NewONEWANSolver(edges, 3)
+	logger := getTestLogger()
+
+	// Z is unreachable, F is reachable → should return paths to F, skip Z
+	ends := []string{"Z", "F"}
+	paths, err := solver.ComputingMulti("A", ends, "test", logger)
+	if err != nil {
+		t.Fatalf("ComputingMulti with unreachable dest failed: %v", err)
+	}
+	if len(paths) == 0 {
+		t.Fatal("Expected paths to reachable destination F, got none")
+	}
+	// All paths should end at F
+	for i, p := range paths {
+		last := p.Hops[len(p.Hops)-1]
+		if last != "F" {
+			t.Errorf("path %d ends at %s, expected F: %v", i, last, p.Hops)
+		}
+	}
+	t.Logf("ComputingMulti A→[Z,F] got %d paths (all to F)", len(paths))
+}
+
+func TestComputingMulti_AllUnreachable(t *testing.T) {
+	edges := createTestGraph()
+	solver := NewONEWANSolver(edges, 3)
+	logger := getTestLogger()
+
+	// All destinations unreachable
+	_, err := solver.ComputingMulti("A", []string{"Z", "Y"}, "test", logger)
+	if err == nil {
+		t.Fatal("Expected error when all destinations are unreachable")
+	}
+	t.Logf("Correctly errored: %v", err)
+}
+
+func TestComputingMulti_InvalidStart(t *testing.T) {
+	edges := createTestGraph()
+	solver := NewONEWANSolver(edges, 3)
+	logger := getTestLogger()
+
+	_, err := solver.ComputingMulti("Z", []string{"A", "B"}, "test", logger)
+	if err == nil {
+		t.Fatal("Expected error for invalid start node")
+	}
+	t.Logf("Correctly errored: %v", err)
+}
+
 func TestONEWANDiversityThreshold(t *testing.T) {
 	// Two very different paths should both be selected
 	edges := []*graph.Edge{

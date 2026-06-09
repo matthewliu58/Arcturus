@@ -126,6 +126,52 @@ func (h *UserRoutingAPIHandler) GetLastRoute(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
+// MultiDestRequest is the request body for multi-destination routing.
+type MultiDestRequest struct {
+	Source string   `json:"source" binding:"required"`
+	Dests  []string `json:"dests" binding:"required"`
+}
+
+func (h *UserRoutingAPIHandler) GetMiddleRouteMulti(c *gin.Context) {
+	pre := c.Query("ip")
+	pre += util.GenerateRandomLetters(5)
+
+	h.Logger.Info("GetMiddleRouteMulti", slog.String("pre", pre))
+
+	resp := rece.ApiResponse{
+		Code: 500,
+		Msg:  "Internal server error",
+		Data: nil,
+	}
+
+	var req MultiDestRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		resp.Code = 400
+		resp.Msg = "Request body parsing failed: " + err.Error()
+		c.JSON(http.StatusOK, resp)
+		h.Logger.Warn("GetMiddleRouteMulti parse body failed", slog.String("pre", pre), slog.Any("error", err))
+		return
+	}
+
+	h.Logger.Info("GetMiddleRouteMulti request", slog.String("pre", pre),
+		slog.String("source", req.Source), slog.Any("dests", req.Dests))
+
+	algorithm := c.Query("algorithm")
+	if len(algorithm) <= 0 {
+		algorithm = routing1.ONEWANMulti
+	}
+
+	paths := routing1.MiddleRoutingMulti(h.GraphManager, req.Source, req.Dests,
+		algorithm, pre, h.Logger)
+	h.Logger.Info("GetMiddleRouteMulti response", slog.String("pre", pre),
+		slog.Any("routing", paths))
+
+	resp.Code = 200
+	resp.Msg = "Successfully obtained paths"
+	resp.Data = paths
+	c.JSON(http.StatusOK, resp)
+}
+
 func InitUserRoutingRouter(router *gin.Engine, gm *graph.GraphManager,
 	gs *agg.GlobalStats, logger *slog.Logger) *gin.Engine {
 	apiV1 := router.Group("/api/v1")
@@ -133,7 +179,8 @@ func InitUserRoutingRouter(router *gin.Engine, gm *graph.GraphManager,
 		routingGroup := apiV1.Group("/routing")
 		{
 			handler := NewUserRoutingAPIHandler(gm, gs, logger)
-			routingGroup.POST("/middle", handler.GetMiddleRoute) // POST /api/v1/routing
+			routingGroup.POST("/middle", handler.GetMiddleRoute) // POST /api/v1/routing/middle
+			routingGroup.POST("/middle/multi", handler.GetMiddleRouteMulti) // POST /api/v1/routing/middle/multi
 			routingGroup.POST("/last", handler.GetLastRoute)
 		}
 	}

@@ -390,6 +390,96 @@ func (os *ONEWANSolver) calculatePathCost(hops []string, graph_ map[string][]*gr
 	return cost
 }
 
+// ComputingMulti finds diverse paths from one start to multiple destinations.
+// For each destination, up to maxPaths paths are found independently.
+// Destinations that are unreachable are skipped; an error is returned only if
+// no paths can be found for any destination.
+func (os *ONEWANSolver) ComputingMulti(start string, ends []string, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
+	if len(ends) == 0 {
+		// Fall back to single-end behavior with empty end
+		return os.Computing(start, "", pre, logger)
+	}
+
+	// Single destination: delegate to existing single-end Computing
+	if len(ends) == 1 {
+		return os.Computing(start, ends[0], pre, logger)
+	}
+
+	// Build graph once so we can validate nodes without rebuilding per call
+	graph_ := make(map[string][]*graph.Edge)
+	nodes := make(map[string]struct{})
+	for _, e := range os.edges {
+		graph_[e.SourceIp] = append(graph_[e.SourceIp], e)
+		nodes[e.SourceIp] = struct{}{}
+		nodes[e.DestinationIp] = struct{}{}
+	}
+
+	if _, ok := nodes[start]; !ok {
+		return nil, fmt.Errorf("start node %s not found", start)
+	}
+
+	// Distribute paths evenly across destinations, preferring lower-latency ones.
+	// Phase 1: collect candidates for every reachable destination.
+	type destCandidates struct {
+		end   string
+		paths []routing.PathInfo
+	}
+	var allCandidates []destCandidates
+
+	for _, end := range ends {
+		if _, ok := nodes[end]; !ok {
+			logger.Warn("ONEWAN multi: destination not in graph, skipping",
+				slog.String("pre", pre), slog.String("end", end))
+			continue
+		}
+
+		candidates, err := os.maxFlowPaths(start, end, graph_, os.maxPaths, logger)
+		if err != nil {
+			logger.Warn("ONEWAN multi: maxFlowPaths failed for destination",
+				slog.String("pre", pre), slog.String("end", end), slog.Any("err", err))
+			continue
+		}
+
+		filtered := os.diversityFilter(candidates)
+		if len(filtered) > os.maxPaths {
+			filtered = filtered[:os.maxPaths]
+		}
+
+		if len(filtered) > 0 {
+			allCandidates = append(allCandidates, destCandidates{end: end, paths: filtered})
+		}
+	}
+
+	if len(allCandidates) == 0 {
+		return nil, fmt.Errorf("no paths found from %s to any of %v", start, ends)
+	}
+
+	// Phase 2: interleave — pick one best path from each destination in
+	// round-robin order so load is evenly spread across destinations.
+	var result []routing.PathInfo
+	indices := make([]int, len(allCandidates))
+	total := os.maxPaths * len(allCandidates)
+	for len(result) < total {
+		added := false
+		for i, dc := range allCandidates {
+			if indices[i] < len(dc.paths) {
+				result = append(result, dc.paths[indices[i]])
+				indices[i]++
+				added = true
+			}
+		}
+		if !added {
+			break
+		}
+	}
+
+	logger.Info("ONEWAN multi paths selected", slog.String("pre", pre),
+		slog.String("start", start), slog.Int("dest_count", len(allCandidates)),
+		slog.Int("total_paths", len(result)))
+
+	return result, nil
+}
+
 // pathExists checks if a path already exists in the candidate list
 func (os *ONEWANSolver) pathExists(path routing.PathInfo, candidates []routing.PathInfo) bool {
 	for _, candidate := range candidates {
