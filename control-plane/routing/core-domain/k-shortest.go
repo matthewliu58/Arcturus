@@ -11,12 +11,18 @@ import (
 )
 
 type KShortestSolver struct {
-	edges []*graph.Edge
-	alpha float64
-	k     int
+	edges      []*graph.Edge
+	alpha      float64
+	k          int
+	useLatency bool // If true, use Latency instead of EdgeWeight for path calculation
 }
 
 func NewKShortestSolver(edges []*graph.Edge, k int) *KShortestSolver {
+	return NewKShortestSolverWithLatency(edges, k, false)
+}
+
+// NewKShortestSolverWithLatency creates a solver with option to use Latency instead of EdgeWeight
+func NewKShortestSolverWithLatency(edges []*graph.Edge, k int, useLatency bool) *KShortestSolver {
 	var g []*graph.Edge
 	for _, e := range edges {
 		g = append(g, e)
@@ -26,9 +32,10 @@ func NewKShortestSolver(edges []*graph.Edge, k int) *KShortestSolver {
 		k = 5
 	}
 	return &KShortestSolver{
-		edges: g,
-		alpha: 1,
-		k:     k,
+		edges:      g,
+		alpha:      1,
+		k:          k,
+		useLatency: useLatency,
 	}
 }
 
@@ -202,6 +209,15 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 		}
 	}
 
+	// Sort results by cost (Latency) before returning to ensure correct ordering
+	for i := 0; i < len(A)-1; i++ {
+		for j := i + 1; j < len(A); j++ {
+			if A[j].cost < A[i].cost {
+				A[i], A[j] = A[j], A[i]
+			}
+		}
+	}
+
 	return A, nil
 }
 
@@ -287,7 +303,14 @@ func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string
 			}
 
 			nextNode := e.DestinationIp
-			newCost := currCost + e.EdgeWeight*ks.alpha
+			var newCost float64
+			if ks.useLatency {
+				// Use pure Latency for path calculation
+				newCost = currCost + e.Latency*ks.alpha
+			} else {
+				// Use EdgeWeight * alpha for path calculation
+				newCost = currCost + e.EdgeWeight*ks.alpha
+			}
 			newRTT := rawRTT[currNode] + e.Latency
 
 			if newCost < dist[nextNode] {
@@ -412,7 +435,11 @@ func (ks *KShortestSolver) calculatePathCost(path []string, graph_ map[string][]
 		dest := path[i+1]
 		for _, edge := range graph_[source] {
 			if edge.DestinationIp == dest {
-				cost += edge.EdgeWeight * ks.alpha
+				if ks.useLatency {
+					cost += edge.Latency * ks.alpha
+				} else {
+					cost += edge.EdgeWeight * ks.alpha
+				}
 				break
 			}
 		}

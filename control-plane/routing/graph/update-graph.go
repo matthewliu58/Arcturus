@@ -13,6 +13,7 @@ type Edge struct {
 	SourceIp      string  `json:"source_ip"`
 	DestinationIp string  `json:"destination_ip"`
 	EdgeWeight    float64 `json:"edge_weight"`
+	Load          float64 `json:"load"`
 	Latency       float64 `json:"latency"`
 	Loss          float64 `json:"loss"`
 }
@@ -108,7 +109,7 @@ func (g *GraphManager) AddNode(node *agg.NodeTelemetry, logPre string) {
 	for _, v := range node.LinksCongestion {
 
 		var in, out, newLine string
-		var r float64
+		var r, load float64
 
 		if v.Target.TargetType == "source" {
 
@@ -129,6 +130,7 @@ func (g *GraphManager) AddNode(node *agg.NodeTelemetry, logPre string) {
 
 			newLine = in + "->" + out
 			r = EdgeRisk(outNode.CpuPressure, v.PacketLoss, v.AverageLatency, logPre, g.logger)
+			load = outNode.CpuPressure
 		}
 
 		oldLine, ok := g.edges[newLine]
@@ -139,6 +141,7 @@ func (g *GraphManager) AddNode(node *agg.NodeTelemetry, logPre string) {
 				SourceIp:      in,
 				DestinationIp: out,
 				EdgeWeight:    r,
+				Load:          load,
 				Latency:       v.AverageLatency,
 			}
 		}
