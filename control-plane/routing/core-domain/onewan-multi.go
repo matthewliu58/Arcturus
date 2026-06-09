@@ -65,6 +65,8 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 			continue
 		}
 
+		logger.Debug("yensAlgorithm", slog.String("pre", pre), slog.String("end", end), slog.Any("path", paths))
+
 		// Sort paths by latency to ensure correct ordering
 		// This is a safety measure in case Yen's algorithm returns unsorted paths
 		for i := 0; i < len(paths)-1; i++ {
@@ -74,6 +76,13 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 				}
 			}
 		}
+
+		// Debug: Print KSP paths after sorting
+		var pathDebug []string
+		for i, p := range paths {
+			pathDebug = append(pathDebug, fmt.Sprintf("[%d] cost=%.2f: %s", i+1, p.cost, strings.Join(p.hops, "->")))
+		}
+		logger.Debug("KSP paths after sorting", slog.String("end", end), slog.String("paths", strings.Join(pathDebug, "; ")))
 
 		// Convert to PathInfo format (KSP already calculates correct latency when useLatency=true)
 		var pathInfos []routing.PathInfo

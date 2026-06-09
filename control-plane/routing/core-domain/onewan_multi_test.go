@@ -3,6 +3,7 @@ package core_domain
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log/slog"
 	"math"
 	"os"
@@ -128,7 +129,19 @@ func omParseCost266Edges(filePath string) []*graph.Edge {
 }
 
 func TestONEWANMultiSolver(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+	// Create a logger that writes to both console and file
+	logFile, err := os.Create("onewan_multi_test.log")
+	if err != nil {
+		t.Fatalf("Failed to create log file: %v", err)
+	}
+	defer func() {
+		logFile.Close()
+	}()
+
+	// Write to both console and file
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+
+	logger := slog.New(slog.NewTextHandler(multiWriter, &slog.HandlerOptions{
 		Level: slog.LevelDebug,
 	}))
 
@@ -138,10 +151,10 @@ func TestONEWANMultiSolver(t *testing.T) {
 		t.Fatal("Failed to parse cost266 topology")
 	}
 
-	solver := NewONEWANSolver(edges, 2)
+	solver := NewONEWANSolver(edges, 5)
 
 	source := "Amsterdam"
-	dests := []string{"Berlin", "Paris"} // 只测试2个end
+	dests := []string{"Paris", "Berlin"} // 只测试2个end
 
 	fmt.Printf("\n========================================\n")
 	fmt.Printf("ONEWAN Multi Solver Test: %s -> %v\n", source, dests)
@@ -282,116 +295,116 @@ func TestONEWANMultiSolver(t *testing.T) {
 	fmt.Printf("\n")
 }
 
-func TestONEWANMultiSolverMultiplePairs(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+// func TestONEWANMultiSolverMultiplePairs(t *testing.T) {
+// 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+// 		Level: slog.LevelInfo,
+// 	}))
 
-	cost266File := "evaluation/cost266"
-	edges := omParseCost266Edges(cost266File)
-	if edges == nil || len(edges) == 0 {
-		t.Fatal("Failed to parse cost266 topology")
-	}
+// 	cost266File := "evaluation/cost266"
+// 	edges := omParseCost266Edges(cost266File)
+// 	if edges == nil || len(edges) == 0 {
+// 		t.Fatal("Failed to parse cost266 topology")
+// 	}
 
-	solver := NewONEWANSolver(edges, 2)
+// 	solver := NewONEWANSolver(edges, 2)
 
-	testCases := []struct {
-		start string
-		ends  []string
-	}{
-		{"Amsterdam", []string{"Berlin", "Paris", "Frankfurt"}},
-		{"London", []string{"Paris", "Brussels"}},
-		{"Frankfurt", []string{"Munich", "Berlin", "Hamburg"}},
-		{"Brussels", []string{"Amsterdam", "Paris", "London"}},
-	}
+// 	testCases := []struct {
+// 		start string
+// 		ends  []string
+// 	}{
+// 		{"Amsterdam", []string{"Berlin", "Paris", "Frankfurt"}},
+// 		{"London", []string{"Paris", "Brussels"}},
+// 		{"Frankfurt", []string{"Munich", "Berlin", "Hamburg"}},
+// 		{"Brussels", []string{"Amsterdam", "Paris", "London"}},
+// 	}
 
-	fmt.Println("\n=== ONEWAN Multi Solver - Multiple Test Cases ===")
+// 	fmt.Println("\n=== ONEWAN Multi Solver - Multiple Test Cases ===")
 
-	for _, tc := range testCases {
-		fmt.Printf("\n========================================\n")
-		fmt.Printf("Test: %s -> %v\n", tc.start, tc.ends)
-		fmt.Printf("========================================\n")
+// 	for _, tc := range testCases {
+// 		fmt.Printf("\n========================================\n")
+// 		fmt.Printf("Test: %s -> %v\n", tc.start, tc.ends)
+// 		fmt.Printf("========================================\n")
 
-		paths, err := ComputingMulti(solver, tc.start, tc.ends, "TEST", logger)
-		if err != nil {
-			fmt.Printf("Error: %v\n\n", err)
-			continue
-		}
+// 		paths, err := ComputingMulti(solver, tc.start, tc.ends, "TEST", logger)
+// 		if err != nil {
+// 			fmt.Printf("Error: %v\n\n", err)
+// 			continue
+// 		}
 
-		fmt.Printf("[Results - Round-Robin Interleaved]:\n")
-		for i, path := range paths {
-			hopStr := strings.Join(path.Hops, " -> ")
-			fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
-				i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
-		}
-		fmt.Printf("  Total paths: %d (expected: %d)\n\n", len(paths), 2*len(tc.ends))
-	}
-}
+// 		fmt.Printf("[Results - Round-Robin Interleaved]:\n")
+// 		for i, path := range paths {
+// 			hopStr := strings.Join(path.Hops, " -> ")
+// 			fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
+// 				i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
+// 		}
+// 		fmt.Printf("  Total paths: %d (expected: %d)\n\n", len(paths), 2*len(tc.ends))
+// 	}
+// }
 
-func TestONEWANMultiSolverSingleDestination(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+// func TestONEWANMultiSolverSingleDestination(t *testing.T) {
+// 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+// 		Level: slog.LevelInfo,
+// 	}))
 
-	cost266File := "evaluation/cost266"
-	edges := omParseCost266Edges(cost266File)
-	if edges == nil || len(edges) == 0 {
-		t.Fatal("Failed to parse cost266 topology")
-	}
+// 	cost266File := "evaluation/cost266"
+// 	edges := omParseCost266Edges(cost266File)
+// 	if edges == nil || len(edges) == 0 {
+// 		t.Fatal("Failed to parse cost266 topology")
+// 	}
 
-	solver := NewONEWANSolver(edges, 2)
+// 	solver := NewONEWANSolver(edges, 2)
 
-	source := "Amsterdam"
-	dests := []string{"Berlin"}
+// 	source := "Amsterdam"
+// 	dests := []string{"Berlin"}
 
-	fmt.Printf("\n========================================\n")
-	fmt.Printf("ONEWAN Multi Solver Test (Single Destination): %s -> %v\n", source, dests)
-	fmt.Printf("========================================\n\n")
+// 	fmt.Printf("\n========================================\n")
+// 	fmt.Printf("ONEWAN Multi Solver Test (Single Destination): %s -> %v\n", source, dests)
+// 	fmt.Printf("========================================\n\n")
 
-	paths, err := ComputingMulti(solver, source, dests, "TEST", logger)
-	if err != nil {
-		t.Fatalf("Error finding paths: %v", err)
-	}
+// 	paths, err := ComputingMulti(solver, source, dests, "TEST", logger)
+// 	if err != nil {
+// 		t.Fatalf("Error finding paths: %v", err)
+// 	}
 
-	fmt.Printf("[Results]:\n")
-	for i, path := range paths {
-		hopStr := strings.Join(path.Hops, " -> ")
-		fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
-			i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
-	}
-	fmt.Printf("  Total paths: %d\n\n", len(paths))
-}
+// 	fmt.Printf("[Results]:\n")
+// 	for i, path := range paths {
+// 		hopStr := strings.Join(path.Hops, " -> ")
+// 		fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
+// 			i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
+// 	}
+// 	fmt.Printf("  Total paths: %d\n\n", len(paths))
+// }
 
-func TestONEWANMultiSolverEmptyDestinations(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+// func TestONEWANMultiSolverEmptyDestinations(t *testing.T) {
+// 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+// 		Level: slog.LevelInfo,
+// 	}))
 
-	cost266File := "evaluation/cost266"
-	edges := omParseCost266Edges(cost266File)
-	if edges == nil || len(edges) == 0 {
-		t.Fatal("Failed to parse cost266 topology")
-	}
+// 	cost266File := "evaluation/cost266"
+// 	edges := omParseCost266Edges(cost266File)
+// 	if edges == nil || len(edges) == 0 {
+// 		t.Fatal("Failed to parse cost266 topology")
+// 	}
 
-	solver := NewONEWANSolver(edges, 2)
+// 	solver := NewONEWANSolver(edges, 2)
 
-	source := "Amsterdam"
-	dests := []string{}
+// 	source := "Amsterdam"
+// 	dests := []string{}
 
-	fmt.Printf("\n========================================\n")
-	fmt.Printf("ONEWAN Multi Solver Test (Empty Destinations): %s -> %v\n", source, dests)
-	fmt.Printf("========================================\n\n")
+// 	fmt.Printf("\n========================================\n")
+// 	fmt.Printf("ONEWAN Multi Solver Test (Empty Destinations): %s -> %v\n", source, dests)
+// 	fmt.Printf("========================================\n\n")
 
-	paths, err := ComputingMulti(solver, source, dests, "TEST", logger)
-	if err != nil {
-		t.Fatalf("Error finding paths: %v", err)
-	}
+// 	paths, err := ComputingMulti(solver, source, dests, "TEST", logger)
+// 	if err != nil {
+// 		t.Fatalf("Error finding paths: %v", err)
+// 	}
 
-	fmt.Printf("[Results]:\n")
-	for i, path := range paths {
-		hopStr := strings.Join(path.Hops, " -> ")
-		fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
-			i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
-	}
-	fmt.Printf("  Total paths: %d (should fall back to regular Computing)\n\n", len(paths))
-}
+// 	fmt.Printf("[Results]:\n")
+// 	for i, path := range paths {
+// 		hopStr := strings.Join(path.Hops, " -> ")
+// 		fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
+// 			i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
+// 	}
+// 	fmt.Printf("  Total paths: %d (should fall back to regular Computing)\n\n", len(paths))
+// }

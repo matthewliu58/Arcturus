@@ -22,7 +22,7 @@ func NewONEWANSolver(edges []*graph.Edge, maxPaths int) *ONEWANSolver {
 	}
 	return &ONEWANSolver{
 		edges:    g,
-		alpha:    1.2,
+		alpha:    1,
 		maxPaths: maxPaths,
 	}
 }

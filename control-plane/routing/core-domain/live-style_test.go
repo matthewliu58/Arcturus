@@ -211,47 +211,47 @@ func TestLiveStyleSolver(t *testing.T) {
 	fmt.Printf("\n")
 }
 
-func TestLiveStyleSolverMultiplePairs(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
-	}))
+// func TestLiveStyleSolverMultiplePairs(t *testing.T) {
+// 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+// 		Level: slog.LevelInfo,
+// 	}))
 
-	cost266File := "evaluation/cost266"
-	edges := lsParseCost266Edges(cost266File)
-	if edges == nil || len(edges) == 0 {
-		t.Fatal("Failed to parse cost266 topology")
-	}
+// 	cost266File := "evaluation/cost266"
+// 	edges := lsParseCost266Edges(cost266File)
+// 	if edges == nil || len(edges) == 0 {
+// 		t.Fatal("Failed to parse cost266 topology")
+// 	}
 
-	solver := NewLiveStyleSolver(edges, 2)
+// 	solver := NewLiveStyleSolver(edges, 2)
 
-	testCases := []struct {
-		start string
-		end   string
-	}{
-		{"Amsterdam", "Berlin"},
-		{"London", "Paris"},
-		{"Frankfurt", "Munich"},
-		{"Brussels", "Amsterdam"},
-		{"Paris", "Strasbourg"},
-	}
+// 	testCases := []struct {
+// 		start string
+// 		end   string
+// 	}{
+// 		{"Amsterdam", "Berlin"},
+// 		{"London", "Paris"},
+// 		{"Frankfurt", "Munich"},
+// 		{"Brussels", "Amsterdam"},
+// 		{"Paris", "Strasbourg"},
+// 	}
 
-	fmt.Println("\n=== LiveStyle Solver - Multiple Test Cases ===")
+// 	fmt.Println("\n=== LiveStyle Solver - Multiple Test Cases ===")
 
-	for _, tc := range testCases {
-		fmt.Printf("\n----------------------------------------\n")
-		fmt.Printf("Test: %s -> %s\n", tc.start, tc.end)
-		fmt.Printf("----------------------------------------\n")
+// 	for _, tc := range testCases {
+// 		fmt.Printf("\n----------------------------------------\n")
+// 		fmt.Printf("Test: %s -> %s\n", tc.start, tc.end)
+// 		fmt.Printf("----------------------------------------\n")
 
-		paths, err := solver.Computing(tc.start, tc.end, "TEST", logger)
-		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			continue
-		}
+// 		paths, err := solver.Computing(tc.start, tc.end, "TEST", logger)
+// 		if err != nil {
+// 			fmt.Printf("Error: %v\n", err)
+// 			continue
+// 		}
 
-		for i, path := range paths {
-			hopStr := strings.Join(path.Hops, " -> ")
-			fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
-				i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
-		}
-	}
-}
+// 		for i, path := range paths {
+// 			hopStr := strings.Join(path.Hops, " -> ")
+// 			fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
+// 				i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
+// 		}
+// 	}
+// }

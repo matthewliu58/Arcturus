@@ -178,7 +178,7 @@ func InitMiddleMultiInterface(g *graph.GraphManager, algorithm string, pre strin
 	edges := g.GetEdges()
 	switch algorithm {
 	case ONEWANMulti:
-		solver := middle.NewONEWANSolver(edges, 2) // 2 paths per destination
+		solver := middle.NewONEWANSolver(edges, 5) // 2 paths per destination
 		return RoutingMiddleMultiInterface{Operate: solver}
 	default:
 		return RoutingMiddleMultiInterface{}

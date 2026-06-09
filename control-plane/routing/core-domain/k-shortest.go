@@ -87,13 +87,19 @@ type Path struct {
 }
 
 func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]*graph.Edge, logger *slog.Logger) ([]Path, error) {
+	// Create a copy of the graph to avoid modifying the original
+	graphCopy := make(map[string][]*graph.Edge)
+	for src, edges := range graph_ {
+		graphCopy[src] = append([]*graph.Edge{}, edges...)
+	}
+
 	// Initialize result list
 	var A []Path
 	// Initialize candidate path list
 	var B PriorityQueue
 
 	// Find first shortest path
-	firstPath, err := ks.findShortestPath(start, end, graph_, nil, nil, logger)
+	firstPath, err := ks.findShortestPath(start, end, graphCopy, nil, nil, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -109,7 +115,7 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 				rootPath := prevPath.hops[:j+1]
 
 				// Check if spurNode has outgoing edges
-				if _, ok := graph_[spurNode]; !ok {
+				if _, ok := graphCopy[spurNode]; !ok {
 					continue
 				}
 
@@ -121,14 +127,14 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 
 				// Remove edges related to root path
 				removedEdges := make([]*graph.Edge, 0)
-				for _, edge := range graph_[spurNode] {
+				for _, edge := range graphCopy[spurNode] {
 					if !ks.isInPath(edge.DestinationIp, rootPath) {
 						removedEdges = append(removedEdges, edge)
 					}
 				}
 				// Temporarily remove these edges
-				originalEdges := graph_[spurNode]
-				graph_[spurNode] = removedEdges
+				originalEdges := graphCopy[spurNode]
+				graphCopy[spurNode] = removedEdges
 
 				// Remove edges from spur node to next node in all found paths with same prefix
 				for _, path := range A {
@@ -137,34 +143,34 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 						if j+1 < len(path.hops) {
 							target := path.hops[j+1]
 							newEdges := make([]*graph.Edge, 0)
-							for _, edge := range graph_[spurNode] {
+							for _, edge := range graphCopy[spurNode] {
 								if edge.DestinationIp != target {
 									newEdges = append(newEdges, edge)
 								}
 							}
-							graph_[spurNode] = newEdges
+							graphCopy[spurNode] = newEdges
 						}
 					}
 				}
 
 				// Skip if spur node is already the destination
 				if spurNode == end {
-					graph_[spurNode] = originalEdges
+					graphCopy[spurNode] = originalEdges
 					continue
 				}
 
 				// Skip if root path already contains the destination
 				if ks.isInPath(end, rootPath) {
-					graph_[spurNode] = originalEdges
+					graphCopy[spurNode] = originalEdges
 					continue
 				}
 
 				// Find shortest path from spur node to end, avoiding root path nodes
-				spurPath, err := ks.findShortestPath(spurNode, end, graph_, forbiddenNodes, nil, logger)
+				spurPath, err := ks.findShortestPath(spurNode, end, graphCopy, forbiddenNodes, nil, logger)
 				if err == nil {
 					// Calculate root path cost and rawRTT
-					rootCost := ks.calculatePathCost(rootPath, graph_)
-					rootRTT := ks.calculatePathRTT(rootPath, graph_)
+					rootCost := ks.calculatePathCost(rootPath, graphCopy)
+					rootRTT := ks.calculatePathRTT(rootPath, graphCopy)
 					// Build complete path
 					completePath := Path{
 						hops:   append(rootPath[:len(rootPath)-1], spurPath.hops...),
@@ -185,7 +191,7 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 				}
 
 				// Restore original edges
-				graph_[spurNode] = originalEdges
+				graphCopy[spurNode] = originalEdges
 			}
 		}
 
@@ -280,6 +286,12 @@ func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string
 			for node := end; node != ""; node = prev[node] {
 				path = append([]string{node}, path...)
 			}
+			logger.Debug("findShortestPath: found path",
+				slog.String("start", start),
+				slog.String("end", end),
+				slog.String("path", strings.Join(path, "->")),
+				slog.Float64("cost", currCost),
+				slog.Float64("rawRTT", rawRTT[end]))
 			return &Path{
 				hops:   path,
 				cost:   currCost,

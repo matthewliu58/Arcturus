@@ -1,0 +1,142 @@
+time=2026-06-09T22:28:57.997+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Brussels->Paris cost=9 rawRTT=9
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->London->Paris cost=14 rawRTT=14
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Brussels->Paris cost=9 rawRTT=9
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Paris path=Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris cost=20 rawRTT=20
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris cost=29 rawRTT=29
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Paris path=Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris cost=36 rawRTT=36
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Paris path=Frankfurt->Dusseldorf->Brussels->Paris cost=13 rawRTT=13
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->London->Paris cost=14 rawRTT=14
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Glasgow->Birmingham->London->Paris cost=38 rawRTT=38
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Glasgow end=Paris path=Glasgow->Dublin->London->Paris cost=23 rawRTT=23
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris cost=29 rawRTT=29
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Paris path=Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris cost=36 rawRTT=36
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Paris path=Frankfurt->Dusseldorf->Brussels->Paris cost=13 rawRTT=13
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Brussels->Paris cost=9 rawRTT=9
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Paris path=Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris cost=20 rawRTT=20
+time=2026-06-09T22:28:58.015+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->London->Paris cost=14 rawRTT=14
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Lisbon end=Paris path=Lisbon->Seville->Barcelona->Marseille->Lyon->Paris cost=46 rawRTT=46
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Madrid end=Paris path=Madrid->Barcelona->Marseille->Lyon->Paris cost=32 rawRTT=32
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Bordeaux end=Paris path=Bordeaux->Marseille->Lyon->Paris cost=25 rawRTT=25
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Glasgow->Birmingham->London->Paris cost=38 rawRTT=38
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Glasgow end=Paris path=Glasgow->Dublin->London->Paris cost=23 rawRTT=23
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Paris path=Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris cost=36 rawRTT=36
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Paris path=Frankfurt->Dusseldorf->Brussels->Paris cost=13 rawRTT=13
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Strasbourg end=Paris path=Strasbourg->Zurich->Lyon->Paris cost=18 rawRTT=18
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->Hamburg->Berlin cost=15 rawRTT=15
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Munich->Berlin cost=30 rawRTT=30
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Berlin path=Hamburg->Frankfurt->Munich->Berlin cost=26 rawRTT=26
+time=2026-06-09T22:28:58.016+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Berlin path=Hamburg->Frankfurt->Munich->Berlin cost=26 rawRTT=26
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Berlin path=Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=35 rawRTT=35
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Hamburg->Berlin cost=14 rawRTT=14
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Berlin path=Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=35 rawRTT=35
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Munich->Berlin cost=18 rawRTT=18
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Munich end=Berlin path=Munich->Vienna->Prague->Berlin cost=18 rawRTT=18
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin cost=30 rawRTT=30
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Munich end=Berlin path=Munich->Vienna->Prague->Berlin cost=18 rawRTT=18
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.017+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Berlin path=Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=35 rawRTT=35
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Hamburg->Berlin cost=14 rawRTT=14
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin cost=30 rawRTT=30
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=Munich end=Berlin path=Munich->Vienna->Prague->Berlin cost=18 rawRTT=18
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Berlin path=London->Lisbon->Madrid->Bordeaux->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=92 rawRTT=92
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=Paris end=Berlin path=Paris->Brussels->Dusseldorf->Frankfurt->Munich->Berlin cost=31 rawRTT=31
+time=2026-06-09T22:28:58.035+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Hamburg->Berlin cost=14 rawRTT=14
+time=2026-06-09T22:28:58.070+08:00 level=INFO msg="ONEWAN multi: generating candidate paths for each destination" pre=TEST start=Amsterdam destinations="[Paris Berlin]"
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Brussels->Paris cost=9 rawRTT=9
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->London->Paris cost=14 rawRTT=14
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Brussels->Paris cost=9 rawRTT=9
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Paris path=Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris cost=20 rawRTT=20
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris cost=29 rawRTT=29
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Paris path=Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris cost=36 rawRTT=36
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Paris path=Frankfurt->Dusseldorf->Brussels->Paris cost=13 rawRTT=13
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->London->Paris cost=14 rawRTT=14
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Glasgow->Birmingham->London->Paris cost=38 rawRTT=38
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Glasgow end=Paris path=Glasgow->Dublin->London->Paris cost=23 rawRTT=23
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris cost=29 rawRTT=29
+time=2026-06-09T22:28:58.070+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Paris path=Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris cost=36 rawRTT=36
+time=2026-06-09T22:28:58.071+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Paris path=Frankfurt->Dusseldorf->Brussels->Paris cost=13 rawRTT=13
+time=2026-06-09T22:28:58.071+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Brussels->Paris cost=9 rawRTT=9
+time=2026-06-09T22:28:58.071+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Paris path=Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris cost=20 rawRTT=20
+time=2026-06-09T22:28:58.071+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->London->Paris cost=14 rawRTT=14
+time=2026-06-09T22:28:58.071+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.071+08:00 level=DEBUG msg="findShortestPath: found path" start=Lisbon end=Paris path=Lisbon->Seville->Barcelona->Marseille->Lyon->Paris cost=46 rawRTT=46
+time=2026-06-09T22:28:58.071+08:00 level=DEBUG msg="findShortestPath: found path" start=Madrid end=Paris path=Madrid->Barcelona->Marseille->Lyon->Paris cost=32 rawRTT=32
+time=2026-06-09T22:28:58.071+08:00 level=DEBUG msg="findShortestPath: found path" start=Bordeaux end=Paris path=Bordeaux->Marseille->Lyon->Paris cost=25 rawRTT=25
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Paris path=Amsterdam->Glasgow->Birmingham->London->Paris cost=38 rawRTT=38
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Glasgow end=Paris path=Glasgow->Dublin->London->Paris cost=23 rawRTT=23
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Paris path=London->Lisbon->Madrid->Bordeaux->Paris cost=62 rawRTT=62
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Paris path=Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris cost=36 rawRTT=36
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Paris path=Frankfurt->Dusseldorf->Brussels->Paris cost=13 rawRTT=13
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Strasbourg end=Paris path=Strasbourg->Zurich->Lyon->Paris cost=18 rawRTT=18
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg=yensAlgorithm pre=TEST end=Paris path="[{hops:[Amsterdam Brussels Paris] cost:9 rawRTT:9} {hops:[Amsterdam London Paris] cost:14 rawRTT:14} {hops:[Amsterdam Glasgow Dublin London Paris Paris] cost:24 rawRTT:24} {hops:[Amsterdam Hamburg Frankfurt Strasbourg Paris] cost:29 rawRTT:29} {hops:[Amsterdam London Lisbon Madrid Bordeaux Paris] cost:69 rawRTT:69}]"
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="KSP paths after sorting" end=Paris paths="[1] cost=9.00: Amsterdam->Brussels->Paris; [2] cost=14.00: Amsterdam->London->Paris; [3] cost=24.00: Amsterdam->Glasgow->Dublin->London->Paris->Paris; [4] cost=29.00: Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris; [5] cost=69.00: Amsterdam->London->Lisbon->Madrid->Bordeaux->Paris"
+time=2026-06-09T22:28:58.072+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Paris hops=Amsterdam->Brussels->Paris cost=9 rawRTT=9
+time=2026-06-09T22:28:58.072+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Paris hops=Amsterdam->London->Paris cost=14 rawRTT=14
+time=2026-06-09T22:28:58.072+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Paris hops=Amsterdam->Glasgow->Dublin->London->Paris->Paris cost=24 rawRTT=24
+time=2026-06-09T22:28:58.072+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Paris hops=Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris cost=29 rawRTT=29
+time=2026-06-09T22:28:58.072+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Paris hops=Amsterdam->London->Lisbon->Madrid->Bordeaux->Paris cost=69 rawRTT=69
+time=2026-06-09T22:28:58.072+08:00 level=INFO msg="ONEWAN multi: candidate paths for destination" pre=TEST end=Paris candidate_count=5
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=0 latency=9 rawRTT=9 hops=Amsterdam->Brussels->Paris
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=1 latency=14 rawRTT=14 hops=Amsterdam->London->Paris
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=2 latency=24 rawRTT=24 hops=Amsterdam->Glasgow->Dublin->London->Paris->Paris
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=3 latency=29 rawRTT=29 hops=Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=4 latency=69 rawRTT=69 hops=Amsterdam->London->Lisbon->Madrid->Bordeaux->Paris
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->Hamburg->Berlin cost=15 rawRTT=15
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Munich->Berlin cost=30 rawRTT=30
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Berlin path=Hamburg->Frankfurt->Munich->Berlin cost=26 rawRTT=26
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Hamburg end=Berlin path=Hamburg->Frankfurt->Munich->Berlin cost=26 rawRTT=26
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Berlin path=Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=35 rawRTT=35
+time=2026-06-09T22:28:58.072+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Hamburg->Berlin cost=14 rawRTT=14
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Berlin path=Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=35 rawRTT=35
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Munich->Berlin cost=18 rawRTT=18
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Munich end=Berlin path=Munich->Vienna->Prague->Berlin cost=18 rawRTT=18
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin cost=30 rawRTT=30
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Munich end=Berlin path=Munich->Vienna->Prague->Berlin cost=18 rawRTT=18
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.073+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=Brussels end=Berlin path=Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=35 rawRTT=35
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Hamburg->Berlin cost=14 rawRTT=14
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin cost=30 rawRTT=30
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=Munich end=Berlin path=Munich->Vienna->Prague->Berlin cost=18 rawRTT=18
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=Amsterdam end=Berlin path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=44 rawRTT=44
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=London end=Berlin path=London->Lisbon->Madrid->Bordeaux->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=92 rawRTT=92
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=Paris end=Berlin path=Paris->Brussels->Dusseldorf->Frankfurt->Munich->Berlin cost=31 rawRTT=31
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="findShortestPath: found path" start=Frankfurt end=Berlin path=Frankfurt->Hamburg->Berlin cost=14 rawRTT=14
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg=yensAlgorithm pre=TEST end=Berlin path="[{hops:[Amsterdam Hamburg Berlin] cost:15 rawRTT:15} {hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] cost:30 rawRTT:30} {hops:[Amsterdam Hamburg Frankfurt Munich Berlin] cost:35 rawRTT:35} {hops:[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin] cost:36 rawRTT:36} {hops:[Amsterdam Brussels Paris Strasbourg Frankfurt Munich Berlin] cost:39 rawRTT:39}]"
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="KSP paths after sorting" end=Berlin paths="[1] cost=15.00: Amsterdam->Hamburg->Berlin; [2] cost=30.00: Amsterdam->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin; [3] cost=35.00: Amsterdam->Hamburg->Frankfurt->Munich->Berlin; [4] cost=36.00: Amsterdam->London->Paris->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin; [5] cost=39.00: Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin"
+time=2026-06-09T22:28:58.074+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Berlin hops=Amsterdam->Hamburg->Berlin cost=15 rawRTT=15
+time=2026-06-09T22:28:58.074+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Berlin hops=Amsterdam->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin cost=30 rawRTT=30
+time=2026-06-09T22:28:58.074+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Berlin hops=Amsterdam->Hamburg->Frankfurt->Munich->Berlin cost=35 rawRTT=35
+time=2026-06-09T22:28:58.074+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Berlin hops=Amsterdam->London->Paris->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin cost=36 rawRTT=36
+time=2026-06-09T22:28:58.074+08:00 level=INFO msg="ONEWAN multi: candidate path initialized" pre=TEST end=Berlin hops=Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin cost=39 rawRTT=39
+time=2026-06-09T22:28:58.074+08:00 level=INFO msg="ONEWAN multi: candidate paths for destination" pre=TEST end=Berlin candidate_count=5
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=0 latency=15 rawRTT=15 hops=Amsterdam->Hamburg->Berlin
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=1 latency=30 rawRTT=30 hops=Amsterdam->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin
+time=2026-06-09T22:28:58.074+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=2 latency=35 rawRTT=35 hops=Amsterdam->Hamburg->Frankfurt->Munich->Berlin
+time=2026-06-09T22:28:58.156+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=3 latency=36 rawRTT=36 hops=Amsterdam->London->Paris->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin
+time=2026-06-09T22:28:58.156+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=4 latency=39 rawRTT=39 hops=Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin
+time=2026-06-09T22:28:58.156+08:00 level=DEBUG msg="ONEWAN multi: beam expanded" pre=TEST end=Paris dest_index=0 beam_size=1 best_score=210.74074074074073
+time=2026-06-09T22:28:58.156+08:00 level=DEBUG msg="ONEWAN multi: beam expanded" pre=TEST end=Berlin dest_index=1 beam_size=1 best_score=660.648148148148
+time=2026-06-09T22:28:58.156+08:00 level=INFO msg="ONEWAN multi paths selected (beam search)" pre=TEST start=Amsterdam dest_count=2 total_paths=10 global_score=660.648148148148 virtual_load="map[Amsterdam:0.6804138174397716 Berlin:0.34020690871988585 Bordeaux:0.06804138174397717 Brussels:0.2721655269759087 Dublin:0.06804138174397717 Dusseldorf:0.13608276348795434 Frankfurt:0.34020690871988585 Glasgow:0.06804138174397717 Hamburg:0.34020690871988585 Lisbon:0.06804138174397717 London:0.2721655269759087 Madrid:0.06804138174397717 Munich:0.13608276348795434 Paris:0.4762896722078402 Strasbourg:0.13608276348795434]"
