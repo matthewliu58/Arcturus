@@ -545,140 +545,169 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		return nil, fmt.Errorf("no paths found from %s to any of %v", start, ends)
 	}
 
-	// Step 2: Beam Search for global optimization
-	// Beam width: number of states to maintain
-	const beamWidth = 10
-	const maxHops = 10 // Maximum allowed hops per path
+	// Step 2: Stochastic Beam Search for global optimization
+	// - Each destination has K paths sorted by latency (shorter = higher selection probability)
+	// - For each iteration, randomly select 2 paths per destination based on probability
+	// - After N iterations, pick the best solution based on global score
 
-	// Initialize beam with empty state
-	beam := []beamState{{paths: []routing.PathInfo{}, load: make(map[string]float64), score: 0}}
+	const numIterations = 10
+	const pathsPerDest = 2 // Number of paths to select per destination
+	const maxHops = 10     // Maximum allowed hops per path
 
-	// Expand beam for each destination
-	for destIdx, dc := range allCandidates {
-		var newBeam []beamState
-
-		// Filter out paths with too many hops
-		filteredPaths := filterPathsByHops(dc.paths, maxHops)
-		if len(filteredPaths) == 0 {
-			// If no paths pass the hop limit, keep only the shortest one (first path)
-			if len(dc.paths) > 0 {
-				filteredPaths = []routing.PathInfo{dc.paths[0]}
-			} else {
-				continue // Skip this destination if no paths available
-			}
+	// Step 2a: Filter out paths with > maxHops (10) - KSP returns 5 paths, these are candidates
+	for i := range allCandidates {
+		allCandidates[i].paths = filterPathsByHops(allCandidates[i].paths, maxHops)
+		if len(allCandidates[i].paths) == 0 {
+			logger.Warn("no valid paths found for destination (all paths exceed maxHops), skipping",
+				slog.String("dest", allCandidates[i].end),
+				slog.Int("maxHops", maxHops))
+			// Skip this destination, continue with others
+			continue
 		}
+	}
 
-		// For each state in current beam, expand with all combinations of paths for this destination
-		for _, state := range beam {
-			// Only use the first maxPaths paths for combination generation
-			// This ensures we only consider the best candidates (shortest paths)
-			limitedPaths := filteredPaths
-			if len(filteredPaths) > solver.maxPaths {
-				limitedPaths = filteredPaths[:solver.maxPaths]
-			}
+	// All paths after filtering are candidates (no limit - use all 5 from KSP)
+	// For each destination, calculate probabilities for its paths
+	type scoredSolution struct {
+		paths []routing.PathInfo
+		score float64
+	}
 
-			// Generate all combinations of exactly maxPaths paths from limited candidates
-			combinations := generatePathCombinationsExactSize(limitedPaths, solver.maxPaths)
+	var allSolutions []scoredSolution
 
-			for _, combo := range combinations {
-				// Create new state by adding these paths
-				newState := beamState{
-					paths: append([]routing.PathInfo{}, state.paths...),
-					load:  make(map[string]float64),
-					score: state.score,
+	// Run N iterations of random path selection
+	for iter := 0; iter < numIterations; iter++ {
+		var selectedPaths []routing.PathInfo
+		globalLoad := make(map[string]float64)
+
+		// For each destination, select pathsPerDest DIFFERENT paths based on probability (without replacement)
+		for _, dc := range allCandidates {
+			// Track which paths have already been selected
+			selectedIndices := make(map[int]bool)
+
+			// Select pathsPerDest unique paths
+			for selectIdx := 0; selectIdx < pathsPerDest; selectIdx++ {
+				// Recalculate probabilities excluding already selected paths
+				totalInverseLatency := 0.0
+				for pathIdx, p := range dc.paths {
+					if !selectedIndices[pathIdx] && p.RawRTT > 0 {
+						totalInverseLatency += 1.0 / p.RawRTT
+					}
 				}
 
-				// Copy existing load
-				for node, load := range state.load {
-					newState.load[node] = load
+				// Generate random value
+				r := float64(iter*100+selectIdx) / float64(numIterations*100)
+				r = r * totalInverseLatency
+
+				// Select a path based on probability
+				cumulative := 0.0
+				selectedPathIdx := 0
+				found := false
+				for pathIdx, p := range dc.paths {
+					if selectedIndices[pathIdx] {
+						continue
+					}
+					prob := 0.0
+					if p.RawRTT > 0 {
+						prob = (1.0 / p.RawRTT)
+					} else {
+						prob = 1.0
+					}
+					cumulative += prob
+					if r <= cumulative {
+						selectedPathIdx = pathIdx
+						found = true
+						break
+					}
 				}
 
-				// Add new paths and update load and score
-				for _, path := range combo {
-					newState.paths = append(newState.paths, path)
-
-					// Track processed nodes in this path to avoid double counting
-					processedNodes := make(map[string]bool)
-
-					// First pass: update node load based on edge.Load values
-					// Each node in a path should only contribute once
-					for i := 0; i < len(path.Hops)-1; i++ {
-						src := path.Hops[i]
-						dst := path.Hops[i+1]
-
-						// Find the edge and get its load
-						for _, edge := range graph_[src] {
-							if edge.DestinationIp == dst {
-								loadRisk := calculateLoadRisk(edge.Load)
-								// Add load risk for src node (only once per path)
-								if !processedNodes[src] {
-									newState.load[src] += loadRisk
-									processedNodes[src] = true
-								}
-								// Add load risk for dst node (only once per path)
-								if !processedNodes[dst] {
-									newState.load[dst] += loadRisk
-									processedNodes[dst] = true
-								}
-								break
-							}
+				if !found {
+					// Fallback: select first unselected path
+					for pathIdx := range dc.paths {
+						if !selectedIndices[pathIdx] {
+							selectedPathIdx = pathIdx
+							break
 						}
 					}
-
-					// Calculate path score: base latency + load penalty
-					// Score = path latency + weight * sum(load^2)
-					// Using square penalty for load balancing
-					pathScore := path.Rtt // base latency
-
-					// Add load penalty: higher accumulated load = higher penalty
-					// loadWeight controls the importance of load balancing vs latency
-					const loadWeight = 100.0 // Adjust this to balance latency vs load
-					for _, node := range path.Hops {
-						load := newState.load[node]
-						pathScore += load * load * loadWeight // weighted load penalty
-					}
-
-					newState.score += pathScore
 				}
 
-				logger.Debug("add newBeam", slog.Any("newState", newState))
-				newBeam = append(newBeam, newState)
+				selectedIndices[selectedPathIdx] = true
+				selectedPath := dc.paths[selectedPathIdx]
+				selectedPaths = append(selectedPaths, selectedPath)
+
+				// Update global load (each node counted once per path)
+				processedNodes := make(map[string]bool)
+				for _, node := range selectedPath.Hops {
+					if !processedNodes[node] {
+						processedNodes[node] = true
+						globalLoad[node] += 1.0
+					}
+				}
 			}
 		}
 
-		// Keep only top K states (beam pruning)
-		beam = pruneBeam(newBeam, beamWidth)
+		// Calculate global score for this solution
+		// Score = sum of path latencies + load penalty
+		totalScore := 0.0
+		const loadWeight = 10.0
 
-		logger.Debug("ONEWAN multi: beam expanded",
+		// Recalculate score based on selected paths
+		processedNodes := make(map[string]bool)
+		for _, path := range selectedPaths {
+			totalScore += path.RawRTT // Base latency
+
+			for _, node := range path.Hops {
+				if !processedNodes[node] {
+					processedNodes[node] = true
+					load := globalLoad[node]
+					totalScore += load * load * loadWeight // Load penalty
+				}
+			}
+		}
+
+		allSolutions = append(allSolutions, scoredSolution{
+			paths: selectedPaths,
+			score: totalScore,
+		})
+
+		// Build path strings for logging
+		var pathStrs []string
+		for _, p := range selectedPaths {
+			pathStrs = append(pathStrs, fmt.Sprintf("%s(%.0fms)", strings.Join(p.Hops, "->"), p.RawRTT))
+		}
+
+		logger.Debug("ONEWAN multi: generated solution",
 			slog.String("pre", pre),
-			slog.String("end", dc.end),
-			slog.Int("dest_index", destIdx),
-			slog.Int("beam_size", len(beam)),
-			slog.Float64("best_score", beam[0].score))
+			slog.Int("iteration", iter),
+			slog.Int("path_count", len(selectedPaths)),
+			slog.Any("paths", pathStrs),
+			slog.Float64("score", totalScore))
 	}
 
-	if len(beam) == 0 {
-		return nil, fmt.Errorf("beam search failed: no valid states")
+	// Find best solution (lowest score = best)
+	bestSolution := allSolutions[0]
+	for _, sol := range allSolutions[1:] {
+		if sol.score < bestSolution.score {
+			bestSolution = sol
+		}
 	}
 
-	// Return the best state's paths
-	bestState := beam[0]
-	logger.Info("ONEWAN multi paths selected (beam search)",
+	// Build best path strings for logging
+	var bestPathStrs []string
+	for _, p := range bestSolution.paths {
+		bestPathStrs = append(bestPathStrs, fmt.Sprintf("%s(%.0fms)", strings.Join(p.Hops, "->"), p.RawRTT))
+	}
+
+	logger.Info("ONEWAN multi paths selected (stochastic beam search)",
 		slog.String("pre", pre),
 		slog.String("start", start),
 		slog.Int("dest_count", len(allCandidates)),
-		slog.Int("total_paths", len(bestState.paths)),
-		slog.Float64("global_score", bestState.score),
-		slog.Any("virtual_load", bestState.load))
+		slog.Int("total_paths", len(bestSolution.paths)),
+		slog.Any("selected_paths", bestPathStrs),
+		slog.Float64("global_score", bestSolution.score),
+		slog.Int("solutions_evaluated", len(allSolutions)))
 
-	return bestState.paths, nil
-}
-
-// beamState represents a partial assignment of paths to destinations
-type beamState struct {
-	paths []routing.PathInfo
-	load  map[string]float64
-	score float64
+	return bestSolution.paths, nil
 }
 
 // filterPathsByHops filters out paths with more than maxHops hops
@@ -690,94 +719,6 @@ func filterPathsByHops(paths []routing.PathInfo, maxHops int) []routing.PathInfo
 		}
 	}
 	return result
-}
-
-// generatePathCombinationsExactSize generates combinations of paths with EXACTLY the specified size.
-// FIXED: No longer returns variable-length combinations (1,2,...size).
-// If insufficient paths are available, returns ALL available paths as a single valid combination.
-func generatePathCombinationsExactSize(paths []routing.PathInfo, size int) [][]routing.PathInfo {
-	// Return empty if no paths are available
-	if len(paths) == 0 {
-		return [][]routing.PathInfo{}
-	}
-
-	// Standard case: generate combinations of exactly 'size' paths
-	if len(paths) >= size {
-		return generateCombinationsOfSize(paths, size, 0, make([]routing.PathInfo, size))
-	}
-
-	// Fallback: Not enough paths, return all available paths as a single fixed combination
-	// Ensures stable output length for business logic
-	fixedCombo := make([]routing.PathInfo, len(paths))
-	copy(fixedCombo, paths)
-	return [][]routing.PathInfo{fixedCombo}
-}
-
-// generateCombinationsOfSize recursively generates all unique combinations of paths with a specific length
-// paths: the list of candidate paths
-// size: remaining number of paths to choose
-// start: starting index to avoid duplicate combinations
-// current: temporary slice to store the current combination being built
-func generateCombinationsOfSize(paths []routing.PathInfo, size, start int, current []routing.PathInfo) [][]routing.PathInfo {
-	var result [][]routing.PathInfo
-
-	// Base case: combination is complete, save a copy
-	if size == 0 {
-		comb := make([]routing.PathInfo, len(current))
-		copy(comb, current)
-		return [][]routing.PathInfo{comb}
-	}
-
-	// Recursively build combinations
-	for i := start; i <= len(paths)-size; i++ {
-		current[len(current)-size] = paths[i]
-		subCombinations := generateCombinationsOfSize(paths, size-1, i+1, current)
-		result = append(result, subCombinations...)
-	}
-
-	return result
-}
-
-// pruneBeam keeps only top K states based on score
-func pruneBeam(states []beamState, k int) []beamState {
-	if len(states) <= k {
-		return states
-	}
-
-	// Sort by score (ascending)
-	for i := 0; i < len(states)-1; i++ {
-		for j := i + 1; j < len(states); j++ {
-			if states[j].score < states[i].score {
-				states[i], states[j] = states[j], states[i]
-			}
-		}
-	}
-
-	// Return top K
-	return states[:k]
-}
-
-// calculateLoadRisk calculates load risk similar to CPU risk in update-graph.go
-// Load range: 0-100
-// No penalty below LoadMid, penalty increases from LoadMid to LoadHigh, max at LoadHigh+
-func calculateLoadRisk(load float64) float64 {
-	const (
-		LoadMid   = 20.0 // Lower threshold for test compatibility
-		LoadHigh  = 80.0 // Max penalty above this value
-		loadPower = 1.5  // Non-linear power factor
-	)
-
-	if load < LoadMid {
-		// Load < LoadMid: no penalty
-		return 0.0
-	} else if load >= LoadHigh {
-		// Load >= LoadHigh: max penalty
-		return 1.0
-	} else {
-		// LoadMid <= Load < LoadHigh: interpolate penalty with non-linear curve
-		loadRatio := (load - LoadMid) / (LoadHigh - LoadMid)
-		return math.Pow(loadRatio, loadPower)
-	}
 }
 
 // deduplicateHops removes consecutive duplicate nodes from a path.
@@ -793,16 +734,4 @@ func deduplicateHops(hops []string) []string {
 		}
 	}
 	return result
-}
-
-// hasDuplicateNodes checks if a path contains any duplicate node.
-func hasDuplicateNodes(hops []string) bool {
-	seen := make(map[string]bool)
-	for _, h := range hops {
-		if seen[h] {
-			return true
-		}
-		seen[h] = true
-	}
-	return false
 }
