@@ -4,12 +4,29 @@ import (
 	"bufio"
 	"fmt"
 	"log/slog"
+	"math"
 	"os"
 	"strings"
 	"testing"
 
 	"control-plane/routing/graph"
 )
+
+// calculateRawRTT calculates the actual path latency based on Edge.Latency
+func calculateRawRTT(hops []string, edges []*graph.Edge) float64 {
+	rawRTT := 0.0
+	for i := 0; i < len(hops)-1; i++ {
+		source := hops[i]
+		target := hops[i+1]
+		for _, edge := range edges {
+			if edge.SourceIp == source && edge.DestinationIp == target {
+				rawRTT += edge.Latency
+				break
+			}
+		}
+	}
+	return rawRTT
+}
 
 func TestSinglePathFinding(t *testing.T) {
 
@@ -39,8 +56,9 @@ func TestSinglePathFinding(t *testing.T) {
 	fmt.Printf("[STEP 1] K=5 Shortest Paths:\n")
 	for i, path := range allPaths {
 		hopStr := strings.Join(path.hops, " -> ")
-		fmt.Printf("  [%d] RTT=%.2fms, Hops=%d: %s\n",
-			i+1, path.cost, len(path.hops)-1, hopStr)
+		rawRTT := calculateRawRTT(path.hops, edges)
+		fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
+			i+1, path.cost, rawRTT, len(path.hops)-1, hopStr)
 	}
 
 	// Show selection process
@@ -49,12 +67,14 @@ func TestSinglePathFinding(t *testing.T) {
 	fmt.Printf("  Short Paths (<=4 hops): %d paths\n", len(shortPaths))
 	for i, p := range shortPaths {
 		hopStr := strings.Join(p.hops, " -> ")
-		fmt.Printf("    [%d] RTT=%.2fms, %d hops: %s\n", i+1, p.cost, len(p.hops)-1, hopStr)
+		rawRTT := calculateRawRTT(p.hops, edges)
+		fmt.Printf("    [%d] Weight=%.4f, RawRTT=%.2fms, %d hops: %s\n", i+1, p.cost, rawRTT, len(p.hops)-1, hopStr)
 	}
 	fmt.Printf("  Long Paths (>4 hops): %d paths\n", len(longPaths))
 	for i, p := range longPaths {
 		hopStr := strings.Join(p.hops, " -> ")
-		fmt.Printf("    [%d] RTT=%.2fms, %d hops: %s\n", i+1, p.cost, len(p.hops)-1, hopStr)
+		rawRTT := calculateRawRTT(p.hops, edges)
+		fmt.Printf("    [%d] Weight=%.4f, RawRTT=%.2fms, %d hops: %s\n", i+1, p.cost, rawRTT, len(p.hops)-1, hopStr)
 	}
 
 	// Select top 2
@@ -62,10 +82,71 @@ func TestSinglePathFinding(t *testing.T) {
 	selected := selectTopPaths(allPaths, 2)
 	for i, p := range selected {
 		hopStr := strings.Join(p.hops, " -> ")
-		fmt.Printf("  [%d] RTT=%.2fms, Hops=%d: %s\n",
-			i+1, p.cost, len(p.hops)-1, hopStr)
+		rawRTT := calculateRawRTT(p.hops, edges)
+		fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
+			i+1, p.cost, rawRTT, len(p.hops)-1, hopStr)
 	}
 	fmt.Printf("\n")
+}
+
+// EdgeRisk calculates edge weight based on CPU pressure, loss, and latency
+// This is a simplified version for testing purposes
+// Reference: lyapunov-config.go
+func EdgeRisk(cpuPressure, loss, latency float64) float64 {
+	const (
+		// CPU thresholds (referenced from lyapunov-config.go)
+		// CPU < 60: no penalty
+		// 60 <= CPU < 80: increasing penalty
+		// CPU >= 80: max penalty
+		CPULow   = 40.0 // Hysteresis down threshold
+		CPUMid   = 60.0 // Threshold to start penalty
+		CPUHigh  = 80.0 // Threshold for max penalty
+		cpuPower = 2.0  // Power for penalty curve
+
+		lossInflection = 0.05
+		lossSharpness  = 40.0
+		latencyMax     = 50.0
+		latPower       = 1.5
+		wCPU           = 0.5
+		wLoss          = 0.0
+		wLat           = 0.5
+	)
+
+	// CPU risk: no penalty below CPUMid (60), penalty increases from 60 to 80, max at 80+
+	var cpuRisk float64
+	if cpuPressure < CPUMid {
+		// CPU < 60: no penalty
+		cpuRisk = 0.0
+	} else if cpuPressure >= CPUHigh {
+		// CPU >= 80: max penalty
+		cpuRisk = 1.0
+	} else {
+		// 60 <= CPU < 80: interpolate penalty
+		cpuRatio := (cpuPressure - CPUMid) / (CPUHigh - CPUMid)
+		cpuRisk = math.Pow(cpuRatio, cpuPower)
+	}
+
+	// Loss risk: sigmoid
+	var lossRisk float64
+	if loss >= 1.0 {
+		lossRisk = 1.0
+	} else if loss <= 0 {
+		lossRisk = 0
+	} else {
+		lossRisk = 1.0 / (1.0 + math.Exp(-lossSharpness*(loss-lossInflection)))
+	}
+
+	// Latency risk: power curve
+	latRatio := latency / latencyMax
+	if latRatio > 1.0 {
+		latRatio = 1.0
+	}
+	if latRatio < 0 {
+		latRatio = 0
+	}
+	latRisk := math.Pow(latRatio, latPower)
+
+	return wCPU*cpuRisk + wLoss*lossRisk + wLat*latRisk
 }
 
 func parseCost266Edges(filePath string) []*graph.Edge {
@@ -78,6 +159,10 @@ func parseCost266Edges(filePath string) []*graph.Edge {
 
 	var edges []*graph.Edge
 	var inLinks bool
+
+	// Default values as specified by user
+	defaultCPU := 30.0
+	defaultLoss := 0.0
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -98,25 +183,32 @@ func parseCost266Edges(filePath string) []*graph.Edge {
 					source := nodes[0]
 					target := nodes[1]
 
-					var rtt float64 = 1.0
+					var rawRTT float64 = 1.0
 					if idx := strings.Index(line, "# RTT:"); idx != -1 {
 						// "# RTT:" has 6 characters
 						rttStr := strings.TrimSpace(line[idx+6:])
 						if len(rttStr) > 2 && rttStr[len(rttStr)-2:] == "ms" {
-							fmt.Sscanf(rttStr[:len(rttStr)-2], "%f", &rtt)
+							fmt.Sscanf(rttStr[:len(rttStr)-2], "%f", &rawRTT)
 						}
 					}
+
+					// Calculate edge weight using EdgeRisk function
+					edgeWeight := EdgeRisk(defaultCPU, defaultLoss, rawRTT)
 
 					edges = append(edges, &graph.Edge{
 						SourceIp:      source,
 						DestinationIp: target,
-						EdgeWeight:    rtt,
+						EdgeWeight:    edgeWeight,
+						Latency:       rawRTT,
+						Loss:          defaultLoss,
 					})
 					// Add reverse edge for bidirectional
 					edges = append(edges, &graph.Edge{
 						SourceIp:      target,
 						DestinationIp: source,
-						EdgeWeight:    rtt,
+						EdgeWeight:    edgeWeight,
+						Latency:       rawRTT,
+						Loss:          defaultLoss,
 					})
 				}
 			}

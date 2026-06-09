@@ -27,7 +27,7 @@ func NewKShortestSolver(edges []*graph.Edge, k int) *KShortestSolver {
 	}
 	return &KShortestSolver{
 		edges: g,
-		alpha: 1.2,
+		alpha: 1,
 		k:     k,
 	}
 }
@@ -79,8 +79,9 @@ func (ks *KShortestSolver) Computing(start, end, pre string, logger *slog.Logger
 }
 
 type Path struct {
-	hops []string
-	cost float64
+	hops   []string
+	cost   float64
+	rawRTT float64
 }
 
 func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]*graph.Edge, logger *slog.Logger) ([]Path, error) {
@@ -159,12 +160,14 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 				// Find shortest path from spur node to end, avoiding root path nodes
 				spurPath, err := ks.findShortestPath(spurNode, end, graph_, forbiddenNodes, nil, logger)
 				if err == nil {
-					// Calculate root path cost
+					// Calculate root path cost and rawRTT
 					rootCost := ks.calculatePathCost(rootPath, graph_)
+					rootRTT := ks.calculatePathRTT(rootPath, graph_)
 					// Build complete path
 					completePath := Path{
-						hops: append(rootPath[:len(rootPath)-1], spurPath.hops...),
-						cost: rootCost + spurPath.cost,
+						hops:   append(rootPath[:len(rootPath)-1], spurPath.hops...),
+						cost:   rootCost + spurPath.cost,
+						rawRTT: rootRTT + spurPath.rawRTT,
 					}
 					// Check if path is valid (no duplicate nodes)
 					if !ks.hasDuplicateNodes(completePath.hops) {
@@ -222,10 +225,12 @@ func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string
 
 	dist := make(map[string]float64)
 	prev := make(map[string]string)
+	rawRTT := make(map[string]float64)
 	// Initialize all nodes in graph (including destination-only nodes)
 	allNodes := make(map[string]bool)
 	for node := range graph_ {
 		dist[node] = math.Inf(1)
+		rawRTT[node] = math.Inf(1)
 		allNodes[node] = true
 	}
 	// Also add destination nodes that may not have outgoing edges
@@ -233,11 +238,13 @@ func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string
 		for _, e := range edges {
 			if !allNodes[e.DestinationIp] {
 				dist[e.DestinationIp] = math.Inf(1)
+				rawRTT[e.DestinationIp] = math.Inf(1)
 				allNodes[e.DestinationIp] = true
 			}
 		}
 	}
 	dist[start] = 0
+	rawRTT[start] = 0
 
 	pq := &PriorityQueue{}
 	heap.Init(pq)
@@ -262,8 +269,9 @@ func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string
 				path = append([]string{node}, path...)
 			}
 			return &Path{
-				hops: path,
-				cost: currCost,
+				hops:   path,
+				cost:   currCost,
+				rawRTT: rawRTT[end],
 			}, nil
 		}
 
@@ -284,9 +292,11 @@ func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string
 
 			nextNode := e.DestinationIp
 			newCost := currCost + e.EdgeWeight*ks.alpha
+			newRTT := rawRTT[currNode] + e.Latency
 
 			if newCost < dist[nextNode] {
 				dist[nextNode] = newCost
+				rawRTT[nextNode] = newRTT
 				prev[nextNode] = currNode
 				heap.Push(pq, &PQNode{
 					node: nextNode,
@@ -357,19 +367,19 @@ func (ks *KShortestSolver) selectTopPaths(paths []Path, count int, logger *slog.
 		}
 	}
 
-	// Sort short paths by RTT (cost)
+	// Sort short paths by rawRTT (real latency)
 	for i := 0; i < len(shortPaths)-1; i++ {
 		for j := i + 1; j < len(shortPaths); j++ {
-			if shortPaths[j].cost < shortPaths[i].cost {
+			if shortPaths[j].rawRTT < shortPaths[i].rawRTT {
 				shortPaths[i], shortPaths[j] = shortPaths[j], shortPaths[i]
 			}
 		}
 	}
 
-	// Sort long paths by RTT (cost)
+	// Sort long paths by rawRTT (real latency)
 	for i := 0; i < len(longPaths)-1; i++ {
 		for j := i + 1; j < len(longPaths); j++ {
-			if longPaths[j].cost < longPaths[i].cost {
+			if longPaths[j].rawRTT < longPaths[i].rawRTT {
 				longPaths[i], longPaths[j] = longPaths[j], longPaths[i]
 			}
 		}
@@ -412,4 +422,19 @@ func (ks *KShortestSolver) calculatePathCost(path []string, graph_ map[string][]
 		}
 	}
 	return cost
+}
+
+func (ks *KShortestSolver) calculatePathRTT(path []string, graph_ map[string][]*graph.Edge) float64 {
+	rtt := 0.0
+	for i := 0; i < len(path)-1; i++ {
+		source := path[i]
+		dest := path[i+1]
+		for _, edge := range graph_[source] {
+			if edge.DestinationIp == dest {
+				rtt += edge.Latency
+				break
+			}
+		}
+	}
+	return rtt
 }

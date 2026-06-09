@@ -139,6 +139,7 @@ func (g *GraphManager) AddNode(node *agg.NodeTelemetry, logPre string) {
 				SourceIp:      in,
 				DestinationIp: out,
 				EdgeWeight:    r,
+				Latency:       v.AverageLatency,
 			}
 		}
 	}
@@ -175,11 +176,14 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 		slog.Float64("latency", latency))
 
 	const (
-		// CPU risk: single continuous curve via power function.
-		// cpuPressure / cpuMaxLine clamped to [0,1], then raised to power.
-		// cpuRisk(0)=0, cpuRisk(cpuMaxLine)=1.0, smooth throughout.
-		cpuMaxLine = 80.0
-		cpuPower   = 2.0
+		// CPU thresholds (referenced from lyapunov-config.go)
+		// CPU < 60: no penalty
+		// 60 <= CPU < 80: increasing penalty
+		// CPU >= 80: max penalty
+		CPULow   = 40.0 // Hysteresis down threshold
+		CPUMid   = 60.0 // Threshold to start penalty
+		CPUHigh  = 80.0 // Threshold for max penalty
+		cpuPower = 2.0  // Power for penalty curve
 
 		// Loss risk: sigmoid with inflection at 5% loss, risk~0 at 0%.
 		// At 0% loss risk ≈ 0.006; at 5% risk = 0.5; at 10%+ risk → 1.0.
@@ -188,7 +192,7 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 
 		// Latency risk: single continuous power curve.
 		// 0ms → risk 0, latencyMax → risk 1.0.
-		latencyMax = 200.0
+		latencyMax = 50.0
 		latPower   = 1.5
 
 		wCPU  = 0.5
@@ -196,15 +200,20 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 		wLat  = 0.5
 	)
 
-	// CPU risk: continuous power curve, no jump.
-	cpuRatio := cpuPressure / cpuMaxLine
-	if cpuRatio > 1.0 {
-		cpuRatio = 1.0
+	// CPU risk: no penalty below CPUMid (60), penalty increases from 60 to 80, max at 80+
+	var cpuRisk float64
+	if cpuPressure < CPUMid {
+		// CPU < 60: no penalty
+		cpuRisk = 0.0
+	} else if cpuPressure >= CPUHigh {
+		// CPU >= 80: max penalty
+		cpuRisk = 1.0
+	} else {
+		// 60 <= CPU < 80: interpolate penalty
+		// Normalize to [0,1] range between CPUMid and CPUHigh
+		cpuRatio := (cpuPressure - CPUMid) / (CPUHigh - CPUMid)
+		cpuRisk = math.Pow(cpuRatio, cpuPower)
 	}
-	if cpuRatio < 0 {
-		cpuRatio = 0
-	}
-	cpuRisk := math.Pow(cpuRatio, cpuPower)
 
 	// Loss risk: sigmoid, near-zero at 0% loss.
 	var lossRisk float64
