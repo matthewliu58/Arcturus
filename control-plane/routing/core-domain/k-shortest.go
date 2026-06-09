@@ -86,6 +86,41 @@ type Path struct {
 	rawRTT float64
 }
 
+// PQNode represents a node in the priority queue for path finding
+type PQNode struct {
+	node   string
+	cost   float64
+	rawRTT float64
+	index  int
+}
+
+// PriorityQueue implements heap.Interface
+type PriorityQueue []*PQNode
+
+func (pq PriorityQueue) Len() int           { return len(pq) }
+func (pq PriorityQueue) Less(i, j int) bool { return pq[i].cost < pq[j].cost }
+func (pq PriorityQueue) Swap(i, j int) {
+	pq[i], pq[j] = pq[j], pq[i]
+	pq[i].index, pq[j].index = i, j
+}
+
+func (pq *PriorityQueue) Push(x interface{}) {
+	n := len(*pq)
+	item := x.(*PQNode)
+	item.index = n
+	*pq = append(*pq, item)
+}
+
+func (pq *PriorityQueue) Pop() interface{} {
+	old := *pq
+	n := len(old)
+	item := old[n-1]
+	old[n-1] = nil
+	item.index = -1
+	*pq = old[0 : n-1]
+	return item
+}
+
 func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]*graph.Edge, logger *slog.Logger) ([]Path, error) {
 	// Create a copy of the graph to avoid modifying the original
 	graphCopy := make(map[string][]*graph.Edge)
@@ -103,6 +138,8 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 	if err != nil {
 		return nil, err
 	}
+	// Deduplicate consecutive hops (e.g., ...->Paris->Paris -> ...->Paris)
+	firstPath.hops = ks.removeConsecutiveDuplicates(firstPath.hops)
 	A = append(A, *firstPath)
 
 	// Continue until we have k paths or no more candidates
@@ -168,15 +205,26 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 				// Find shortest path from spur node to end, avoiding root path nodes
 				spurPath, err := ks.findShortestPath(spurNode, end, graphCopy, forbiddenNodes, nil, logger)
 				if err == nil {
-					// Calculate root path cost and rawRTT
+					// Check if spurPath itself has duplicates
+					if ks.hasDuplicateNodes(spurPath.hops) {
+						continue
+					}
+
+					// Calculate root path cost and rawRTT (full rootPath to spurNode)
 					rootCost := ks.calculatePathCost(rootPath, graphCopy)
 					rootRTT := ks.calculatePathRTT(rootPath, graphCopy)
-					// Build complete path
+
+					// Build complete path: rootPath prefix (without spurNode) + spurPath
+					// Copy first to avoid mutating rootPath's backing array via append
+					mergedHops := append(append([]string{}, rootPath[:len(rootPath)-1]...), spurPath.hops...)
+					cleanHops := ks.removeConsecutiveDuplicates(mergedHops)
+
 					completePath := Path{
-						hops:   append(rootPath[:len(rootPath)-1], spurPath.hops...),
+						hops:   cleanHops,
 						cost:   rootCost + spurPath.cost,
 						rawRTT: rootRTT + spurPath.rawRTT,
 					}
+
 					// Check if path is valid (no duplicate nodes)
 					if !ks.hasDuplicateNodes(completePath.hops) {
 						// Check if path is already in result list or candidate list
@@ -205,8 +253,9 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 		if shortest == nil {
 			break
 		}
-		// Parse path
-		hops := strings.Split(shortest.node, "->")
+		// Parse path and deduplicate consecutive hops
+		rawHops := strings.Split(shortest.node, "->")
+		hops := ks.removeConsecutiveDuplicates(rawHops)
 
 		// Check if this path already exists in A
 		newPath := Path{hops: hops, cost: shortest.cost, rawRTT: shortest.rawRTT}
@@ -224,6 +273,10 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 		}
 	}
 
+	// Final safety: dedup consecutive duplicates in all paths
+	for i := range A {
+		A[i].hops = ks.removeConsecutiveDuplicates(A[i].hops)
+	}
 	return A, nil
 }
 
@@ -236,6 +289,21 @@ func (ks *KShortestSolver) hasDuplicateNodes(hops []string) bool {
 		seen[hop] = true
 	}
 	return false
+}
+
+// removeConsecutiveDuplicates removes consecutive duplicate nodes from a path
+func (ks *KShortestSolver) removeConsecutiveDuplicates(hops []string) []string {
+	if len(hops) <= 1 {
+		return hops
+	}
+	var result []string
+	result = append(result, hops[0])
+	for i := 1; i < len(hops); i++ {
+		if hops[i] != hops[i-1] {
+			result = append(result, hops[i])
+		}
+	}
+	return result
 }
 
 func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string][]*graph.Edge,
@@ -286,12 +354,21 @@ func (ks *KShortestSolver) findShortestPath(start, end string, graph_ map[string
 			for node := end; node != ""; node = prev[node] {
 				path = append([]string{node}, path...)
 			}
-			logger.Debug("findShortestPath: found path",
-				slog.String("start", start),
-				slog.String("end", end),
-				slog.String("path", strings.Join(path, "->")),
-				slog.Float64("cost", currCost),
-				slog.Float64("rawRTT", rawRTT[end]))
+			// Debug: log path with duplicate check
+			hasDup := false
+			for i := 0; i < len(path)-1; i++ {
+				if path[i] == path[i+1] {
+					hasDup = true
+					break
+				}
+			}
+			if hasDup {
+				logger.Warn("findShortestPath: path has consecutive duplicates, will dedup",
+					slog.String("start", start),
+					slog.String("end", end),
+					slog.String("raw_path", strings.Join(path, "->")))
+				path = ks.removeConsecutiveDuplicates(path)
+			}
 			return &Path{
 				hops:   path,
 				cost:   currCost,
