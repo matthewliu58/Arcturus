@@ -191,9 +191,9 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 		latencyMax = 200.0
 		latPower   = 1.5
 
-		wCPU  = 0.4
-		wLoss = 0.3
-		wLat  = 0.3
+		wCPU  = 0.5
+		wLoss = 0.0
+		wLat  = 0.5
 	)
 
 	// CPU risk: continuous power curve, no jump.

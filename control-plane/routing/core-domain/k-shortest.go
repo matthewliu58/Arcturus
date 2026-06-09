@@ -21,6 +21,10 @@ func NewKShortestSolver(edges []*graph.Edge, k int) *KShortestSolver {
 	for _, e := range edges {
 		g = append(g, e)
 	}
+	// Set k=5 by default for path selection
+	if k <= 0 {
+		k = 5
+	}
 	return &KShortestSolver{
 		edges: g,
 		alpha: 1.2,
@@ -46,15 +50,20 @@ func (ks *KShortestSolver) Computing(start, end, pre string, logger *slog.Logger
 		return nil, fmt.Errorf("end node %s not found", end)
 	}
 
-	// Use Yen's algorithm to find top k shortest paths
+	// Use Yen's algorithm to find top k shortest paths (k=5)
 	paths, err := ks.yensAlgorithm(start, end, graph_, logger)
 	if err != nil {
 		return nil, err
 	}
 
+	// Select top 2 paths based on RTT
+	// For paths with length <= 4: prioritize shorter hops, then RTT
+	// For paths with length > 4: prioritize RTT only
+	selectedPaths := ks.selectTopPaths(paths, 2, logger)
+
 	// Convert to PathInfo format
 	var pathInfos []routing.PathInfo
-	for _, path := range paths {
+	for _, path := range selectedPaths {
 		pathInfos = append(pathInfos, routing.PathInfo{
 			Hops: path.hops,
 			Rtt:  path.cost,
@@ -63,7 +72,8 @@ func (ks *KShortestSolver) Computing(start, end, pre string, logger *slog.Logger
 
 	logger.Info("K-shortest paths found", slog.String("pre", pre),
 		slog.String("start", start), slog.String("end", end),
-		slog.Int("k", ks.k), slog.Any("paths", pathInfos))
+		slog.Int("k", ks.k), slog.Int("selected", len(pathInfos)),
+		slog.Any("paths", pathInfos))
 
 	return pathInfos, nil
 }
@@ -267,6 +277,65 @@ func (ks *KShortestSolver) isPathInQueue(path Path, pq *PriorityQueue) bool {
 		}
 	}
 	return false
+}
+
+func (ks *KShortestSolver) selectTopPaths(paths []Path, count int, logger *slog.Logger) []Path {
+	if len(paths) <= count {
+		return paths
+	}
+
+	// Separate paths into two groups
+	var shortPaths []Path // len(hops) <= 4
+	var longPaths []Path  // len(hops) > 4
+
+	for _, path := range paths {
+		if len(path.hops) <= 4 {
+			shortPaths = append(shortPaths, path)
+		} else {
+			longPaths = append(longPaths, path)
+		}
+	}
+
+	// Sort short paths by RTT (cost)
+	for i := 0; i < len(shortPaths)-1; i++ {
+		for j := i + 1; j < len(shortPaths); j++ {
+			if shortPaths[j].cost < shortPaths[i].cost {
+				shortPaths[i], shortPaths[j] = shortPaths[j], shortPaths[i]
+			}
+		}
+	}
+
+	// Sort long paths by RTT (cost)
+	for i := 0; i < len(longPaths)-1; i++ {
+		for j := i + 1; j < len(longPaths); j++ {
+			if longPaths[j].cost < longPaths[i].cost {
+				longPaths[i], longPaths[j] = longPaths[j], longPaths[i]
+			}
+		}
+	}
+
+	// Select paths: prioritize short paths, then long paths
+	var result []Path
+	remaining := count
+
+	// Add short paths first
+	for i := 0; i < len(shortPaths) && remaining > 0; i++ {
+		result = append(result, shortPaths[i])
+		remaining--
+	}
+
+	// Add long paths if needed
+	for i := 0; i < len(longPaths) && remaining > 0; i++ {
+		result = append(result, longPaths[i])
+		remaining--
+	}
+
+	logger.Info("Path selection", slog.Int("total", len(paths)),
+		slog.Int("short_paths", len(shortPaths)),
+		slog.Int("long_paths", len(longPaths)),
+		slog.Int("selected", count), slog.Any("selected_paths", result))
+
+	return result
 }
 
 func (ks *KShortestSolver) calculatePathCost(path []string, graph_ map[string][]*graph.Edge) float64 {
