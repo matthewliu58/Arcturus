@@ -129,7 +129,7 @@ func omParseCost266Edges(filePath string) []*graph.Edge {
 
 func TestONEWANMultiSolver(t *testing.T) {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+		Level: slog.LevelDebug,
 	}))
 
 	cost266File := "evaluation/cost266"

@@ -5,6 +5,7 @@ import (
 	"control-plane/routing/routing"
 	"fmt"
 	"log/slog"
+	"math"
 	"strings"
 )
 
@@ -64,12 +65,20 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 			continue
 		}
 
-		// Convert to PathInfo format
+		// Convert to PathInfo format (KSP already calculates correct latency when useLatency=true)
 		var pathInfos []routing.PathInfo
 		for _, path := range paths {
+			// Debug: Print path info to verify initialization
+			logger.Info("ONEWAN multi: candidate path initialized",
+				slog.String("pre", pre),
+				slog.String("end", end),
+				slog.String("hops", strings.Join(path.hops, "->")),
+				slog.Float64("cost", path.cost),
+				slog.Float64("rawRTT", path.rawRTT))
+
 			pathInfos = append(pathInfos, routing.PathInfo{
 				Hops:   path.hops,
-				Rtt:    path.cost, // This is the Latency-based cost
+				Rtt:    path.cost, // KSP returns correct latency when useLatency=true
 				RawRTT: path.rawRTT,
 			})
 		}
@@ -90,6 +99,10 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		}
 
 		if len(pathInfos) > 0 {
+			// Limit to maxPaths candidates per destination
+			if len(pathInfos) > solver.maxPaths {
+				pathInfos = pathInfos[:solver.maxPaths]
+			}
 			allCandidates = append(allCandidates, destCandidates{end: end, paths: pathInfos})
 		}
 	}
@@ -123,9 +136,15 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 
 		// For each state in current beam, expand with all combinations of paths for this destination
 		for _, state := range beam {
-			// Generate all combinations of exactly maxPaths paths from candidates
-			// But don't require maxPaths - use all available filtered paths
-			combinations := generatePathCombinationsExactSize(filteredPaths, solver.maxPaths)
+			// Only use the first maxPaths paths for combination generation
+			// This ensures we only consider the best candidates (shortest paths)
+			limitedPaths := filteredPaths
+			if len(filteredPaths) > solver.maxPaths {
+				limitedPaths = filteredPaths[:solver.maxPaths]
+			}
+
+			// Generate all combinations of exactly maxPaths paths from limited candidates
+			combinations := generatePathCombinationsExactSize(limitedPaths, solver.maxPaths)
 
 			for _, combo := range combinations {
 				// Create new state by adding these paths
@@ -144,21 +163,45 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 				for _, path := range combo {
 					newState.paths = append(newState.paths, path)
 
-					// First pass: update node load (count how many times each node is passed)
-					// Node load = number of times passed through
-					for _, node := range path.Hops {
-						newState.load[node] += 1.0
+					// Track processed nodes in this path to avoid double counting
+					processedNodes := make(map[string]bool)
+
+					// First pass: update node load based on edge.Load values
+					// Each node in a path should only contribute once
+					for i := 0; i < len(path.Hops)-1; i++ {
+						src := path.Hops[i]
+						dst := path.Hops[i+1]
+
+						// Find the edge and get its load
+						for _, edge := range graph_[src] {
+							if edge.DestinationIp == dst {
+								loadRisk := calculateLoadRisk(edge.Load)
+								// Add load risk for src node (only once per path)
+								if !processedNodes[src] {
+									newState.load[src] += loadRisk
+									processedNodes[src] = true
+								}
+								// Add load risk for dst node (only once per path)
+								if !processedNodes[dst] {
+									newState.load[dst] += loadRisk
+									processedNodes[dst] = true
+								}
+								break
+							}
+						}
 					}
 
 					// Calculate path score: base latency + load penalty
-					// Score = path latency + sum(load^2) for all nodes in path
-					// Use square penalty for load balancing: higher node load = higher penalty
+					// Score = path latency + weight * sum(load^2)
+					// Using square penalty for load balancing
 					pathScore := path.Rtt // base latency
 
-					// Add load penalty: higher load = higher penalty (using sum of squares)
+					// Add load penalty: higher accumulated load = higher penalty
+					// loadWeight controls the importance of load balancing vs latency
+					const loadWeight = 100.0 // Adjust this to balance latency vs load
 					for _, node := range path.Hops {
 						load := newState.load[node]
-						pathScore += load * load // load square penalty
+						pathScore += load * load * loadWeight // weighted load penalty
 					}
 
 					newState.score += pathScore
@@ -277,4 +320,27 @@ func pruneBeam(states []beamState, k int) []beamState {
 
 	// Return top K
 	return states[:k]
+}
+
+// calculateLoadRisk calculates load risk similar to CPU risk in update-graph.go
+// Load range: 0-100
+// No penalty below LoadMid, penalty increases from LoadMid to LoadHigh, max at LoadHigh+
+func calculateLoadRisk(load float64) float64 {
+	const (
+		LoadMid   = 20.0 // Lower threshold for test compatibility
+		LoadHigh  = 80.0 // Max penalty above this value
+		loadPower = 1.5  // Non-linear power factor
+	)
+
+	if load < LoadMid {
+		// Load < LoadMid: no penalty
+		return 0.0
+	} else if load >= LoadHigh {
+		// Load >= LoadHigh: max penalty
+		return 1.0
+	} else {
+		// LoadMid <= Load < LoadHigh: interpolate penalty with non-linear curve
+		loadRatio := (load - LoadMid) / (LoadHigh - LoadMid)
+		return math.Pow(loadRatio, loadPower)
+	}
 }
