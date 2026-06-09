@@ -179,23 +179,23 @@ func TestLiveStyleSolver(t *testing.T) {
 			i+1, path.cost, path.rawRTT, len(path.hops)-1, hopStr)
 	}
 
-	// Step 2: Show classification process
+	// Step 2: Show classification process (filter >10 hops, sort by rawRTT)
 	fmt.Printf("\n[STEP 2] Path Classification:\n")
-	var shortPaths, longPaths []Path
+	var validPaths, filteredPaths []Path
 	for _, p := range allPaths {
-		if len(p.hops)-1 <= 4 {
-			shortPaths = append(shortPaths, p)
+		if len(p.hops)-1 <= 10 {
+			validPaths = append(validPaths, p)
 		} else {
-			longPaths = append(longPaths, p)
+			filteredPaths = append(filteredPaths, p)
 		}
 	}
-	fmt.Printf("  Short Paths (<=4 hops): %d paths\n", len(shortPaths))
-	for i, p := range shortPaths {
+	fmt.Printf("  Valid Paths (<=10 hops): %d paths\n", len(validPaths))
+	for i, p := range validPaths {
 		hopStr := strings.Join(p.hops, " -> ")
 		fmt.Printf("    [%d] Weight=%.4f, RawRTT=%.2fms, %d hops: %s\n", i+1, p.cost, p.rawRTT, len(p.hops)-1, hopStr)
 	}
-	fmt.Printf("  Long Paths (>4 hops): %d paths\n", len(longPaths))
-	for i, p := range longPaths {
+	fmt.Printf("  Filtered Paths (>10 hops): %d paths\n", len(filteredPaths))
+	for i, p := range filteredPaths {
 		hopStr := strings.Join(p.hops, " -> ")
 		fmt.Printf("    [%d] Weight=%.4f, RawRTT=%.2fms, %d hops: %s\n", i+1, p.cost, p.rawRTT, len(p.hops)-1, hopStr)
 	}

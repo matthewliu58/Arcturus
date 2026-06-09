@@ -78,58 +78,30 @@ func (ls *LiveStyleSolver) Computing(start, end, pre string, logger *slog.Logger
 }
 
 // selectTopPaths selects paths based on:
-// 1. First prioritize paths with <=4 hops
-// 2. Within each hop category, sort by raw RTT (ascending)
+// 1. Filter out paths with >10 hops
+// 2. Sort remaining paths by raw RTT (ascending)
+// 3. Select top 2 paths
 func (ls *LiveStyleSolver) selectTopPaths(paths []Path, count int) []Path {
-	if len(paths) <= count {
-		return paths
-	}
-
-	// Separate paths into two groups
-	var shortPaths []Path // hops <= 4
-	var longPaths []Path  // hops > 4
-
+	// Filter out paths with >10 hops
+	var validPaths []Path
 	for _, path := range paths {
-		if len(path.hops)-1 <= 4 {
-			shortPaths = append(shortPaths, path)
-		} else {
-			longPaths = append(longPaths, path)
+		if len(path.hops)-1 <= 10 {
+			validPaths = append(validPaths, path)
 		}
 	}
 
-	// Sort short paths by rawRTT (real latency)
-	for i := 0; i < len(shortPaths)-1; i++ {
-		for j := i + 1; j < len(shortPaths); j++ {
-			if shortPaths[j].rawRTT < shortPaths[i].rawRTT {
-				shortPaths[i], shortPaths[j] = shortPaths[j], shortPaths[i]
+	// Sort by rawRTT (real latency) ascending
+	for i := 0; i < len(validPaths)-1; i++ {
+		for j := i + 1; j < len(validPaths); j++ {
+			if validPaths[j].rawRTT < validPaths[i].rawRTT {
+				validPaths[i], validPaths[j] = validPaths[j], validPaths[i]
 			}
 		}
 	}
 
-	// Sort long paths by rawRTT (real latency)
-	for i := 0; i < len(longPaths)-1; i++ {
-		for j := i + 1; j < len(longPaths); j++ {
-			if longPaths[j].rawRTT < longPaths[i].rawRTT {
-				longPaths[i], longPaths[j] = longPaths[j], longPaths[i]
-			}
-		}
+	// Select top 2 paths
+	if len(validPaths) > 2 {
+		return validPaths[:2]
 	}
-
-	// Select paths: prioritize short paths, then long paths
-	var result []Path
-	remaining := count
-
-	// Add short paths first
-	for i := 0; i < len(shortPaths) && remaining > 0; i++ {
-		result = append(result, shortPaths[i])
-		remaining--
-	}
-
-	// Add long paths if needed
-	for i := 0; i < len(longPaths) && remaining > 0; i++ {
-		result = append(result, longPaths[i])
-		remaining--
-	}
-
-	return result
+	return validPaths
 }
