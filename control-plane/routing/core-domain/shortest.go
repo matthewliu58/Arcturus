@@ -10,9 +10,10 @@ import (
 )
 
 type PQNode struct {
-	node  string
-	cost  float64
-	index int
+	node   string
+	cost   float64
+	rawRTT float64
+	index  int
 }
 
 type PriorityQueue []*PQNode

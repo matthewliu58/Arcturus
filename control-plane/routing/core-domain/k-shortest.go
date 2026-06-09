@@ -56,14 +56,9 @@ func (ks *KShortestSolver) Computing(start, end, pre string, logger *slog.Logger
 		return nil, err
 	}
 
-	// Select top 2 paths based on RTT
-	// For paths with length <= 4: prioritize shorter hops, then RTT
-	// For paths with length > 4: prioritize RTT only
-	selectedPaths := ks.selectTopPaths(paths, 2, logger)
-
 	// Convert to PathInfo format
 	var pathInfos []routing.PathInfo
-	for _, path := range selectedPaths {
+	for _, path := range paths {
 		pathInfos = append(pathInfos, routing.PathInfo{
 			Hops: path.hops,
 			Rtt:  path.cost,
@@ -174,8 +169,9 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 						// Check if path is already in result list or candidate list
 						if !ks.isPathInList(completePath, A) && !ks.isPathInQueue(completePath, &B) {
 							heap.Push(&B, &PQNode{
-								node: strings.Join(completePath.hops, "->"),
-								cost: completePath.cost,
+								node:   strings.Join(completePath.hops, "->"),
+								cost:   completePath.cost,
+								rawRTT: completePath.rawRTT,
 							})
 						}
 					}
@@ -200,7 +196,7 @@ func (ks *KShortestSolver) yensAlgorithm(start, end string, graph_ map[string][]
 		hops := strings.Split(shortest.node, "->")
 
 		// Check if this path already exists in A
-		newPath := Path{hops: hops, cost: shortest.cost}
+		newPath := Path{hops: hops, cost: shortest.cost, rawRTT: shortest.rawRTT}
 		if !ks.isPathInList(newPath, A) {
 			A = append(A, newPath)
 		}

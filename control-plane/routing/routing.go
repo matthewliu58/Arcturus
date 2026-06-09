@@ -15,6 +15,7 @@ const ( //middle
 	KShortest      = "k_shortest"
 	CarouselGreedy = "carousel_greed"
 	LiveNet        = "live_net"
+	LiveStyle      = "live_style"
 	ONEWAN         = "onewan"
 	ONEWANMulti    = "onewan_multi" // 1-source → N-destinations
 )
@@ -49,6 +50,9 @@ func InitMiddleInterface(g *graph.GraphManager, algorithm string, pre string, lo
 		return RoutingMiddleInterface{Operate: solver}
 	case LiveNet:
 		solver := middle.NewLiveNetSolver(edges, 3) // 默认 k=3
+		return RoutingMiddleInterface{Operate: solver}
+	case LiveStyle:
+		solver := middle.NewLiveStyleSolver(edges, 2) // 默认 k=2
 		return RoutingMiddleInterface{Operate: solver}
 	case ONEWAN:
 		solver := middle.NewONEWANSolver(edges, 10) // 默认 maxPaths=10
