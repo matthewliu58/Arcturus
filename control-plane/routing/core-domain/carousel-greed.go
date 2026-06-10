@@ -6,6 +6,8 @@ import (
 	"control-plane/routing/routing"
 	"fmt"
 	"log/slog"
+	"math/rand"
+	"time"
 )
 
 // FlowOptimizationSolver implements the flow optimization problem
@@ -25,12 +27,24 @@ type FlowOptimizationSolver struct {
 	Uhot    float64 // high-percentile utilization threshold (hotspot condition)
 	epsilon float64 // small constant to prevent division by zero
 	// Latency constraints (per-destination)
-	thetaLMap map[string]float64 // destination -> latency constraint
-	kspK      int                // number of KSP paths used to compute average latency
+	thetaLMap  map[string]float64 // destination -> latency constraint
+	kspK       int                // number of KSP paths used to compute average latency
+	latencyMap map[string]float64 // edge (source->dest) -> latency (for O(1) lookup)
+	rng        *rand.Rand         // random number generator (initialized once)
 }
 
 // NewFlowOptimizationSolver creates a new instance
 func NewFlowOptimizationSolver(edges []*graph.Edge) *FlowOptimizationSolver {
+	// Build latency map for O(1) edge latency lookup
+	latencyMap := make(map[string]float64)
+	for _, e := range edges {
+		key := e.SourceIp + "->" + e.DestinationIp
+		latencyMap[key] = e.Latency
+	}
+
+	// Initialize random number generator once (reused across iterations)
+	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
+
 	return &FlowOptimizationSolver{
 		edges:        edges,
 		alpha:        2.0, // iteration count coefficient (increase for more thorough optimization)
@@ -42,8 +56,10 @@ func NewFlowOptimizationSolver(edges []*graph.Edge) *FlowOptimizationSolver {
 		Uhot:    0.0,   // high-percentile utilization threshold (computed as 90th percentile at runtime)
 		epsilon: 0.001, // small constant to prevent division by zero
 		// Latency constraint parameters
-		thetaLMap: make(map[string]float64),
-		kspK:      5, // use top 5 KSP paths to compute average latency
+		thetaLMap:  make(map[string]float64),
+		kspK:       5, // use top 5 KSP paths to compute average latency
+		latencyMap: latencyMap,
+		rng:        rng,
 	}
 }
 
@@ -53,6 +69,7 @@ type EdgeFlow struct {
 	cap    float64 // original capacity u_ij
 	thetaA float64 // dynamic utilization factor [0,1]
 	effCap float64 // effective capacity = thetaA * cap
+	banned bool    // temporarily banned for exploration (not permanently removed)
 }
 
 // computeThetaA computes the dynamic scaling factor theta_a(v) based on CPU utilization
@@ -102,10 +119,10 @@ func (d *FlowOptimizationSolver) computeThetaLForDestinations(start string, ends
 			continue
 		}
 
-		// Compute average latency
+		// Compute average latency using RawRTT (pure latency) for consistency with DFS calculation
 		totalLatency := 0.0
 		for _, path := range paths {
-			totalLatency += path.Rtt
+			totalLatency += path.RawRTT
 		}
 		avgLatency := totalLatency / float64(len(paths))
 
@@ -166,139 +183,7 @@ type PathWithInfo struct {
 // ends: list of destinations (e.g., 10 destinations)
 // Returns: list of paths for each destination (max flowsPerDest paths per destination)
 func (d *FlowOptimizationSolver) ComputingMulti(start string, ends []string, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
-	if len(ends) == 0 {
-		return nil, fmt.Errorf("no destinations provided")
-	}
-
-	// Dynamically compute edge capacity: capacity = numDestinations * flowsPerDest
-	d.capacity = float64(len(ends) * d.flowsPerDest)
-
-	// Dynamically compute U_hot: 90th percentile of all edge loads
-	d.Uhot = d.computePercentile(90.0)
-
-	// Compute average latency for each destination using KSP as theta_L(d)
-	d.computeThetaLForDestinations(start, ends, logger)
-
-	logger.Info("FlowOptimizationSolver: parameters calculated dynamically",
-		slog.String("pre", pre),
-		slog.Int("numDestinations", len(ends)),
-		slog.Int("flowsPerDest", d.flowsPerDest),
-		slog.Float64("capacity", d.capacity),
-		slog.Float64("U_hot (90th percentile)", d.Uhot))
-
-	// 1. Build residual graph with capacities
-	resGraph := d.buildResidualGraphWithCapacity()
-
-	// 2. Find feasible paths for each destination (satisfy latency constraint and flow limit)
-	allPaths := list.New()
-	destFlowCount := make(map[string]int) // Track flow count per destination
-
-	for _, end := range ends {
-		// Max flowsPerDest paths per destination
-		for i := 0; i < d.flowsPerDest; i++ {
-			pathInfo := d.findFeasiblePathWithLatency(resGraph, start, end)
-			if pathInfo == nil {
-				logger.Warn("Cannot find enough paths for destination",
-					slog.String("dest", end), slog.Int("found", i))
-				break
-			}
-			allPaths.PushBack(pathInfo)
-			destFlowCount[end]++
-			d.allocateFlow(resGraph, pathInfo.path, 1.0) // Allocate 1 unit of flow
-		}
-	}
-
-	if allPaths.Len() == 0 {
-		return nil, fmt.Errorf("no feasible path found from %s to any destination", start)
-	}
-
-	// 3. Record all historical paths
-	P := list.New()
-	for e := allPaths.Front(); e != nil; e = e.Next() {
-		P.PushBack(e.Value)
-	}
-
-	// 4. Initialize optimal solution
-	bestPaths := d.copyPathList(allPaths)
-	bestScore := d.objective(allPaths)
-
-	// 5. Remove beta*|S| newest paths
-	removeNum := int(d.beta * float64(allPaths.Len()))
-	for i := 0; i < removeNum && allPaths.Len() > 0; i++ {
-		oldestElm := allPaths.Front()
-		oldestPathInfo := oldestElm.Value.(*PathWithInfo)
-		destFlowCount[oldestPathInfo.dest]--
-		allPaths.Remove(oldestElm)
-	}
-
-	// 6. Iterative optimization
-	maxIter := int(d.alpha * float64(allPaths.Len()))
-	for i := 0; i < maxIter; i++ {
-		if allPaths.Len() == 0 {
-			break
-		}
-
-		// 7. Remove oldest path and release flow
-		oldestElm := allPaths.Front()
-		oldestPathInfo := oldestElm.Value.(*PathWithInfo)
-		allPaths.Remove(oldestElm)
-		destFlowCount[oldestPathInfo.dest]--
-		d.releaseFlow(resGraph, oldestPathInfo.path, 1.0)
-
-		// 8. Find most frequent path
-		freqPathInfo := d.mostFrequentPathInfo(P)
-
-		// 9. Ban edges of frequent path + first edge of oldest path
-		if freqPathInfo != nil {
-			d.banPathEdges(resGraph, freqPathInfo.path)
-		}
-		if len(oldestPathInfo.path) >= 2 {
-			d.banEdge(resGraph, oldestPathInfo.path[0], oldestPathInfo.path[1])
-		}
-
-		// 10. Find new path for random destination (respect flow limit)
-		for _, end := range ends {
-			// Check if destination has reached max flow limit
-			if destFlowCount[end] >= d.flowsPerDest {
-				continue
-			}
-
-			newPathInfo := d.findFeasiblePathWithLatency(resGraph, start, end)
-			if newPathInfo != nil {
-				allPaths.PushBack(newPathInfo)
-				P.PushBack(newPathInfo)
-				destFlowCount[end]++
-				d.allocateFlow(resGraph, newPathInfo.path, 1.0)
-				break
-			}
-		}
-
-		// 11. 更新最优解
-		currentScore := d.objective(allPaths)
-		if currentScore > bestScore {
-			bestPaths = d.copyPathList(allPaths)
-			bestScore = currentScore
-		}
-	}
-
-	// 转换结果为 PathInfo
-	pathInfos := make([]routing.PathInfo, 0, bestPaths.Len())
-	for e := bestPaths.Front(); e != nil; e = e.Next() {
-		pi := e.Value.(*PathWithInfo)
-		pathInfos = append(pathInfos, routing.PathInfo{
-			Hops:   pi.path,
-			Rtt:    pi.latency,
-			RawRTT: pi.latency,
-		})
-	}
-
-	logger.Info("FlowOptimizationSolver completed",
-		slog.String("pre", pre),
-		slog.String("start", start),
-		slog.Int("destCount", len(ends)),
-		slog.Int("totalFlows", len(pathInfos)))
-
-	return pathInfos, nil
+	return ComputeMultiDestination(d, start, ends, pre, logger)
 }
 
 // buildResidualGraphWithCapacity builds a residual graph with capacities (using dynamic theta_a(v))
@@ -317,6 +202,7 @@ func (d *FlowOptimizationSolver) buildResidualGraphWithCapacity() map[string]map
 			cap:    d.capacity,
 			thetaA: thetaA,
 			effCap: effCap,
+			banned: false, // initialize as not banned
 		}
 	}
 	return g
@@ -355,7 +241,7 @@ func (d *FlowOptimizationSolver) findFeasiblePathWithLatency(g map[string]map[st
 		path = append(path, u)
 
 		for v, ef := range g[u] {
-			if !visited[v] && ef != nil && ef.flow < ef.effCap {
+			if !visited[v] && ef != nil && !ef.banned && ef.flow < ef.effCap {
 				// Estimate latency (using edge's Latency property)
 				edgeLatency := d.getEdgeLatency(u, v)
 				if totalLatency+edgeLatency <= thetaL {
@@ -369,6 +255,7 @@ func (d *FlowOptimizationSolver) findFeasiblePathWithLatency(g map[string]map[st
 		}
 
 		path = path[:len(path)-1]
+		visited[u] = false // Backtrack: restore visited state
 		return false
 	}
 
@@ -382,14 +269,13 @@ func (d *FlowOptimizationSolver) findFeasiblePathWithLatency(g map[string]map[st
 	return nil
 }
 
-// getEdgeLatency gets the latency of an edge
+// getEdgeLatency gets the latency of an edge (O(1) lookup using latencyMap)
 func (d *FlowOptimizationSolver) getEdgeLatency(from, to string) float64 {
-	for _, e := range d.edges {
-		if e.SourceIp == from && e.DestinationIp == to {
-			return e.Latency
-		}
+	key := from + "->" + to
+	if latency, ok := d.latencyMap[key]; ok {
+		return latency
 	}
-	return 10.0 // default latency
+	return 10.0 // default latency if edge not found
 }
 
 // allocateFlow allocates flow along a path
@@ -417,23 +303,84 @@ func (d *FlowOptimizationSolver) releaseFlow(g map[string]map[string]*EdgeFlow, 
 	}
 }
 
-// banPathEdges bans all edges in a path
+// banPathEdges temporarily bans all edges in a path (for exploration)
 func (d *FlowOptimizationSolver) banPathEdges(g map[string]map[string]*EdgeFlow, path []string) {
 	for i := 0; i < len(path)-1; i++ {
 		d.banEdge(g, path[i], path[i+1])
 	}
 }
 
-// banEdge bans a single edge
+// banEdge temporarily bans a single edge (sets banned flag instead of removing)
 func (d *FlowOptimizationSolver) banEdge(g map[string]map[string]*EdgeFlow, from, to string) {
-	if g[from] != nil {
-		g[from][to] = nil
+	if g[from] != nil && g[from][to] != nil {
+		g[from][to].banned = true
 	}
 }
 
-// objective function: maximize path count (feasible flow count)
-func (d *FlowOptimizationSolver) objective(lst *list.List) int {
-	return lst.Len()
+// unbanAllEdges unbans all edges in the graph (called at the end of each iteration)
+func (d *FlowOptimizationSolver) unbanAllEdges(g map[string]map[string]*EdgeFlow) {
+	for _, edges := range g {
+		for _, ef := range edges {
+			if ef != nil {
+				ef.banned = false
+			}
+		}
+	}
+}
+
+// allDestinationsFull checks if all destinations have reached max flowsPerDest
+func (d *FlowOptimizationSolver) allDestinationsFull(destFlowCount map[string]int, destinations []string) bool {
+	for _, dest := range destinations {
+		if destFlowCount[dest] < d.flowsPerDest {
+			return false
+		}
+	}
+	return true
+}
+
+// objective function: maximize path count + diversity - latency
+// Score = path_count * pathWeight + diversity_score * diversityWeight - latency_penalty
+func (d *FlowOptimizationSolver) objective(lst *list.List) float64 {
+	if lst.Len() == 0 {
+		return 0.0
+	}
+
+	// Weights for balancing objectives
+	// pathWeight should be dominant to prioritize max F (paper objective)
+	const pathWeight = 10.0
+	const diversityWeight = 1.0
+	const latencyWeight = 0.01
+
+	// Count edge usage for diversity calculation
+	edgeUsage := make(map[string]int)
+	totalLatency := 0.0
+
+	for e := lst.Front(); e != nil; e = e.Next() {
+		pi := e.Value.(*PathWithInfo)
+		totalLatency += pi.latency
+
+		// Count each edge in the path
+		path := pi.path
+		for i := 0; i < len(path)-1; i++ {
+			edgeKey := path[i] + "->" + path[i+1]
+			edgeUsage[edgeKey]++
+		}
+	}
+
+	// Diversity score: edges used fewer times contribute more
+	// 1/count for each edge, so shared edges reduce score
+	diversityScore := 0.0
+	for _, count := range edgeUsage {
+		diversityScore += 1.0 / float64(count)
+	}
+
+	// Combine metrics with weights
+	// pathCount is dominant (10x weight) to prioritize max F as per paper
+	pathCount := float64(lst.Len())
+	latencyPenalty := totalLatency * latencyWeight
+
+	// Total score favors: more paths (primary), more diversity (secondary), lower latency (tertiary)
+	return pathCount*pathWeight + diversityScore*diversityWeight - latencyPenalty
 }
 
 // copyPathList copies a path list
@@ -479,14 +426,14 @@ func (d *FlowOptimizationSolver) Computing(start, end string, pre string, logger
 // ComputeMultiDestination package-level multi-destination flow optimization function (following onewan-multi.go style)
 func ComputeMultiDestination(solver *FlowOptimizationSolver, start string, ends []string, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
 	if len(ends) == 0 {
-		return solver.Computing(start, "", pre, logger)
+		return nil, fmt.Errorf("no destinations provided")
 	}
 
 	if len(ends) == 1 {
 		return solver.Computing(start, ends[0], pre, logger)
 	}
 
-	// 验证图中存在源节点
+	// Validate source node exists in graph
 	nodes := make(map[string]struct{})
 	for _, e := range solver.edges {
 		nodes[e.SourceIp] = struct{}{}
@@ -497,7 +444,7 @@ func ComputeMultiDestination(solver *FlowOptimizationSolver, start string, ends 
 		return nil, fmt.Errorf("start node %s not found in graph", start)
 	}
 
-	// 验证所有目的地都在图中
+	// Validate all destinations exist in graph
 	validEnds := make([]string, 0, len(ends))
 	for _, end := range ends {
 		if _, ok := nodes[end]; ok {
@@ -512,6 +459,149 @@ func ComputeMultiDestination(solver *FlowOptimizationSolver, start string, ends 
 		return nil, fmt.Errorf("no valid destinations found in graph from %s", start)
 	}
 
-	// 调用 solver 的多目的地方法
-	return solver.ComputingMulti(start, validEnds, pre, logger)
+	// Dynamically compute edge capacity: capacity = numDestinations * flowsPerDest
+	solver.capacity = float64(len(validEnds) * solver.flowsPerDest)
+
+	// Dynamically compute U_hot: 90th percentile of all edge loads
+	solver.Uhot = solver.computePercentile(90.0)
+
+	// Compute average latency for each destination using KSP as theta_L(d)
+	solver.computeThetaLForDestinations(start, validEnds, logger)
+
+	logger.Info("FlowOptimizationSolver: parameters calculated dynamically",
+		slog.String("pre", pre),
+		slog.Int("numDestinations", len(validEnds)),
+		slog.Int("flowsPerDest", solver.flowsPerDest),
+		slog.Float64("capacity", solver.capacity),
+		slog.Float64("U_hot (90th percentile)", solver.Uhot))
+
+	// 1. Build residual graph with capacities
+	resGraph := solver.buildResidualGraphWithCapacity()
+
+	// 2. Find feasible paths for each destination (satisfy latency constraint and flow limit)
+	allPaths := list.New()
+	destFlowCount := make(map[string]int) // Track flow count per destination
+
+	for _, end := range validEnds {
+		// Max flowsPerDest paths per destination
+		for i := 0; i < solver.flowsPerDest; i++ {
+			pathInfo := solver.findFeasiblePathWithLatency(resGraph, start, end)
+			if pathInfo == nil {
+				logger.Warn("Cannot find enough paths for destination",
+					slog.String("dest", end), slog.Int("found", i))
+				break
+			}
+			allPaths.PushBack(pathInfo)
+			destFlowCount[end]++
+			solver.allocateFlow(resGraph, pathInfo.path, 1.0) // Allocate 1 unit of flow
+		}
+	}
+
+	if allPaths.Len() == 0 {
+		return nil, fmt.Errorf("no feasible path found from %s to any destination", start)
+	}
+
+	// 3. Record all historical paths
+	P := list.New()
+	for e := allPaths.Front(); e != nil; e = e.Next() {
+		P.PushBack(e.Value)
+	}
+
+	// 4. Initialize optimal solution
+	bestPaths := solver.copyPathList(allPaths)
+	bestScore := solver.objective(allPaths)
+
+	// Record initial size before removing paths (for maxIter calculation)
+	initialSize := allPaths.Len()
+
+	// 5. Remove beta*|S| newest paths and release their flows
+	removeNum := int(solver.beta * float64(allPaths.Len()))
+	for i := 0; i < removeNum && allPaths.Len() > 0; i++ {
+		oldestElm := allPaths.Front()
+		oldestPathInfo := oldestElm.Value.(*PathWithInfo)
+		// Release flow before removing path
+		solver.releaseFlow(resGraph, oldestPathInfo.path, 1.0)
+		destFlowCount[oldestPathInfo.dest]--
+		allPaths.Remove(oldestElm)
+	}
+
+	// 6. Iterative optimization
+	// Use initial size for maxIter calculation (alpha * |S_0|), not the reduced size
+	maxIter := int(solver.alpha * float64(initialSize))
+	for i := 0; i < maxIter; i++ {
+		if allPaths.Len() == 0 {
+			break
+		}
+
+		// 7. Remove oldest path and release flow
+		oldestElm := allPaths.Front()
+		oldestPathInfo := oldestElm.Value.(*PathWithInfo)
+		allPaths.Remove(oldestElm)
+		destFlowCount[oldestPathInfo.dest]--
+		solver.releaseFlow(resGraph, oldestPathInfo.path, 1.0)
+
+		// 8. Find most frequent path in current solution (not historical paths)
+		freqPathInfo := solver.mostFrequentPathInfo(allPaths)
+
+		// 9. Ban edges of frequent path + first edge of oldest path
+		if freqPathInfo != nil {
+			solver.banPathEdges(resGraph, freqPathInfo.path)
+		}
+		if len(oldestPathInfo.path) >= 2 {
+			solver.banEdge(resGraph, oldestPathInfo.path[0], oldestPathInfo.path[1])
+		}
+
+		// 10. Find new path for random destination (respect flow limit)
+		// Shuffle destinations to ensure fair selection (not biased by array order)
+		shuffledEnds := make([]string, len(validEnds))
+		copy(shuffledEnds, validEnds)
+		solver.rng.Shuffle(len(shuffledEnds), func(i, j int) {
+			shuffledEnds[i], shuffledEnds[j] = shuffledEnds[j], shuffledEnds[i]
+		})
+
+		for _, end := range shuffledEnds {
+			// Check if destination has reached max flow limit
+			if destFlowCount[end] >= solver.flowsPerDest {
+				continue
+			}
+
+			newPathInfo := solver.findFeasiblePathWithLatency(resGraph, start, end)
+			if newPathInfo != nil {
+				allPaths.PushBack(newPathInfo)
+				P.PushBack(newPathInfo)
+				destFlowCount[end]++
+				solver.allocateFlow(resGraph, newPathInfo.path, 1.0)
+				break
+			}
+		}
+
+		// 11. Update optimal solution
+		currentScore := solver.objective(allPaths)
+		if currentScore > bestScore {
+			bestPaths = solver.copyPathList(allPaths)
+			bestScore = currentScore
+		}
+
+		// 12. Unban all edges for next iteration (temporary ban only for exploration)
+		solver.unbanAllEdges(resGraph)
+	}
+
+	// Convert results to PathInfo
+	pathInfos := make([]routing.PathInfo, 0, bestPaths.Len())
+	for e := bestPaths.Front(); e != nil; e = e.Next() {
+		pi := e.Value.(*PathWithInfo)
+		pathInfos = append(pathInfos, routing.PathInfo{
+			Hops:   pi.path,
+			Rtt:    pi.latency,
+			RawRTT: pi.latency,
+		})
+	}
+
+	logger.Info("FlowOptimizationSolver completed",
+		slog.String("pre", pre),
+		slog.String("start", start),
+		slog.Int("destCount", len(validEnds)),
+		slog.Int("totalFlows", len(pathInfos)))
+
+	return pathInfos, nil
 }
