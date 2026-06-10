@@ -1,0 +1,202 @@
+time=2026-06-10T18:13:43.376+08:00 level=INFO msg="K-shortest paths found" pre=TEST start=Amsterdam end=Paris k=5 selected=5 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Strasbourg Paris] Rtt:29 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris] Rtt:30 RawRTT:0}]"
+time=2026-06-10T18:13:43.388+08:00 level=INFO msg="K-shortest paths found" pre=TEST start=Amsterdam end=Berlin k=5 selected=5 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Munich Berlin] Rtt:35 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Vienna Prague Berlin] Rtt:36 RawRTT:0}]"
+time=2026-06-10T18:13:43.390+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_debug start=Amsterdam end=Paris k=5 selected=5 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Strasbourg Paris] Rtt:29 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris] Rtt:30 RawRTT:0}]"
+time=2026-06-10T18:13:43.391+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_debug start=Amsterdam end=Berlin k=5 selected=5 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Munich Berlin] Rtt:35 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Vienna Prague Berlin] Rtt:36 RawRTT:0}]"
+time=2026-06-10T18:13:43.391+08:00 level=INFO msg="ComputeMultiDestination START" pre=TEST start=Amsterdam ends="[Paris Berlin]" totalEdges=114
+time=2026-06-10T18:13:43.391+08:00 level=DEBUG msg="Nodes in graph" pre=TEST count=37
+time=2026-06-10T18:13:43.391+08:00 level=DEBUG msg="Valid destinations" pre=TEST destinations="[Paris Berlin]"
+time=2026-06-10T18:13:43.391+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_calc start=Amsterdam end=Paris k=3 selected=3 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0}]"
+time=2026-06-10T18:13:43.391+08:00 level=DEBUG msg="FlowOptimizationSolver: computed thetaL for destination" dest=Paris avgLatency=15.666666666666666 thetaL=15.666666666666666
+time=2026-06-10T18:13:43.391+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_calc start=Amsterdam end=Berlin k=3 selected=3 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0}]"
+time=2026-06-10T18:13:43.391+08:00 level=DEBUG msg="FlowOptimizationSolver: computed thetaL for destination" dest=Berlin avgLatency=23.666666666666668 thetaL=23.666666666666668
+time=2026-06-10T18:13:43.391+08:00 level=DEBUG msg="Computed parameters" pre=TEST capacity=6 U_hot=30 flowsPerDest=3 thetaLMap="map[Berlin:23.666666666666668 Paris:15.666666666666666]"
+time=2026-06-10T18:13:43.391+08:00 level=INFO msg="FlowOptimizationSolver: parameters calculated dynamically" pre=TEST numDestinations=2 flowsPerDest=3 capacity=6 "U_hot (90th percentile)"=30
+time=2026-06-10T18:13:43.391+08:00 level=DEBUG msg="STEP 1: Building residual graph with capacities" pre=TEST
+time=2026-06-10T18:13:43.391+08:00 level=DEBUG msg="Residual graph built" pre=TEST nodes=37
+time=2026-06-10T18:13:43.392+08:00 level=INFO msg="STEP 2: Finding feasible paths for each destination" pre=TEST
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Searching paths to destination" pre=TEST dest=Paris
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=1 attempt=1
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=15.666666666666666
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Amsterdam edges="Brussels(4.0), London(7.0), Hamburg(9.0), Glasgow(17.0)" currentLatency=0
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(4.0), Dusseldorf(4.0), Paris(5.0)" currentLatency=4
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=8
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Dusseldorf(4.0), Strasbourg(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=12
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Birmingham(3.0), Amsterdam(7.0), Paris(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=7
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Paris]" latency=9 hops=2 attempt=1
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Path found" pre=TEST dest=Paris pathNum=1 path="[Amsterdam Brussels Paris]" latency=9
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Brussels Paris]"
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Paris]" flow=1
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Brussels
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=2 attempt=2
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=15.666666666666666
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Amsterdam edges="London(7.0), Hamburg(9.0), Glasgow(17.0), Brussels(104.0)" currentLatency=0
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Birmingham(3.0), Amsterdam(7.0), Paris(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=7
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=10
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Hamburg edges="Berlin(6.0), Frankfurt(8.0), Amsterdam(9.0)" currentLatency=9
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam London Paris]" latency=14 hops=2 attempt=2
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Path found" pre=TEST dest=Paris pathNum=2 path="[Amsterdam London Paris]" latency=14
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam London Paris]"
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=London
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=3 attempt=3
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=15.666666666666666
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Amsterdam edges="Hamburg(9.0), Glasgow(17.0), Brussels(104.0), London(107.0)" currentLatency=0
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Hamburg edges="Berlin(6.0), Frankfurt(8.0), Amsterdam(9.0)" currentLatency=9
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Berlin edges="Hamburg(6.0), Prague(6.0), Warsaw(10.0), Copenhagen(12.0), Munich(12.0)" currentLatency=15
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="No feasible path found within constraints" from=Amsterdam to=Paris thetaL=15.666666666666666
+time=2026-06-10T18:13:43.392+08:00 level=WARN msg="Cannot find enough paths for destination" pre=TEST dest=Paris found=2
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Searching paths to destination" pre=TEST dest=Berlin
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Berlin pathNum=1 attempt=1
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=23.666666666666668
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Amsterdam edges="Brussels(4.0), London(7.0), Hamburg(9.0), Glasgow(17.0)" currentLatency=0
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(0.0), Dusseldorf(4.0), Amsterdam(4.0), Paris(5.0)" currentLatency=4
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=8
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Strasbourg(4.0), Dusseldorf(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=12
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=16
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Zurich edges="Strasbourg(3.0), Milan(4.0), Lyon(7.0)" currentLatency=19
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Milan edges="Zurich(4.0), Munich(7.0), Rome(10.0)" currentLatency=23
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Munich edges="Frankfurt(6.0), Milan(7.0), Vienna(7.0), Berlin(12.0)" currentLatency=18
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Hamburg edges="Berlin(6.0), Frankfurt(8.0), Amsterdam(9.0)" currentLatency=20
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=Paris edges="Brussels(0.0), London(0.0), Brussels(5.0), London(7.0), Strasbourg(8.0), Lyon(8.0), Bordeaux(11.0)" currentLatency=9
+time=2026-06-10T18:13:43.392+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Amsterdam(0.0), Birmingham(3.0), Paris(7.0), Amsterdam(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=9
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=12
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=23
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Dublin edges="Glasgow(7.0), London(9.0)" currentLatency=18
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Amsterdam(0.0), Birmingham(3.0), Paris(7.0), Amsterdam(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=16
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=19
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=17
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Zurich edges="Strasbourg(3.0), Milan(4.0), Lyon(7.0)" currentLatency=20
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Strasbourg(4.0), Dusseldorf(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=21
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Lyon edges="Marseille(6.0), Zurich(7.0), Paris(8.0)" currentLatency=17
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Marseille edges="Lyon(6.0), Barcelona(7.0), Bordeaux(11.0), Rome(13.0)" currentLatency=23
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Bordeaux edges="Marseille(11.0), Paris(11.0), Madrid(12.0)" currentLatency=20
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Amsterdam(0.0), Birmingham(3.0), Amsterdam(7.0), Paris(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=7
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=10
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=21
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Paris edges="Brussels(0.0), London(0.0), Brussels(5.0), London(7.0), Lyon(8.0), Strasbourg(8.0), Bordeaux(11.0)" currentLatency=14
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(0.0), Dusseldorf(4.0), Amsterdam(4.0), Paris(5.0)" currentLatency=14
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=18
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Dusseldorf(4.0), Strasbourg(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=22
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(0.0), Dusseldorf(4.0), Amsterdam(4.0), Paris(5.0)" currentLatency=19
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=23
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Lyon edges="Marseille(6.0), Zurich(7.0), Paris(8.0)" currentLatency=22
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=22
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Dublin edges="Glasgow(7.0), London(9.0)" currentLatency=16
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=23
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Hamburg edges="Berlin(6.0), Frankfurt(8.0), Amsterdam(9.0)" currentLatency=9
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Hamburg Berlin]" latency=15 hops=2 attempt=1
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="Path found" pre=TEST dest=Berlin pathNum=1 path="[Amsterdam Hamburg Berlin]" latency=15
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Hamburg Berlin]"
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Berlin]" flow=1
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Hamburg
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Berlin pathNum=2 attempt=2
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=23.666666666666668
+time=2026-06-10T18:13:43.393+08:00 level=DEBUG msg="DFS exploring node" node=Amsterdam edges="Brussels(4.0), London(7.0), Glasgow(17.0), Hamburg(109.0)" currentLatency=0
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(0.0), Dusseldorf(4.0), Amsterdam(4.0), Paris(5.0)" currentLatency=4
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=8
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Strasbourg(4.0), Dusseldorf(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=12
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=16
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Zurich edges="Strasbourg(3.0), Milan(4.0), Lyon(7.0)" currentLatency=19
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Milan edges="Zurich(4.0), Munich(7.0), Rome(10.0)" currentLatency=23
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Munich edges="Frankfurt(6.0), Milan(7.0), Vienna(7.0), Berlin(12.0)" currentLatency=18
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Hamburg edges="Berlin(6.0), Frankfurt(8.0), Amsterdam(9.0), Amsterdam(100.0)" currentLatency=20
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Paris edges="London(0.0), Brussels(0.0), Brussels(5.0), London(7.0), Lyon(8.0), Strasbourg(8.0), Bordeaux(11.0)" currentLatency=9
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Amsterdam(0.0), Birmingham(3.0), Paris(7.0), Amsterdam(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=9
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=12
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=23
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Dublin edges="Glasgow(7.0), London(9.0)" currentLatency=18
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Amsterdam(0.0), Birmingham(3.0), Paris(7.0), Amsterdam(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=16
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=19
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Lyon edges="Marseille(6.0), Zurich(7.0), Paris(8.0)" currentLatency=17
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Marseille edges="Lyon(6.0), Barcelona(7.0), Bordeaux(11.0), Rome(13.0)" currentLatency=23
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=17
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Zurich edges="Strasbourg(3.0), Milan(4.0), Lyon(7.0)" currentLatency=20
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Dusseldorf(4.0), Strasbourg(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=21
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Bordeaux edges="Marseille(11.0), Paris(11.0), Madrid(12.0)" currentLatency=20
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Amsterdam(0.0), Birmingham(3.0), Paris(7.0), Amsterdam(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=7
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=10
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=21
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Paris edges="Brussels(0.0), London(0.0), Brussels(5.0), London(7.0), Lyon(8.0), Strasbourg(8.0), Bordeaux(11.0)" currentLatency=14
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(0.0), Dusseldorf(4.0), Amsterdam(4.0), Paris(5.0)" currentLatency=14
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=18
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Dusseldorf(4.0), Strasbourg(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=22
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(0.0), Dusseldorf(4.0), Amsterdam(4.0), Paris(5.0)" currentLatency=19
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Frankfurt(4.0), Brussels(4.0)" currentLatency=23
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Lyon edges="Marseille(6.0), Zurich(7.0), Paris(8.0)" currentLatency=22
+time=2026-06-10T18:13:43.394+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=22
+time=2026-06-10T18:13:43.395+08:00 level=DEBUG msg="DFS exploring node" node=Dublin edges="Glasgow(7.0), London(9.0)" currentLatency=16
+time=2026-06-10T18:13:43.395+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=23
+time=2026-06-10T18:13:43.395+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=17
+time=2026-06-10T18:13:43.396+08:00 level=DEBUG msg="No feasible path found within constraints" from=Amsterdam to=Berlin thetaL=23.666666666666668
+time=2026-06-10T18:13:43.396+08:00 level=WARN msg="Cannot find enough paths for destination" pre=TEST dest=Berlin found=1
+time=2026-06-10T18:13:43.396+08:00 level=DEBUG msg="Initial path search completed" pre=TEST totalPaths=3 destFlowCount="map[Berlin:1 Paris:2]"
+time=2026-06-10T18:13:43.398+08:00 level=INFO msg="STEP 3: Removing beta*|S| newest paths and releasing flows" pre=TEST beta=0.9 removeNum=2
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=0 path="[Amsterdam Brussels Paris]"
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Paris]" flow=1
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=1 path="[Amsterdam London Paris]"
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-10T18:13:43.398+08:00 level=INFO msg="STEP 4-11: Iterative optimization" pre=TEST maxIter=6
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg=Iteration pre=TEST iter=1 totalPaths=1
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Hamburg Berlin]"
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Berlin]" flow=1
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Hamburg
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Hamburg
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=1
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=23.666666666666668
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Amsterdam edges="Brussels(4.0), London(7.0), Glasgow(17.0), Hamburg(109.0)" currentLatency=0
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(4.0), Dusseldorf(4.0), Paris(5.0)" currentLatency=4
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=8
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Dusseldorf(4.0), Strasbourg(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=12
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=16
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Zurich edges="Strasbourg(3.0), Milan(4.0), Lyon(7.0)" currentLatency=19
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Milan edges="Zurich(4.0), Munich(7.0), Rome(10.0)" currentLatency=23
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Munich edges="Frankfurt(6.0), Milan(7.0), Vienna(7.0), Berlin(12.0)" currentLatency=18
+time=2026-06-10T18:13:43.398+08:00 level=DEBUG msg="DFS exploring node" node=Hamburg edges="Berlin(6.0), Frankfurt(8.0), Amsterdam(9.0)" currentLatency=20
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Paris edges="Brussels(5.0), London(7.0), Lyon(8.0), Strasbourg(8.0), Bordeaux(11.0)" currentLatency=9
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Birmingham(3.0), Paris(7.0), Amsterdam(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=16
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=19
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Lyon edges="Marseille(6.0), Zurich(7.0), Paris(8.0)" currentLatency=17
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Marseille edges="Lyon(6.0), Barcelona(7.0), Bordeaux(11.0), Rome(13.0)" currentLatency=23
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=17
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Zurich edges="Strasbourg(3.0), Milan(4.0), Lyon(7.0)" currentLatency=20
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Dusseldorf(4.0), Strasbourg(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=21
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Bordeaux edges="Marseille(11.0), Paris(11.0), Madrid(12.0)" currentLatency=20
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Birmingham(3.0), Amsterdam(7.0), Paris(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=7
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Birmingham edges="London(3.0), Glasgow(11.0)" currentLatency=10
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=21
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Paris edges="Brussels(5.0), London(7.0), Lyon(8.0), Strasbourg(8.0), Bordeaux(11.0)" currentLatency=14
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(4.0), Dusseldorf(4.0), Paris(5.0)" currentLatency=19
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=23
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Lyon edges="Marseille(6.0), Zurich(7.0), Paris(8.0)" currentLatency=22
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Strasbourg edges="Zurich(3.0), Frankfurt(4.0), Paris(8.0)" currentLatency=22
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Dublin edges="Glasgow(7.0), London(9.0)" currentLatency=16
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=23
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Glasgow edges="Dublin(7.0), Birmingham(11.0), Amsterdam(17.0)" currentLatency=17
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="No feasible path found within constraints" from=Amsterdam to=Berlin thetaL=23.666666666666668
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=1
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=15.666666666666666
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Amsterdam edges="Brussels(4.0), London(7.0), Glasgow(17.0), Hamburg(109.0)" currentLatency=0
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Brussels edges="Amsterdam(4.0), Dusseldorf(4.0), Paris(5.0)" currentLatency=4
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Dusseldorf edges="Brussels(4.0), Frankfurt(4.0)" currentLatency=8
+time=2026-06-10T18:13:43.401+08:00 level=DEBUG msg="DFS exploring node" node=Frankfurt edges="Strasbourg(4.0), Dusseldorf(4.0), Munich(6.0), Hamburg(8.0)" currentLatency=12
+time=2026-06-10T18:13:43.403+08:00 level=DEBUG msg="DFS exploring node" node=London edges="Birmingham(3.0), Paris(7.0), Amsterdam(7.0), Dublin(9.0), Lisbon(29.0)" currentLatency=7
+time=2026-06-10T18:13:43.404+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Paris]" latency=9 hops=2 attempt=1
+time=2026-06-10T18:13:43.404+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam Brussels Paris]"
+time=2026-06-10T18:13:43.404+08:00 level=INFO msg="FlowOptimizationSolver completed" pre=TEST start=Amsterdam destCount=2 totalFlows=3
+time=2026-06-10T18:13:43.404+08:00 level=DEBUG msg="=== Final Selected Paths ===" pre=TEST
+time=2026-06-10T18:13:43.404+08:00 level=DEBUG msg=Path pre=TEST index=1 hops="Amsterdam -> Brussels -> Paris" rtt=9 rawRtt=9 hopsCount=2
+time=2026-06-10T18:13:43.404+08:00 level=DEBUG msg=Path pre=TEST index=2 hops="Amsterdam -> London -> Paris" rtt=14 rawRtt=14 hopsCount=2
+time=2026-06-10T18:13:43.404+08:00 level=DEBUG msg=Path pre=TEST index=3 hops="Amsterdam -> Hamburg -> Berlin" rtt=15 rawRtt=15 hopsCount=2
+time=2026-06-10T18:13:43.404+08:00 level=DEBUG msg="=== End of Paths ===" pre=TEST
