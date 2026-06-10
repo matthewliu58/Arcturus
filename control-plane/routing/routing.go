@@ -11,10 +11,11 @@ import (
 )
 
 const ( //middle
-	KShortest      = "k_shortest"
-	CarouselGreedy = "carousel_greed"
-	LiveStyle      = "live_style"
-	ONEWANMulti    = "onewan_multi" // 1-source → N-destinations
+	KShortest           = "k_shortest"
+	CarouselGreedy      = "carousel_greed"
+	LiveStyle           = "live_style"
+	ONEWANMulti         = "onewan_multi"    // 1-source → N-destinations
+	CarouselGreedyMulti = "carousel-greedy" // 1-source → N-destinations with capacity & latency constraints
 )
 const ( //last
 	Lyapunov        = "lyapunov"
@@ -36,9 +37,6 @@ type RoutingMiddleInterface struct {
 func InitMiddleInterface(g *graph.GraphManager, algorithm string, pre string, logger *slog.Logger) RoutingMiddleInterface {
 	edges := g.GetEdges()
 	switch algorithm {
-	case CarouselGreedy:
-		solver := middle.NewHeuristicSolver(edges)
-		return RoutingMiddleInterface{Operate: solver}
 	case KShortest:
 		solver := middle.NewKShortestSolver(edges, 3) // 默认 k=3
 		return RoutingMiddleInterface{Operate: solver}
@@ -167,6 +165,9 @@ func InitMiddleMultiInterface(g *graph.GraphManager, algorithm string, pre strin
 	switch algorithm {
 	case ONEWANMulti:
 		solver := middle.NewONEWANSolver(edges, 5) // 2 paths per destination
+		return RoutingMiddleMultiInterface{Operate: solver}
+	case CarouselGreedyMulti:
+		solver := middle.NewFlowOptimizationSolver(edges) // capacity=30, latency=100, 3 flows per destination
 		return RoutingMiddleMultiInterface{Operate: solver}
 	default:
 		return RoutingMiddleMultiInterface{}

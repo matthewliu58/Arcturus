@@ -15,32 +15,36 @@ import (
 )
 
 // omEdgeRisk calculates edge weight based on CPU pressure, loss, and latency
+// Mirrors graph.EdgeRisk: no penalty below CPUMid (60), continuous penalty above with no cap.
 func omEdgeRisk(cpuPressure, loss, latency float64) float64 {
 	const (
-		CPULow   = 40.0
+		// CPU thresholds: < 60 no penalty, ≥ 60 continuous penalty (no cap)
 		CPUMid   = 60.0
 		CPUHigh  = 80.0
 		cpuPower = 2.0
 
 		lossInflection = 0.05
 		lossSharpness  = 40.0
-		latencyMax     = 50.0
-		latPower       = 1.5
-		wCPU           = 0.5
-		wLoss          = 0.0
-		wLat           = 0.5
+
+		// Set to 20ms for cost266 dataset (90th percentile ≈ 19ms)
+		latencyMax = 20.0
+		latPower   = 1.5
+
+		wCPU  = 0.5
+		wLoss = 0.0
+		wLat  = 0.5
 	)
 
+	// CPU risk: no penalty below CPUMid, continuous penalty above (no cap)
 	var cpuRisk float64
 	if cpuPressure < CPUMid {
 		cpuRisk = 0.0
-	} else if cpuPressure >= CPUHigh {
-		cpuRisk = 1.0
 	} else {
 		cpuRatio := (cpuPressure - CPUMid) / (CPUHigh - CPUMid)
 		cpuRisk = math.Pow(cpuRatio, cpuPower)
 	}
 
+	// Loss risk: sigmoid, near-zero at 0% loss (currently unused: wLoss=0)
 	var lossRisk float64
 	if loss >= 1.0 {
 		lossRisk = 1.0
@@ -50,10 +54,8 @@ func omEdgeRisk(cpuPressure, loss, latency float64) float64 {
 		lossRisk = 1.0 / (1.0 + math.Exp(-lossSharpness*(loss-lossInflection)))
 	}
 
+	// Latency risk: continuous power curve (no cap)
 	latRatio := latency / latencyMax
-	if latRatio > 1.0 {
-		latRatio = 1.0
-	}
 	if latRatio < 0 {
 		latRatio = 0
 	}

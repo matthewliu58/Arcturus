@@ -598,12 +598,18 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		score float64
 	}
 
+	// Build edge load lookup from real graph.Edge data
+	edgeLoadMap := make(map[string]float64) // key: "source->dest"
+	for _, e := range solver.edges {
+		edgeLoadMap[e.SourceIp+"->"+e.DestinationIp] = e.Load
+	}
+
 	var allSolutions []scoredSolution
 
 	// Run N iterations of random path selection
 	for iter := 0; iter < numIterations; iter++ {
 		var selectedPaths []routing.PathInfo
-		globalLoad := make(map[string]float64)
+		edgeUsage := make(map[string]float64) // how many paths share each edge
 
 		// For each destination, select pathsPerDest DIFFERENT paths based on pre-calculated probabilities
 		for _, dc := range allCandidates {
@@ -644,32 +650,34 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 				selectedPath := dc.paths[selectedPathIdx]
 				selectedPaths = append(selectedPaths, selectedPath)
 
-				// Update global load (each node counted once per path)
-				processedNodes := make(map[string]bool)
-				for _, node := range selectedPath.Hops {
-					if !processedNodes[node] {
-						processedNodes[node] = true
-						globalLoad[node] += 1.0
-					}
+				// Track edge usage: how many paths share each edge
+				hops := selectedPath.Hops
+				for i := 0; i < len(hops)-1; i++ {
+					edgeKey := hops[i] + "->" + hops[i+1]
+					edgeUsage[edgeKey] += 1.0
 				}
 			}
 		}
 
 		// Calculate global score for this solution
-		// Score = sum of path latencies + load penalty
+		// Score = sum of path latencies + shared-edge × real-load penalty
+		// count² ensures superlinear penalty even when realLoad is small
 		totalScore := 0.0
-		const loadWeight = 10.0
+		const loadWeight = 5.0
 
-		// Recalculate score based on selected paths
-		processedNodes := make(map[string]bool)
+		processedEdges := make(map[string]bool)
 		for _, path := range selectedPaths {
 			totalScore += path.RawRTT // Base latency
 
-			for _, node := range path.Hops {
-				if !processedNodes[node] {
-					processedNodes[node] = true
-					load := globalLoad[node]
-					totalScore += load * load * loadWeight // Load penalty
+			hops := path.Hops
+			for i := 0; i < len(hops)-1; i++ {
+				edgeKey := hops[i] + "->" + hops[i+1]
+				if !processedEdges[edgeKey] {
+					processedEdges[edgeKey] = true
+					count := edgeUsage[edgeKey]      // how many paths share this edge
+					realLoad := edgeLoadMap[edgeKey] // actual edge load from graph // count² amplifies sharing penalty; max(realLoad, 1) ensures floor
+					penalty := count * count * max(realLoad, 1.0) * loadWeight
+					totalScore += penalty
 				}
 			}
 		}
