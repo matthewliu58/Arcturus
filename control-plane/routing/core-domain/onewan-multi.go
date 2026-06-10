@@ -104,9 +104,18 @@ func (g *DinicGraph) addEdge(from, to string, capacity, weight float64) {
 }
 
 func (g *DinicGraph) bfs(level map[string]int, start, end string) bool {
+	// Initialize all nodes in the graph
 	for node := range g.adj {
 		level[node] = -1
 	}
+	// Ensure start and end nodes are initialized
+	if _, ok := level[start]; !ok {
+		level[start] = -1
+	}
+	if _, ok := level[end]; !ok {
+		level[end] = -1
+	}
+
 	queue := []string{start}
 	level[start] = 0
 
@@ -115,7 +124,9 @@ func (g *DinicGraph) bfs(level map[string]int, start, end string) bool {
 		queue = queue[1:]
 
 		for _, edge := range g.adj[u] {
-			if edge.capacity > 0 && level[edge.target] == -1 {
+			// Safe access: check if target exists in level map
+			targetLevel, exists := level[edge.target]
+			if edge.capacity > 0 && (!exists || targetLevel == -1) {
 				level[edge.target] = level[u] + 1
 				queue = append(queue, edge.target)
 				if edge.target == end {
@@ -134,7 +145,10 @@ func (g *DinicGraph) dfs(level map[string]int, ptr map[string]int, u, end string
 
 	for ; ptr[u] < len(g.adj[u]); ptr[u]++ {
 		edge := g.adj[u][ptr[u]]
-		if edge.capacity > 0 && level[u] < level[edge.target] {
+		// Safe access: check level values exist
+		uLevel, uOk := level[u]
+		targetLevel, targetOk := level[edge.target]
+		if edge.capacity > 0 && uOk && targetOk && uLevel < targetLevel {
 			minFlow := flow
 			if edge.capacity < flow {
 				minFlow = edge.capacity
@@ -233,18 +247,6 @@ func (os *ONEWANSolver) maxFlowPaths(start, end string, graph_ map[string][]*gra
 		// Add to candidates if not already present
 		if !os.pathExists(newPath, candidates) {
 			candidates = append(candidates, newPath)
-		}
-
-		// Reduce capacity along the path to find different paths
-		for i := 0; i < len(path)-1; i++ {
-			source := path[i]
-			dest := path[i+1]
-			for j, edge := range dinicGraph.adj[source] {
-				if edge.target == dest {
-					dinicGraph.adj[source][j].capacity = 0
-					break
-				}
-			}
 		}
 	}
 
@@ -485,16 +487,6 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		}
 
 		logger.Debug("yensAlgorithm", slog.String("pre", pre), slog.String("end", end), slog.Any("path", paths))
-
-		// Sort paths by latency to ensure correct ordering
-		// This is a safety measure in case Yen's algorithm returns unsorted paths
-		// for i := 0; i < len(paths)-1; i++ {
-		// 	for j := i + 1; j < len(paths); j++ {
-		// 		if paths[j].cost < paths[i].cost {
-		// 			paths[i], paths[j] = paths[j], paths[i]
-		// 		}
-		// 	}
-		// }
 
 		// Debug: Print KSP paths after sorting
 		var pathDebug []string
