@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"math/rand/v2"
 	"sort"
 	"strings"
 )
@@ -167,7 +168,12 @@ func (g *DinicGraph) maxFlow(start, end string) float64 {
 	return flow
 }
 
-func (g *DinicGraph) findPath(start, end string, visited map[string]bool) []string {
+func (g *DinicGraph) findPath(start, end string, visited map[string]bool, depth, maxDepth int) []string {
+	// Depth limit to prevent stack overflow on cyclic graphs
+	if depth > maxDepth {
+		return nil
+	}
+
 	// Check if start node exists in the graph
 	if _, ok := g.adj[start]; !ok {
 		return nil
@@ -180,7 +186,7 @@ func (g *DinicGraph) findPath(start, end string, visited map[string]bool) []stri
 	visited[start] = true
 	for _, edge := range g.adj[start] {
 		if edge.capacity > 0 && !visited[edge.target] {
-			path := g.findPath(edge.target, end, visited)
+			path := g.findPath(edge.target, end, visited, depth+1, maxDepth)
 			if len(path) > 0 {
 				return append([]string{start}, path...)
 			}
@@ -207,10 +213,11 @@ func (os *ONEWANSolver) maxFlowPaths(start, end string, graph_ map[string][]*gra
 	}
 
 	// Find multiple paths using max flow
+	const maxPathDepth = 100 // Max depth to prevent stack overflow on cyclic graphs
 	for len(candidates) < maxCandidates {
 		// Find an augmenting path
 		visited := make(map[string]bool)
-		path := dinicGraph.findPath(start, end, visited)
+		path := dinicGraph.findPath(start, end, visited, 0, maxPathDepth)
 		if len(path) == 0 {
 			// No more paths found
 			break
@@ -452,6 +459,7 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 	type destCandidates struct {
 		end   string
 		paths []routing.PathInfo
+		probs []float64 // Pre-calculated selection probabilities
 	}
 	var allCandidates []destCandidates
 
@@ -567,6 +575,31 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 	}
 
 	// All paths after filtering are candidates (no limit - use all 5 from KSP)
+
+	// Step 2b: Pre-calculate selection probabilities for each destination's paths
+	// Probability = (1/RTT) / sum(1/RTT) - shorter latency = higher probability
+	for i := range allCandidates {
+		if len(allCandidates[i].paths) == 0 {
+			continue
+		}
+		// Calculate total inverse latency
+		totalInverseLatency := 0.0
+		for _, p := range allCandidates[i].paths {
+			if p.RawRTT > 0 {
+				totalInverseLatency += 1.0 / p.RawRTT
+			}
+		}
+		// Calculate probability for each path
+		allCandidates[i].probs = make([]float64, len(allCandidates[i].paths))
+		for j, p := range allCandidates[i].paths {
+			if p.RawRTT > 0 && totalInverseLatency > 0 {
+				allCandidates[i].probs[j] = (1.0 / p.RawRTT) / totalInverseLatency
+			} else {
+				allCandidates[i].probs[j] = 1.0 / float64(len(allCandidates[i].paths))
+			}
+		}
+	}
+
 	// For each destination, calculate probabilities for its paths
 	type scoredSolution struct {
 		paths []routing.PathInfo
@@ -580,54 +613,38 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		var selectedPaths []routing.PathInfo
 		globalLoad := make(map[string]float64)
 
-		// For each destination, select pathsPerDest DIFFERENT paths based on probability (without replacement)
+		// For each destination, select pathsPerDest DIFFERENT paths based on pre-calculated probabilities
 		for _, dc := range allCandidates {
+			if len(dc.paths) == 0 {
+				continue
+			}
 			// Track which paths have already been selected
 			selectedIndices := make(map[int]bool)
 
 			// Select pathsPerDest unique paths
-			for selectIdx := 0; selectIdx < pathsPerDest; selectIdx++ {
-				// Recalculate probabilities excluding already selected paths
-				totalInverseLatency := 0.0
-				for pathIdx, p := range dc.paths {
-					if !selectedIndices[pathIdx] && p.RawRTT > 0 {
-						totalInverseLatency += 1.0 / p.RawRTT
+			for selectIdx := 0; selectIdx < pathsPerDest && selectIdx < len(dc.paths); selectIdx++ {
+				// Calculate cumulative probability excluding already selected paths
+				totalProb := 0.0
+				for pathIdx, prob := range dc.probs {
+					if !selectedIndices[pathIdx] {
+						totalProb += prob
 					}
 				}
 
-				// Generate random value
-				r := float64(iter*100+selectIdx) / float64(numIterations*100)
-				r = r * totalInverseLatency
+				// Generate random value [0, totalProb)
+				r := rand.Float64() * totalProb
 
 				// Select a path based on probability
 				cumulative := 0.0
 				selectedPathIdx := 0
-				found := false
-				for pathIdx, p := range dc.paths {
+				for pathIdx, prob := range dc.probs {
 					if selectedIndices[pathIdx] {
 						continue
-					}
-					prob := 0.0
-					if p.RawRTT > 0 {
-						prob = (1.0 / p.RawRTT)
-					} else {
-						prob = 1.0
 					}
 					cumulative += prob
 					if r <= cumulative {
 						selectedPathIdx = pathIdx
-						found = true
 						break
-					}
-				}
-
-				if !found {
-					// Fallback: select first unselected path
-					for pathIdx := range dc.paths {
-						if !selectedIndices[pathIdx] {
-							selectedPathIdx = pathIdx
-							break
-						}
 					}
 				}
 
