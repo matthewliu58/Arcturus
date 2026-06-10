@@ -476,7 +476,7 @@ func (d *FlowOptimizationSolver) Computing(start, end string, pre string, logger
 	return d.ComputingMulti(start, []string{end}, pre, logger)
 }
 
-// ComputingMulti 包级多目的地流量优化函数（仿照 onewan-multi.go 风格）
+// ComputeMultiDestination package-level multi-destination flow optimization function (following onewan-multi.go style)
 func ComputeMultiDestination(solver *FlowOptimizationSolver, start string, ends []string, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
 	if len(ends) == 0 {
 		return solver.Computing(start, "", pre, logger)
