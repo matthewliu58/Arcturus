@@ -208,6 +208,16 @@ func (d *FlowOptimizationSolver) buildResidualGraphWithCapacity() map[string]map
 		}
 		// Compute theta_a(v) dynamically based on edge's CPU load
 		thetaA := d.computeThetaA(e.Load)
+
+		// Log thetaA if it's not equal to 1
+		if thetaA != 1.0 {
+			logger := slog.Default()
+			logger.Info("buildResidualGraphWithCapacity: thetaA != 1",
+				slog.String("source", e.SourceIp),
+				slog.String("dest", e.DestinationIp),
+				slog.Float64("load", e.Load),
+				slog.Float64("thetaA", thetaA))
+		}
 		effCap := thetaA * d.capacity
 
 		ef := &EdgeFlow{
@@ -238,7 +248,7 @@ type edgeInfo struct {
 // Uses standard residual network with optimized search:
 //   - Forward edge: residual = effCap - flow
 //   - Backward edge: residual = flow (reverse residual)
-func (d *FlowOptimizationSolver) findFeasiblePathWithLatency(g map[string]map[string]*EdgeFlow, s, t string, logger *slog.Logger, attempt int) *PathWithInfo {
+func (d *FlowOptimizationSolver) findFeasiblePathWithLatency(g map[string]map[string]*EdgeFlow, s, t string, usedPaths map[string]bool, logger *slog.Logger, attempt int) *PathWithInfo {
 	if _, ok := g[s]; !ok {
 		return nil
 	}
@@ -302,62 +312,121 @@ func (d *FlowOptimizationSolver) findFeasiblePathWithLatency(g map[string]map[st
 	var foundPath []string
 	var foundLatency float64 = 0
 
-	visited := make(map[string]bool)
-	path := []string{}
+	// For first two attempts, find the shortest path (excluding previously selected paths)
+	if attempt <= 1 {
+		var bestPath []string
+		var bestLatency float64 = thetaL + 1
 
-	var dfs func(u string, currentLatency float64) bool
-	dfs = func(u string, currentLatency float64) bool {
-		if len(path) >= maxHops {
-			return false
-		}
+		visited := make(map[string]bool)
+		path := []string{}
 
-		if u == t {
-			if currentLatency <= thetaL {
-				foundPath = make([]string, len(path)+1)
-				copy(foundPath, path)
-				foundPath[len(path)] = u
-				foundLatency = currentLatency
-				return true
+		var dfs func(u string, currentLatency float64)
+		dfs = func(u string, currentLatency float64) {
+			if len(path) >= maxHops {
+				return
 			}
-			return false
+
+			if u == t {
+				if currentLatency < bestLatency && currentLatency <= thetaL {
+					// Check if this path is different from previously selected paths
+					tempPath := make([]string, len(path)+1)
+					copy(tempPath, path)
+					tempPath[len(path)] = u
+
+					pathStr := strings.Join(tempPath, "->")
+					if !usedPaths[pathStr] {
+						bestLatency = currentLatency
+						bestPath = tempPath
+					}
+				}
+				return
+			}
+
+			visited[u] = true
+			path = append(path, u)
+
+			sortedEdges := getSortedEdges(u)
+
+			for _, ei := range sortedEdges {
+				if visited[ei.to] {
+					continue
+				}
+
+				if currentLatency+ei.cost >= bestLatency {
+					continue
+				}
+
+				if currentLatency+ei.cost > thetaL {
+					continue
+				}
+
+				dfs(ei.to, currentLatency+ei.cost)
+			}
+
+			path = path[:len(path)-1]
+			visited[u] = false
 		}
 
-		visited[u] = true
-		path = append(path, u)
+		dfs(s, 0.0)
 
-		sortedEdges := getSortedEdges(u)
+		if bestPath != nil {
+			foundPath = bestPath
+			foundLatency = bestLatency
+		}
+	} else {
+		// For subsequent attempts, use random ordering to find different paths
+		visited := make(map[string]bool)
+		path := []string{}
 
-		// Apply different edge ordering strategies based on attempt
-		// This helps find diverse paths
-		if attempt > 0 && len(sortedEdges) > 1 {
-			// Shuffle edges for attempts > 0 to explore different paths
+		var dfs func(u string, currentLatency float64) bool
+		dfs = func(u string, currentLatency float64) bool {
+			if len(path) >= maxHops {
+				return false
+			}
+
+			if u == t {
+				if currentLatency <= thetaL {
+					foundPath = make([]string, len(path)+1)
+					copy(foundPath, path)
+					foundPath[len(path)] = u
+					foundLatency = currentLatency
+					return true
+				}
+				return false
+			}
+
+			visited[u] = true
+			path = append(path, u)
+
+			sortedEdges := getSortedEdges(u)
+
+			// Shuffle edges to explore different paths
 			for j := len(sortedEdges) - 1; j > 0; j-- {
 				k := rand.Intn(j + 1)
 				sortedEdges[j], sortedEdges[k] = sortedEdges[k], sortedEdges[j]
 			}
+
+			for _, ei := range sortedEdges {
+				if visited[ei.to] {
+					continue
+				}
+
+				if currentLatency+ei.cost > thetaL {
+					continue
+				}
+
+				if dfs(ei.to, currentLatency+ei.cost) {
+					return true
+				}
+			}
+
+			path = path[:len(path)-1]
+			visited[u] = false
+			return false
 		}
 
-		for _, ei := range sortedEdges {
-			if visited[ei.to] {
-				continue
-			}
-
-			// Pruning: skip if exceeds latency constraint
-			if currentLatency+ei.cost > thetaL {
-				continue
-			}
-
-			if dfs(ei.to, currentLatency+ei.cost) {
-				return true
-			}
-		}
-
-		path = path[:len(path)-1]
-		visited[u] = false
-		return false
+		dfs(s, 0.0)
 	}
-
-	dfs(s, 0.0)
 
 	if foundPath != nil {
 		logger.Debug("Path found",
@@ -751,7 +820,7 @@ func ComputeMultiDestination(solver *FlowOptimizationSolver, start string, ends 
 				slog.String("dest", end),
 				slog.Int("pathNum", i+1),
 				slog.Int("attempt", attemptCount))
-			pathInfo := solver.findFeasiblePathWithLatency(resGraph, start, end, logger, attemptCount)
+			pathInfo := solver.findFeasiblePathWithLatency(resGraph, start, end, usedPaths, logger, attemptCount)
 			if pathInfo == nil {
 				logger.Warn("Cannot find enough paths for destination",
 					slog.String("pre", pre),
@@ -895,7 +964,7 @@ func ComputeMultiDestination(solver *FlowOptimizationSolver, start string, ends 
 				slog.String("pre", pre),
 				slog.String("dest", end),
 				slog.Int("iter", i+1))
-			newPathInfo := solver.findFeasiblePathWithLatency(resGraph, start, end, logger, i+1)
+			newPathInfo := solver.findFeasiblePathWithLatency(resGraph, start, end, usedPaths, logger, i+1)
 			if newPathInfo != nil {
 				// Check for duplicate paths
 				newPathStr := pathToString(newPathInfo.path)
