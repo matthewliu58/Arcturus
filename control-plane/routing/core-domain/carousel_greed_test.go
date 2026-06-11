@@ -66,7 +66,7 @@ func cgEdgeRisk(cpuPressure, loss, latency float64) float64 {
 	return wCPU*cpuRisk + wLoss*lossRisk + wLat*latRisk
 }
 
-func cgParseCost266Edges(filePath string) []*graph.Edge {
+func cgParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Printf("Failed to open file: %v\n", err)
@@ -109,6 +109,12 @@ func cgParseCost266Edges(filePath string) []*graph.Edge {
 					// Generate random CPU utilization for each edge
 					cpuUtil := float64(GetRandomUtil())
 					edgeWeight := cgEdgeRisk(cpuUtil, defaultLoss, rawRTT)
+
+					logger.Debug("Edge created",
+						slog.String("source", source),
+						slog.String("target", target),
+						slog.Float64("rawRTT", rawRTT),
+						slog.Float64("cpuUtil", cpuUtil))
 
 					edges = append(edges, &graph.Edge{
 						SourceIp:      source,
@@ -156,7 +162,7 @@ func TestFlowOptimizationSolverMulti(t *testing.T) {
 	cost266File := filepath.Join(testDir, "evaluation", "cost266")
 	fmt.Printf("Topology file path: %s\n", cost266File)
 
-	edges := cgParseCost266Edges(cost266File)
+	edges := cgParseCost266Edges(cost266File, logger)
 	if edges == nil || len(edges) == 0 {
 		t.Fatal("Failed to parse cost266 topology")
 	}

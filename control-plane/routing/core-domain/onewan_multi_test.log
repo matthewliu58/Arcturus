@@ -1,102 +1,105 @@
-time=2026-06-11T14:14:18.130+08:00 level=DEBUG msg="Edge created" source=Amsterdam target=Brussels rawRTT=4 cpuUtil=38
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Amsterdam target=Glasgow rawRTT=17 cpuUtil=47
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Amsterdam target=Hamburg rawRTT=9 cpuUtil=31
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Amsterdam target=London rawRTT=7 cpuUtil=59
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Athens target=Palermo rawRTT=17 cpuUtil=32
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Athens target=Sofia rawRTT=10 cpuUtil=36
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Athens target=Zagreb rawRTT=19 cpuUtil=41
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Barcelona target=Madrid rawRTT=11 cpuUtil=36
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Barcelona target=Marseille rawRTT=7 cpuUtil=33
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Barcelona target=Seville rawRTT=18 cpuUtil=30
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Belgrade target=Budapest rawRTT=6 cpuUtil=33
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Belgrade target=Sofia rawRTT=6 cpuUtil=37
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Belgrade target=Zagreb rawRTT=7 cpuUtil=32
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Berlin target=Copenhagen rawRTT=12 cpuUtil=32
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Berlin target=Hamburg rawRTT=6 cpuUtil=48
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Berlin target=Munich rawRTT=12 cpuUtil=46
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Berlin target=Prague rawRTT=6 cpuUtil=41
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Berlin target=Warsaw rawRTT=10 cpuUtil=37
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Birmingham target=Glasgow rawRTT=11 cpuUtil=31
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Birmingham target=London rawRTT=3 cpuUtil=31
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Bordeaux target=Madrid rawRTT=12 cpuUtil=38
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Bordeaux target=Marseille rawRTT=11 cpuUtil=33
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Bordeaux target=Paris rawRTT=11 cpuUtil=41
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Brussels target=Dusseldorf rawRTT=4 cpuUtil=32
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Brussels target=Paris rawRTT=5 cpuUtil=41
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Budapest target=Krakow rawRTT=6 cpuUtil=34
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Budapest target=Prague rawRTT=9 cpuUtil=34
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Copenhagen target=Oslo rawRTT=10 cpuUtil=31
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Copenhagen target=Stockholm rawRTT=11 cpuUtil=33
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Dublin target=Glasgow rawRTT=7 cpuUtil=37
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Dublin target=London rawRTT=9 cpuUtil=32
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Dusseldorf target=Frankfurt rawRTT=4 cpuUtil=34
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Frankfurt target=Hamburg rawRTT=8 cpuUtil=32
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Frankfurt target=Munich rawRTT=6 cpuUtil=31
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Frankfurt target=Strasbourg rawRTT=4 cpuUtil=31
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Helsinki target=Oslo rawRTT=18 cpuUtil=47
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Helsinki target=Stockholm rawRTT=8 cpuUtil=37
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Helsinki target=Warsaw rawRTT=19 cpuUtil=34
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Krakow target=Warsaw rawRTT=5 cpuUtil=38
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Lisbon target=London rawRTT=29 cpuUtil=45
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Lisbon target=Madrid rawRTT=10 cpuUtil=31
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Lisbon target=Seville rawRTT=7 cpuUtil=34
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=London target=Paris rawRTT=7 cpuUtil=36
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Lyon target=Marseille rawRTT=6 cpuUtil=51
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Lyon target=Paris rawRTT=8 cpuUtil=33
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Lyon target=Zurich rawRTT=7 cpuUtil=44
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Marseille target=Rome rawRTT=13 cpuUtil=37
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Milan target=Munich rawRTT=7 cpuUtil=35
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Milan target=Rome rawRTT=10 cpuUtil=35
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Milan target=Zurich rawRTT=4 cpuUtil=47
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Munich target=Vienna rawRTT=7 cpuUtil=45
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Palermo target=Rome rawRTT=9 cpuUtil=38
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Paris target=Strasbourg rawRTT=8 cpuUtil=32
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Prague target=Vienna rawRTT=5 cpuUtil=30
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Rome target=Zagreb rawRTT=11 cpuUtil=38
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Strasbourg target=Zurich rawRTT=3 cpuUtil=38
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="Edge created" source=Vienna target=Zagreb rawRTT=5 cpuUtil=37
-time=2026-06-11T14:14:18.140+08:00 level=INFO msg="ONEWAN Multi Solver Test" source=Amsterdam destinations="[Paris Berlin]"
-time=2026-06-11T14:14:18.140+08:00 level=INFO msg="ONEWAN multi: generating candidate paths for each destination" pre=TEST start=Amsterdam destinations="[Paris Berlin]"
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=0 total_paths=1 hop=3 rtt=9 path=Amsterdam->Brussels->Paris
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=1 total_paths=2 hop=8 rtt=95 path=Amsterdam->London->Lisbon->Seville->Barcelona->Madrid->Bordeaux->Paris
-time=2026-06-11T14:14:18.140+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=2 total_paths=3 hop=3 rtt=14 path=Amsterdam->London->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=3 total_paths=4 hop=16 rtt=106 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Munich->Berlin->Prague->Vienna->Zagreb->Rome->Milan->Zurich->Lyon->Marseille->Bordeaux->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=4 total_paths=5 hop=12 rtt=79 path=Amsterdam->Hamburg->Berlin->Prague->Vienna->Munich->Milan->Zurich->Lyon->Marseille->Bordeaux->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=5 total_paths=6 hop=5 rtt=40 path=Amsterdam->Glasgow->Dublin->London->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=6 total_paths=7 hop=11 rtt=64 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin->Munich->Milan->Zurich->Lyon->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=8 total_paths=8 hop=8 rtt=93 path=Amsterdam->Glasgow->Birmingham->London->Lisbon->Madrid->Bordeaux->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=15 total_paths=9 hop=6 rtt=30 path=Amsterdam->Hamburg->Frankfurt->Dusseldorf->Brussels->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=16 total_paths=10 hop=16 rtt=150 path=Amsterdam->London->Lisbon->Seville->Barcelona->Madrid->Bordeaux->Marseille->Rome->Zagreb->Vienna->Munich->Frankfurt->Dusseldorf->Brussels->Paris
-time=2026-06-11T14:14:18.141+08:00 level=INFO msg="ONEWAN multi: candidate paths for destination" pre=TEST end=Paris candidate_count=7
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=0 hops=3 latency=9 rawRTT=9 hops=Amsterdam->Brussels->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=1 hops=3 latency=14 rawRTT=14 hops=Amsterdam->London->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=2 hops=6 latency=30 rawRTT=30 hops=Amsterdam->Hamburg->Frankfurt->Dusseldorf->Brussels->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=3 hops=5 latency=40 rawRTT=40 hops=Amsterdam->Glasgow->Dublin->London->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=4 hops=11 latency=64 rawRTT=64 hops=Amsterdam->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin->Munich->Milan->Zurich->Lyon->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=5 hops=8 latency=93 rawRTT=93 hops=Amsterdam->Glasgow->Birmingham->London->Lisbon->Madrid->Bordeaux->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=6 hops=8 latency=95 rawRTT=95 hops=Amsterdam->London->Lisbon->Seville->Barcelona->Madrid->Bordeaux->Paris
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=0 total_paths=1 hop=16 rtt=149 path=Amsterdam->London->Lisbon->Seville->Barcelona->Madrid->Bordeaux->Marseille->Lyon->Zurich->Milan->Rome->Zagreb->Vienna->Prague->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=1 total_paths=2 hop=15 rtt=169 path=Amsterdam->Glasgow->Dublin->London->Lisbon->Madrid->Bordeaux->Marseille->Rome->Palermo->Athens->Zagreb->Vienna->Prague->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=2 total_paths=3 hop=12 rtt=105 path=Amsterdam->London->Lisbon->Madrid->Bordeaux->Paris->Lyon->Zurich->Strasbourg->Frankfurt->Hamburg->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=3 total_paths=4 hop=3 rtt=15 path=Amsterdam->Hamburg->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=4 total_paths=5 hop=14 rtt=113 path=Amsterdam->Hamburg->Frankfurt->Munich->Milan->Rome->Zagreb->Athens->Sofia->Belgrade->Budapest->Krakow->Warsaw->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=5 total_paths=6 hop=7 rtt=40 path=Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=6 total_paths=7 hop=15 rtt=117 path=Amsterdam->Glasgow->Birmingham->London->Paris->Bordeaux->Madrid->Barcelona->Marseille->Lyon->Zurich->Strasbourg->Frankfurt->Munich->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=7 total_paths=8 hop=14 rtt=161 path=Amsterdam->Glasgow->Birmingham->London->Lisbon->Seville->Barcelona->Madrid->Bordeaux->Marseille->Rome->Milan->Munich->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=8 total_paths=9 hop=13 rtt=116 path=Amsterdam->London->Lisbon->Seville->Barcelona->Marseille->Lyon->Paris->Strasbourg->Zurich->Milan->Munich->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=9 total_paths=10 hop=14 rtt=125 path=Amsterdam->Brussels->Paris->London->Lisbon->Seville->Barcelona->Marseille->Rome->Milan->Munich->Vienna->Prague->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=INFO msg="ONEWAN multi: candidate paths for destination" pre=TEST end=Berlin candidate_count=2
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=0 hops=3 latency=15 rawRTT=15 hops=Amsterdam->Hamburg->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=1 hops=7 latency=40 rawRTT=40 hops=Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=0 path_count=4 paths="[Amsterdam->Brussels->Paris(9ms) Amsterdam->Glasgow->Dublin->London->Paris(40ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms)]" score=3684
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=1 path_count=4 paths="[Amsterdam->Brussels->Paris(9ms) Amsterdam->London->Paris(14ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms)]" score=3963
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=2 path_count=4 paths="[Amsterdam->Brussels->Paris(9ms) Amsterdam->Hamburg->Frankfurt->Dusseldorf->Brussels->Paris(30ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms)]" score=4124
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=3 path_count=4 paths="[Amsterdam->Glasgow->Dublin->London->Paris(40ms) Amsterdam->Brussels->Paris(9ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms)]" score=3684
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=4 path_count=4 paths="[Amsterdam->Brussels->Paris(9ms) Amsterdam->London->Paris(14ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms)]" score=3963
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=5 path_count=4 paths="[Amsterdam->Hamburg->Frankfurt->Dusseldorf->Brussels->Paris(30ms) Amsterdam->Brussels->Paris(9ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms) Amsterdam->Hamburg->Berlin(15ms)]" score=4124
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=6 path_count=4 paths="[Amsterdam->London->Paris(14ms) Amsterdam->Glasgow->Dublin->London->Paris(40ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms)]" score=5079
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=7 path_count=4 paths="[Amsterdam->London->Paris(14ms) Amsterdam->Hamburg->Frankfurt->Dusseldorf->Brussels->Paris(30ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms) Amsterdam->Hamburg->Berlin(15ms)]" score=4749
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=8 path_count=4 paths="[Amsterdam->London->Paris(14ms) Amsterdam->Hamburg->Frankfurt->Dusseldorf->Brussels->Paris(30ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms) Amsterdam->Hamburg->Berlin(15ms)]" score=4749
-time=2026-06-11T14:14:18.141+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=9 path_count=4 paths="[Amsterdam->London->Paris(14ms) Amsterdam->Brussels->Paris(9ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms)]" score=3963
-time=2026-06-11T14:14:18.141+08:00 level=INFO msg="ONEWAN multi paths selected (stochastic beam search)" pre=TEST dest_count=2 total_paths=4 selected_paths="[Amsterdam->Brussels->Paris(9ms) Amsterdam->Glasgow->Dublin->London->Paris(40ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->London->Paris->Strasbourg->Frankfurt->Hamburg->Berlin(40ms)]" global_score=3684 solutions_evaluated=10
-time=2026-06-11T14:14:18.141+08:00 level=INFO msg="Test completed" total_paths=4
+time=2026-06-11T14:14:36.348+08:00 level=DEBUG msg="Edge created" source=Amsterdam target=Brussels rawRTT=4 cpuUtil=30
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Amsterdam target=Glasgow rawRTT=17 cpuUtil=57
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Amsterdam target=Hamburg rawRTT=9 cpuUtil=30
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Amsterdam target=London rawRTT=7 cpuUtil=37
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Athens target=Palermo rawRTT=17 cpuUtil=42
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Athens target=Sofia rawRTT=10 cpuUtil=39
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Athens target=Zagreb rawRTT=19 cpuUtil=34
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Barcelona target=Madrid rawRTT=11 cpuUtil=32
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Barcelona target=Marseille rawRTT=7 cpuUtil=35
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Barcelona target=Seville rawRTT=18 cpuUtil=38
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Belgrade target=Budapest rawRTT=6 cpuUtil=36
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Belgrade target=Sofia rawRTT=6 cpuUtil=40
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Belgrade target=Zagreb rawRTT=7 cpuUtil=33
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Berlin target=Copenhagen rawRTT=12 cpuUtil=38
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Berlin target=Hamburg rawRTT=6 cpuUtil=39
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Berlin target=Munich rawRTT=12 cpuUtil=32
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Berlin target=Prague rawRTT=6 cpuUtil=36
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Berlin target=Warsaw rawRTT=10 cpuUtil=33
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Birmingham target=Glasgow rawRTT=11 cpuUtil=30
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Birmingham target=London rawRTT=3 cpuUtil=53
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Bordeaux target=Madrid rawRTT=12 cpuUtil=31
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Bordeaux target=Marseille rawRTT=11 cpuUtil=32
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Bordeaux target=Paris rawRTT=11 cpuUtil=33
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Brussels target=Dusseldorf rawRTT=4 cpuUtil=46
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Brussels target=Paris rawRTT=5 cpuUtil=45
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Budapest target=Krakow rawRTT=6 cpuUtil=31
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Budapest target=Prague rawRTT=9 cpuUtil=30
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Copenhagen target=Oslo rawRTT=10 cpuUtil=37
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Copenhagen target=Stockholm rawRTT=11 cpuUtil=36
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Dublin target=Glasgow rawRTT=7 cpuUtil=32
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Dublin target=London rawRTT=9 cpuUtil=37
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Dusseldorf target=Frankfurt rawRTT=4 cpuUtil=32
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Frankfurt target=Hamburg rawRTT=8 cpuUtil=37
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Frankfurt target=Munich rawRTT=6 cpuUtil=32
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Frankfurt target=Strasbourg rawRTT=4 cpuUtil=36
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Helsinki target=Oslo rawRTT=18 cpuUtil=35
+time=2026-06-11T14:14:36.367+08:00 level=DEBUG msg="Edge created" source=Helsinki target=Stockholm rawRTT=8 cpuUtil=32
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Helsinki target=Warsaw rawRTT=19 cpuUtil=30
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Krakow target=Warsaw rawRTT=5 cpuUtil=33
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Lisbon target=London rawRTT=29 cpuUtil=47
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Lisbon target=Madrid rawRTT=10 cpuUtil=31
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Lisbon target=Seville rawRTT=7 cpuUtil=36
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=London target=Paris rawRTT=7 cpuUtil=32
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Lyon target=Marseille rawRTT=6 cpuUtil=34
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Lyon target=Paris rawRTT=8 cpuUtil=37
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Lyon target=Zurich rawRTT=7 cpuUtil=32
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Marseille target=Rome rawRTT=13 cpuUtil=39
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Milan target=Munich rawRTT=7 cpuUtil=37
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Milan target=Rome rawRTT=10 cpuUtil=37
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Milan target=Zurich rawRTT=4 cpuUtil=37
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Munich target=Vienna rawRTT=7 cpuUtil=33
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Palermo target=Rome rawRTT=9 cpuUtil=38
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Paris target=Strasbourg rawRTT=8 cpuUtil=49
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Prague target=Vienna rawRTT=5 cpuUtil=38
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Rome target=Zagreb rawRTT=11 cpuUtil=42
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Strasbourg target=Zurich rawRTT=3 cpuUtil=40
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="Edge created" source=Vienna target=Zagreb rawRTT=5 cpuUtil=37
+time=2026-06-11T14:14:36.369+08:00 level=INFO msg="ONEWAN Multi Solver Test" source=Amsterdam destinations="[Paris Berlin]"
+time=2026-06-11T14:14:36.369+08:00 level=INFO msg="ONEWAN multi: generating candidate paths for each destination" pre=TEST start=Amsterdam destinations="[Paris Berlin]"
+time=2026-06-11T14:14:36.369+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=0 total_paths=1 hop=11 rtt=98 path=Amsterdam->Hamburg->Berlin->Munich->Milan->Rome->Marseille->Barcelona->Madrid->Bordeaux->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=1 total_paths=2 hop=6 rtt=24 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=2 total_paths=3 hop=8 rtt=46 path=Amsterdam->Hamburg->Berlin->Munich->Frankfurt->Dusseldorf->Brussels->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=4 total_paths=4 hop=5 rtt=29 path=Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=5 total_paths=5 hop=14 rtt=145 path=Amsterdam->Glasgow->Dublin->London->Lisbon->Seville->Barcelona->Madrid->Bordeaux->Marseille->Lyon->Zurich->Strasbourg->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=6 total_paths=6 hop=11 rtt=60 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Rome->Marseille->Lyon->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=8 total_paths=7 hop=5 rtt=38 path=Amsterdam->Glasgow->Birmingham->London->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=9 total_paths=8 hop=7 rtt=45 path=Amsterdam->Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=10 total_paths=9 hop=3 rtt=9 path=Amsterdam->Brussels->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=12 total_paths=10 hop=8 rtt=95 path=Amsterdam->Glasgow->Dublin->London->Lisbon->Madrid->Bordeaux->Paris
+time=2026-06-11T14:14:36.370+08:00 level=INFO msg="ONEWAN multi: candidate paths for destination" pre=TEST end=Paris candidate_count=9
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=0 hops=3 latency=9 rawRTT=9 hops=Amsterdam->Brussels->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=1 hops=6 latency=24 rawRTT=24 hops=Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=2 hops=5 latency=29 rawRTT=29 hops=Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=3 hops=5 latency=38 rawRTT=38 hops=Amsterdam->Glasgow->Birmingham->London->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=4 hops=7 latency=45 rawRTT=45 hops=Amsterdam->Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=5 hops=8 latency=46 rawRTT=46 hops=Amsterdam->Hamburg->Berlin->Munich->Frankfurt->Dusseldorf->Brussels->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=6 hops=11 latency=60 rawRTT=60 hops=Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Rome->Marseille->Lyon->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=7 hops=8 latency=95 rawRTT=95 hops=Amsterdam->Glasgow->Dublin->London->Lisbon->Madrid->Bordeaux->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Paris index=8 hops=11 latency=98 rawRTT=98 hops=Amsterdam->Hamburg->Berlin->Munich->Milan->Rome->Marseille->Barcelona->Madrid->Bordeaux->Paris
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=0 total_paths=1 hop=9 rtt=42 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=1 total_paths=2 hop=14 rtt=115 path=Amsterdam->Brussels->Paris->London->Lisbon->Seville->Barcelona->Marseille->Lyon->Zurich->Strasbourg->Frankfurt->Munich->Berlin
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=2 total_paths=3 hop=16 rtt=133 path=Amsterdam->London->Lisbon->Seville->Barcelona->Marseille->Bordeaux->Paris->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=3 total_paths=4 hop=16 rtt=94 path=Amsterdam->Hamburg->Frankfurt->Dusseldorf->Brussels->Paris->Strasbourg->Zurich->Milan->Munich->Vienna->Prague->Budapest->Krakow->Warsaw->Berlin
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=4 total_paths=5 hop=7 rtt=39 path=Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=5 total_paths=6 hop=16 rtt=92 path=Amsterdam->Hamburg->Frankfurt->Dusseldorf->Brussels->Paris->Strasbourg->Zurich->Milan->Munich->Vienna->Zagreb->Belgrade->Budapest->Prague->Berlin
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=6 total_paths=7 hop=3 rtt=15 path=Amsterdam->Hamburg->Berlin
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=7 total_paths=8 hop=16 rtt=114 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris->Lyon->Marseille->Rome->Palermo->Athens->Sofia->Belgrade->Budapest->Prague->Berlin
+time=2026-06-11T14:14:36.370+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=8 total_paths=9 hop=12 rtt=134 path=Amsterdam->Glasgow->Birmingham->London->Lisbon->Seville->Barcelona->Marseille->Rome->Milan->Munich->Berlin
+time=2026-06-11T14:14:36.371+08:00 level=DEBUG msg="randomDFSPaths: found unique path" attempt=11 total_paths=10 hop=13 rtt=86 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Munich->Vienna->Zagreb->Athens->Sofia->Belgrade->Budapest->Prague->Berlin
+time=2026-06-11T14:14:36.371+08:00 level=INFO msg="ONEWAN multi: candidate paths for destination" pre=TEST end=Berlin candidate_count=3
+time=2026-06-11T14:14:36.371+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=0 hops=3 latency=15 rawRTT=15 hops=Amsterdam->Hamburg->Berlin
+time=2026-06-11T14:14:36.371+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=1 hops=7 latency=39 rawRTT=39 hops=Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin
+time=2026-06-11T14:14:36.371+08:00 level=DEBUG msg="ONEWAN multi: candidate path" pre=TEST end=Berlin index=2 hops=9 latency=42 rawRTT=42 hops=Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin
+time=2026-06-11T14:14:36.371+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=0 path_count=4 paths="[Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris(24ms) Amsterdam->Glasgow->Birmingham->London->Paris(38ms) Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin(42ms) Amsterdam->Hamburg->Berlin(15ms)]" score=5179
+time=2026-06-11T14:14:36.371+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=1 path_count=4 paths="[Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Rome->Marseille->Lyon->Paris(60ms) Amsterdam->Brussels->Paris(9ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin(39ms)]" score=5153
+time=2026-06-11T14:14:36.371+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=2 path_count=4 paths="[Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris(24ms) Amsterdam->Brussels->Paris(9ms) Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin(39ms) Amsterdam->Hamburg->Berlin(15ms)]" score=4242
+time=2026-06-11T14:14:36.371+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=3 path_count=4 paths="[Amsterdam->Hamburg->Berlin->Munich->Frankfurt->Dusseldorf->Brussels->Paris(46ms) Amsterdam->Brussels->Paris(9ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin(39ms)]" score=5569
+time=2026-06-11T14:14:36.372+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=4 path_count=4 paths="[Amsterdam->Hamburg->Berlin->Munich->Milan->Rome->Marseille->Barcelona->Madrid->Bordeaux->Paris(98ms) Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Paris(24ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin(42ms)]" score=6794
+time=2026-06-11T14:14:36.373+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=5 path_count=4 paths="[Amsterdam->Brussels->Paris(9ms) Amsterdam->Glasgow->Birmingham->London->Paris(38ms) Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin(42ms) Amsterdam->Hamburg->Berlin(15ms)]" score=3434
+time=2026-06-11T14:14:36.373+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=6 path_count=4 paths="[Amsterdam->Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris(45ms) Amsterdam->Brussels->Paris(9ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin(42ms)]" score=4721
+time=2026-06-11T14:14:36.373+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=7 path_count=4 paths="[Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Rome->Marseille->Lyon->Paris(60ms) Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris(29ms) Amsterdam->Hamburg->Berlin(15ms) Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin(39ms)]" score=5168
+time=2026-06-11T14:14:36.373+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=8 path_count=4 paths="[Amsterdam->Hamburg->Berlin->Munich->Frankfurt->Strasbourg->Paris(45ms) Amsterdam->Hamburg->Frankfurt->Strasbourg->Paris(29ms) Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin(42ms) Amsterdam->Hamburg->Berlin(15ms)]" score=6636
+time=2026-06-11T14:14:36.373+08:00 level=DEBUG msg="ONEWAN multi: generated solution" pre=TEST iteration=9 path_count=4 paths="[Amsterdam->Glasgow->Birmingham->London->Paris(38ms) Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Rome->Marseille->Lyon->Paris(60ms) Amsterdam->Brussels->Paris->Strasbourg->Frankfurt->Munich->Berlin(39ms) Amsterdam->Hamburg->Berlin(15ms)]" score=4617
+time=2026-06-11T14:14:36.373+08:00 level=INFO msg="ONEWAN multi paths selected (stochastic beam search)" pre=TEST dest_count=2 total_paths=4 selected_paths="[Amsterdam->Brussels->Paris(9ms) Amsterdam->Glasgow->Birmingham->London->Paris(38ms) Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin(42ms) Amsterdam->Hamburg->Berlin(15ms)]" global_score=3434 solutions_evaluated=10
+time=2026-06-11T14:14:36.373+08:00 level=INFO msg="Test completed" total_paths=4
