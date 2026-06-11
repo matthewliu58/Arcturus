@@ -16,7 +16,6 @@ import (
 // lsEdgeRisk calculates edge weight based on CPU pressure, loss, and latency
 func lsEdgeRisk(cpuPressure, loss, latency float64) float64 {
 	const (
-		CPULow   = 40.0
 		CPUMid   = 60.0
 		CPUHigh  = 80.0
 		cpuPower = 2.0
@@ -61,10 +60,10 @@ func lsEdgeRisk(cpuPressure, loss, latency float64) float64 {
 	return wCPU*cpuRisk + wLoss*lossRisk + wLat*latRisk
 }
 
-func lsParseCost266Edges(filePath string) []*graph.Edge {
+func lsParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 	file, err := os.Open(filePath)
 	if err != nil {
-		fmt.Printf("Failed to open file: %v\n", err)
+		logger.Error("Failed to open file", slog.String("path", filePath), slog.String("error", err.Error()))
 		return nil
 	}
 	defer file.Close()
@@ -75,10 +74,6 @@ func lsParseCost266Edges(filePath string) []*graph.Edge {
 	defaultLoss := 0.0
 
 	scanner := bufio.NewScanner(file)
-	if err := scanner.Err(); err != nil {
-		fmt.Printf("Scanner error: %v\n", err)
-		return nil
-	}
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "LINKS") {
@@ -109,6 +104,13 @@ func lsParseCost266Edges(filePath string) []*graph.Edge {
 					cpuUtil := float64(GetRandomUtil())
 					edgeWeight := lsEdgeRisk(cpuUtil, defaultLoss, rawRTT)
 
+					logger.Debug("Edge created",
+						slog.String("source", source),
+						slog.String("target", target),
+						slog.Float64("rawRTT", rawRTT),
+						slog.Float64("cpuUtil", cpuUtil),
+						slog.Float64("edgeWeight", edgeWeight))
+
 					edges = append(edges, &graph.Edge{
 						SourceIp:      source,
 						DestinationIp: target,
@@ -132,21 +134,6 @@ func lsParseCost266Edges(filePath string) []*graph.Edge {
 	return edges
 }
 
-func lsCalculateRawRTT(hops []string, edges []*graph.Edge) float64 {
-	rawRTT := 0.0
-	for i := 0; i < len(hops)-1; i++ {
-		source := hops[i]
-		target := hops[i+1]
-		for _, edge := range edges {
-			if edge.SourceIp == source && edge.DestinationIp == target {
-				rawRTT += edge.Latency
-				break
-			}
-		}
-	}
-	return rawRTT
-}
-
 func TestLiveStyleSolver(t *testing.T) {
 	// Create a logger that writes to both console and file
 	logFile, err := os.Create("live_style_test.log")
@@ -165,14 +152,14 @@ func TestLiveStyleSolver(t *testing.T) {
 	}))
 
 	cost266File := "evaluation/cost266"
-	edges := lsParseCost266Edges(cost266File)
+	edges := lsParseCost266Edges(cost266File, logger)
 	if len(edges) == 0 {
 		t.Fatal("Failed to parse cost266 topology")
 	}
 
 	solver := NewLiveStyleSolver(edges, 2)
 
-	paths, err := solver.Computing("Amsterdam", "Berlin", "TEST", logger)
+	paths, err := solver.Computing("Lisbon", "Warsaw", "TEST", logger)
 	if err != nil {
 		t.Fatalf("Error: %v", err)
 	}

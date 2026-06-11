@@ -45,66 +45,62 @@ NODES (
   Zurich ( 8.55 47.38 )
 )
 
-# LINK SECTION
-#
-# <link_id> ( <source> <target> ) <pre_installed_capacity> <pre_installed_capacity_cost> <routing_cost> <setup_cost> ( {<module_capacity> <module_cost>}* )
-
 LINKS (
-  L1 ( Amsterdam Brussels ) 4 0.00 0.00 0.00 ( 7560.00 23310.00 30240.00 69930.00 120960.00 209790.00 )  # RTT: 4ms
-  L2 ( Amsterdam Glasgow ) 17 0.00 0.00 0.00 ( 7560.00 96030.00 30240.00 288090.00 120960.00 864270.00 )  # RTT: 17ms
-  L3 ( Amsterdam Hamburg ) 9 0.00 0.00 0.00 ( 7560.00 49680.00 30240.00 149040.00 120960.00 447120.00 )  # RTT: 9ms
-  L4 ( Amsterdam London ) 7 0.00 0.00 0.00 ( 7560.00 48600.00 30240.00 145800.00 120960.00 437400.00 )  # RTT: 7ms
-  L5 ( Athens Palermo ) 17 0.00 0.00 0.00 ( 7560.00 122670.00 30240.00 368010.00 120960.00 1104030.00 )  # RTT: 17ms
-  L6 ( Athens Sofia ) 10 0.00 0.00 0.00 ( 7560.00 71460.00 30240.00 214380.00 120960.00 643140.00 )  # RTT: 10ms
-  L7 ( Athens Zagreb ) 19 0.00 0.00 0.00 ( 7560.00 135000.00 30240.00 405000.00 120960.00 1215000.00 )  # RTT: 19ms
-  L8 ( Barcelona Madrid ) 11 0.00 0.00 0.00 ( 7560.00 68400.00 30240.00 205200.00 120960.00 615600.00 )  # RTT: 11ms
-  L9 ( Barcelona Marseille ) 7 0.00 0.00 0.00 ( 7560.00 45720.00 30240.00 137160.00 120960.00 411480.00 )  # RTT: 7ms
-  L10 ( Barcelona Seville ) 18 0.00 0.00 0.00 ( 7560.00 111960.00 30240.00 335880.00 120960.00 1007640.00 )  # RTT: 18ms
-  L11 ( Belgrade Budapest ) 6 0.00 0.00 0.00 ( 7560.00 42660.00 30240.00 127980.00 120960.00 383940.00 )  # RTT: 6ms
-  L12 ( Belgrade Sofia ) 6 0.00 0.00 0.00 ( 7560.00 43830.00 30240.00 131490.00 120960.00 394470.00 )  # RTT: 6ms
-  L13 ( Belgrade Zagreb ) 7 0.00 0.00 0.00 ( 7560.00 49590.00 30240.00 148770.00 120960.00 446310.00 )  # RTT: 7ms
-  L14 ( Berlin Copenhagen ) 12 0.00 0.00 0.00 ( 7560.00 48600.00 30240.00 145800.00 120960.00 437400.00 )  # RTT: 12ms
-  L15 ( Berlin Hamburg ) 6 0.00 0.00 0.00 ( 7560.00 34290.00 30240.00 102870.00 120960.00 308610.00 )  # RTT: 6ms
-  L16 ( Berlin Munich ) 12 0.00 0.00 0.00 ( 7560.00 68130.00 30240.00 204390.00 120960.00 613170.00 )  # RTT: 12ms
-  L17 ( Berlin Prague ) 6 0.00 0.00 0.00 ( 7560.00 37800.00 30240.00 113400.00 120960.00 340200.00 )  # RTT: 6ms
-  L18 ( Berlin Warsaw ) 10 0.00 0.00 0.00 ( 7560.00 69750.00 30240.00 209250.00 120960.00 627750.00 )  # RTT: 10ms
-  L19 ( Birmingham Glasgow ) 11 0.00 0.00 0.00 ( 7560.00 54900.00 30240.00 164700.00 120960.00 494100.00 )  # RTT: 11ms
-  L20 ( Birmingham London ) 3 0.00 0.00 0.00 ( 7560.00 21510.00 30240.00 64530.00 120960.00 193590.00 )  # RTT: 3ms
-  L21 ( Bordeaux Madrid ) 12 0.00 0.00 0.00 ( 7560.00 75060.00 30240.00 225180.00 120960.00 675540.00 )  # RTT: 12ms
-  L22 ( Bordeaux Marseille ) 11 0.00 0.00 0.00 ( 7560.00 68040.00 30240.00 204120.00 120960.00 612360.00 )  # RTT: 11ms
-  L23 ( Bordeaux Paris ) 11 0.00 0.00 0.00 ( 7560.00 67230.00 30240.00 201690.00 120960.00 605070.00 )  # RTT: 11ms
-  L24 ( Brussels Dusseldorf ) 4 0.00 0.00 0.00 ( 7560.00 23760.00 30240.00 71280.00 120960.00 213840.00 )  # RTT: 4ms
-  L25 ( Brussels Paris ) 5 0.00 0.00 0.00 ( 7560.00 35370.00 30240.00 106110.00 120960.00 318330.00 )  # RTT: 5ms
-  L26 ( Budapest Krakow ) 6 0.00 0.00 0.00 ( 7560.00 39240.00 30240.00 117720.00 120960.00 353160.00 )  # RTT: 6ms
-  L27 ( Budapest Prague ) 9 0.00 0.00 0.00 ( 7560.00 60120.00 30240.00 180360.00 120960.00 541080.00 )  # RTT: 9ms
-  L28 ( Copenhagen Oslo ) 10 0.00 0.00 0.00 ( 7560.00 64980.00 30240.00 194940.00 120960.00 584820.00 )  # RTT: 10ms
-  L29 ( Copenhagen Stockholm ) 11 0.00 0.00 0.00 ( 7560.00 69930.00 30240.00 209790.00 120960.00 629370.00 )  # RTT: 11ms
-  L30 ( Dublin Glasgow ) 7 0.00 0.00 0.00 ( 7560.00 41580.00 30240.00 124740.00 120960.00 374220.00 )  # RTT: 7ms
-  L31 ( Dublin London ) 9 0.00 0.00 0.00 ( 7560.00 62100.00 30240.00 186300.00 120960.00 558900.00 )  # RTT: 9ms
-  L32 ( Dusseldorf Frankfurt ) 4 0.00 0.00 0.00 ( 7560.00 24750.00 30240.00 74250.00 120960.00 222750.00 )  # RTT: 4ms
-  L33 ( Frankfurt Hamburg ) 8 0.00 0.00 0.00 ( 7560.00 53280.00 30240.00 159840.00 120960.00 479520.00 )  # RTT: 8ms
-  L34 ( Frankfurt Munich ) 6 0.00 0.00 0.00 ( 7560.00 41040.00 30240.00 123120.00 120960.00 369360.00 )  # RTT: 6ms
-  L35 ( Frankfurt Strasbourg ) 4 0.00 0.00 0.00 ( 7560.00 24390.00 30240.00 73170.00 120960.00 219510.00 )  # RTT: 4ms
-  L36 ( Helsinki Oslo ) 18 0.00 0.00 0.00 ( 7560.00 106380.00 30240.00 319140.00 120960.00 957420.00 )  # RTT: 18ms
-  L37 ( Helsinki Stockholm ) 8 0.00 0.00 0.00 ( 7560.00 53730.00 30240.00 161190.00 120960.00 483570.00 )  # RTT: 8ms
-  L38 ( Helsinki Warsaw ) 19 0.00 0.00 0.00 ( 7560.00 123300.00 30240.00 369900.00 120960.00 1109700.00 )  # RTT: 19ms
-  L39 ( Krakow Warsaw ) 5 0.00 0.00 0.00 ( 7560.00 34470.00 30240.00 103410.00 120960.00 310230.00 )  # RTT: 5ms
-  L40 ( Lisbon London ) 29 0.00 0.00 0.00 ( 7560.00 177930.00 30240.00 533790.00 120960.00 1601370.00 )  # RTT: 29ms
-  L41 ( Lisbon Madrid ) 10 0.00 0.00 0.00 ( 7560.00 67590.00 30240.00 202770.00 120960.00 608310.00 )  # RTT: 10ms
-  L42 ( Lisbon Seville ) 7 0.00 0.00 0.00 ( 7560.00 42390.00 30240.00 127170.00 120960.00 381510.00 )  # RTT: 7ms
-  L43 ( London Paris ) 7 0.00 0.00 0.00 ( 7560.00 46260.00 30240.00 138780.00 120960.00 416340.00 )  # RTT: 7ms
-  L44 ( Lyon Marseille ) 6 0.00 0.00 0.00 ( 7560.00 36990.00 30240.00 110970.00 120960.00 332910.00 )  # RTT: 6ms
-  L45 ( Lyon Paris ) 8 0.00 0.00 0.00 ( 7560.00 53460.00 30240.00 160380.00 120960.00 481140.00 )  # RTT: 8ms
-  L46 ( Lyon Zurich ) 7 0.00 0.00 0.00 ( 7560.00 45630.00 30240.00 136890.00 120960.00 410670.00 )  # RTT: 7ms
-  L47 ( Marseille Rome ) 13 0.00 0.00 0.00 ( 7560.00 81630.00 30240.00 244890.00 120960.00 734670.00 )  # RTT: 13ms
-  L48 ( Milan Munich ) 7 0.00 0.00 0.00 ( 7560.00 46980.00 30240.00 140940.00 120960.00 422820.00 )  # RTT: 7ms
-  L49 ( Milan Rome ) 10 0.00 0.00 0.00 ( 7560.00 64800.00 30240.00 194400.00 120960.00 583200.00 )  # RTT: 10ms
-  L50 ( Milan Zurich ) 4 0.00 0.00 0.00 ( 7560.00 29430.00 30240.00 88290.00 120960.00 264870.00 )  # RTT: 4ms
-  L51 ( Munich Vienna ) 7 0.00 0.00 0.00 ( 7560.00 48060.00 30240.00 144180.00 120960.00 432540.00 )  # RTT: 7ms
-  L52 ( Palermo Rome ) 9 0.00 0.00 0.00 ( 7560.00 57420.00 30240.00 172260.00 120960.00 516780.00 )  # RTT: 9ms
-  L53 ( Paris Strasbourg ) 8 0.00 0.00 0.00 ( 7560.00 54000.00 30240.00 162000.00 120960.00 486000.00 )  # RTT: 8ms
-  L54 ( Prague Vienna ) 5 0.00 0.00 0.00 ( 7560.00 33840.00 30240.00 101520.00 120960.00 304560.00 )  # RTT: 5ms
-  L55 ( Rome Zagreb ) 11 0.00 0.00 0.00 ( 7560.00 70470.00 30240.00 211410.00 120960.00 634230.00 )  # RTT: 11ms
-  L56 ( Strasbourg Zurich ) 3 0.00 0.00 0.00 ( 7560.00 19620.00 30240.00 58860.00 120960.00 176580.00 )  # RTT: 3ms
-  L57 ( Vienna Zagreb ) 5 0.00 0.00 0.00 ( 7560.00 36000.00 30240.00 108000.00 120960.00 324000.00 )  # RTT: 5ms
+  L1 ( Amsterdam Brussels )  # RTT: 4ms
+  L2 ( Amsterdam Glasgow )  # RTT: 17ms
+  L3 ( Amsterdam Hamburg )  # RTT: 9ms
+  L4 ( Amsterdam London )  # RTT: 7ms
+  L5 ( Athens Palermo )  # RTT: 17ms
+  L6 ( Athens Sofia )  # RTT: 10ms
+  L7 ( Athens Zagreb )  # RTT: 19ms
+  L8 ( Barcelona Madrid )  # RTT: 11ms
+  L9 ( Barcelona Marseille )  # RTT: 7ms
+  L10 ( Barcelona Seville )  # RTT: 18ms
+  L11 ( Belgrade Budapest )  # RTT: 6ms
+  L12 ( Belgrade Sofia )  # RTT: 6ms
+  L13 ( Belgrade Zagreb )  # RTT: 7ms
+  L14 ( Berlin Copenhagen )  # RTT: 12ms
+  L15 ( Berlin Hamburg )  # RTT: 6ms
+  L16 ( Berlin Munich )  # RTT: 12ms
+  L17 ( Berlin Prague )  # RTT: 6ms
+  L18 ( Berlin Warsaw )  # RTT: 10ms
+  L19 ( Birmingham Glasgow )  # RTT: 11ms
+  L20 ( Birmingham London )  # RTT: 3ms
+  L21 ( Bordeaux Madrid )  # RTT: 12ms
+  L22 ( Bordeaux Marseille )  # RTT: 11ms
+  L23 ( Bordeaux Paris )  # RTT: 11ms
+  L24 ( Brussels Dusseldorf )  # RTT: 4ms
+  L25 ( Brussels Paris )  # RTT: 5ms
+  L26 ( Budapest Krakow )  # RTT: 6ms
+  L27 ( Budapest Prague )  # RTT: 9ms
+  L28 ( Copenhagen Oslo )  # RTT: 10ms
+  L29 ( Copenhagen Stockholm )  # RTT: 11ms
+  L30 ( Dublin Glasgow )  # RTT: 7ms
+  L31 ( Dublin London )  # RTT: 9ms
+  L32 ( Dusseldorf Frankfurt )  # RTT: 4ms
+  L33 ( Frankfurt Hamburg )  # RTT: 8ms
+  L34 ( Frankfurt Munich )  # RTT: 6ms
+  L35 ( Frankfurt Strasbourg )  # RTT: 4ms
+  L36 ( Helsinki Oslo )  # RTT: 18ms
+  L37 ( Helsinki Stockholm )  # RTT: 8ms
+  L38 ( Helsinki Warsaw )  # RTT: 19ms
+  L39 ( Krakow Warsaw )  # RTT: 5ms
+  L40 ( Lisbon London )  # RTT: 29ms
+  L41 ( Lisbon Madrid )  # RTT: 10ms
+  L42 ( Lisbon Seville )  # RTT: 7ms
+  L43 ( London Paris )  # RTT: 7ms
+  L44 ( Lyon Marseille )  # RTT: 6ms
+  L45 ( Lyon Paris )  # RTT: 8ms
+  L46 ( Lyon Zurich )  # RTT: 7ms
+  L47 ( Marseille Rome )  # RTT: 13ms
+  L48 ( Milan Munich )  # RTT: 7ms
+  L49 ( Milan Rome )  # RTT: 10ms
+  L50 ( Milan Zurich )  # RTT: 4ms
+  L51 ( Munich Vienna )  # RTT: 7ms
+  L52 ( Palermo Rome )  # RTT: 9ms
+  L53 ( Paris Strasbourg )  # RTT: 8ms
+  L54 ( Prague Vienna )  # RTT: 5ms
+  L55 ( Rome Zagreb )  # RTT: 11ms
+  L56 ( Strasbourg Zurich )  # RTT: 3ms
+  L57 ( Vienna Zagreb )  # RTT: 5ms
 )

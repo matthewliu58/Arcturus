@@ -2,48 +2,15 @@ package core_domain
 
 import (
 	"bufio"
-	"control-plane/routing/graph"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"strings"
 	"testing"
+
+	"control-plane/routing/graph"
 )
-
-// omEdgeRisk calculates edge weight based on CPU pressure, loss, and latency
-func omEdgeRisk(cpuPressure, loss, latency float64) float64 {
-	const (
-		CPUMid   = 60.0
-		CPUHigh  = 80.0
-		cpuPower = 2.0
-		wCPU     = 0.5
-		wLoss    = 0.0
-		wLat     = 0.5
-	)
-
-	var cpuRisk float64
-	if cpuPressure < CPUMid {
-		cpuRisk = 0.0
-	} else {
-		cpuRatio := (cpuPressure - CPUMid) / (CPUHigh - CPUMid)
-		cpuRisk = cpuRatio * cpuRatio
-	}
-
-	var lossRisk float64
-	if loss >= 1.0 {
-		lossRisk = 1.0
-	} else if loss <= 0 {
-		lossRisk = 0
-	}
-
-	latRisk := latency / 20.0
-	if latRisk < 0 {
-		latRisk = 0
-	}
-
-	return wCPU*cpuRisk + wLoss*lossRisk + wLat*latRisk*latRisk
-}
 
 func omParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 	file, err := os.Open(filePath)
@@ -90,12 +57,17 @@ func omParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 					}
 
 					cpuUtil := float64(GetRandomUtil())
-					edgeWeight := omEdgeRisk(cpuUtil, defaultLoss, rawRTT)
+
+					logger.Debug("Edge created",
+						slog.String("source", source),
+						slog.String("target", target),
+						slog.Float64("rawRTT", rawRTT),
+						slog.Float64("cpuUtil", cpuUtil))
 
 					edges = append(edges, &graph.Edge{
 						SourceIp:      source,
 						DestinationIp: target,
-						EdgeWeight:    edgeWeight,
+						EdgeWeight:    rawRTT,
 						Load:          cpuUtil,
 						Latency:       rawRTT,
 						Loss:          defaultLoss,
@@ -103,7 +75,7 @@ func omParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 					edges = append(edges, &graph.Edge{
 						SourceIp:      target,
 						DestinationIp: source,
-						EdgeWeight:    edgeWeight,
+						EdgeWeight:    rawRTT,
 						Load:          cpuUtil,
 						Latency:       rawRTT,
 						Loss:          defaultLoss,
