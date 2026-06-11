@@ -71,7 +71,6 @@ func lsParseCost266Edges(filePath string) []*graph.Edge {
 	var edges []*graph.Edge
 	var inLinks bool
 
-	defaultCPU := 30.0
 	defaultLoss := 0.0
 
 	scanner := bufio.NewScanner(file)
@@ -101,12 +100,15 @@ func lsParseCost266Edges(filePath string) []*graph.Edge {
 						}
 					}
 
-					edgeWeight := lsEdgeRisk(defaultCPU, defaultLoss, rawRTT)
+					// Generate random CPU utilization for each edge
+					cpuUtil := float64(GetRandomUtil())
+					edgeWeight := lsEdgeRisk(cpuUtil, defaultLoss, rawRTT)
 
 					edges = append(edges, &graph.Edge{
 						SourceIp:      source,
 						DestinationIp: target,
 						EdgeWeight:    edgeWeight,
+						Load:          cpuUtil,
 						Latency:       rawRTT,
 						Loss:          defaultLoss,
 					})
@@ -114,6 +116,7 @@ func lsParseCost266Edges(filePath string) []*graph.Edge {
 						SourceIp:      target,
 						DestinationIp: source,
 						EdgeWeight:    edgeWeight,
+						Load:          cpuUtil,
 						Latency:       rawRTT,
 						Loss:          defaultLoss,
 					})

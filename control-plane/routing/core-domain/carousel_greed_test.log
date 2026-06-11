@@ -1,164 +1,382 @@
-time=2026-06-10T18:44:39.770+08:00 level=INFO msg="K-shortest paths found" pre=TEST start=Amsterdam end=Paris k=5 selected=5 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Strasbourg Paris] Rtt:29 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris] Rtt:30 RawRTT:0}]"
-time=2026-06-10T18:44:39.790+08:00 level=INFO msg="K-shortest paths found" pre=TEST start=Amsterdam end=Berlin k=5 selected=5 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Munich Berlin] Rtt:35 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Vienna Prague Berlin] Rtt:36 RawRTT:0}]"
-time=2026-06-10T18:44:39.791+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_debug start=Amsterdam end=Paris k=5 selected=5 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Strasbourg Paris] Rtt:29 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris] Rtt:30 RawRTT:0}]"
-time=2026-06-10T18:44:39.792+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_debug start=Amsterdam end=Berlin k=5 selected=5 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Munich Berlin] Rtt:35 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Vienna Prague Berlin] Rtt:36 RawRTT:0}]"
-time=2026-06-10T18:44:39.792+08:00 level=INFO msg="ComputeMultiDestination START" pre=TEST start=Amsterdam ends="[Paris Berlin]" totalEdges=114
-time=2026-06-10T18:44:39.792+08:00 level=DEBUG msg="Nodes in graph" pre=TEST count=37
-time=2026-06-10T18:44:39.792+08:00 level=DEBUG msg="Valid destinations" pre=TEST destinations="[Paris Berlin]"
-time=2026-06-10T18:44:39.792+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_calc start=Amsterdam end=Paris k=3 selected=3 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0}]"
-time=2026-06-10T18:44:39.792+08:00 level=DEBUG msg="FlowOptimizationSolver: computed thetaL for destination" dest=Paris avgLatency=15.666666666666666 thetaL=31.333333333333332
-time=2026-06-10T18:44:39.793+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_calc start=Amsterdam end=Berlin k=3 selected=3 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0}]"
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="FlowOptimizationSolver: computed thetaL for destination" dest=Berlin avgLatency=23.666666666666668 thetaL=47.333333333333336
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Computed parameters" pre=TEST capacity=6 U_hot=30 flowsPerDest=3 thetaLMap="map[Berlin:47.333333333333336 Paris:31.333333333333332]"
-time=2026-06-10T18:44:39.793+08:00 level=INFO msg="FlowOptimizationSolver: parameters calculated dynamically" pre=TEST numDestinations=2 flowsPerDest=3 capacity=6 "U_hot (90th percentile)"=30
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="STEP 1: Building residual graph with capacities" pre=TEST
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Residual graph built" pre=TEST nodes=37
-time=2026-06-10T18:44:39.793+08:00 level=INFO msg="STEP 2: Finding feasible paths for each destination" pre=TEST
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Searching paths to destination" pre=TEST dest=Paris
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=1 attempt=1
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Paris]" latency=9 hops=2 attempt=1
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Path found" pre=TEST dest=Paris pathNum=1 path="[Amsterdam Brussels Paris]" latency=9
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Brussels Paris]"
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Paris]" flow=1
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=2 attempt=2
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" latency=30 hops=5 attempt=2
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Path found" pre=TEST dest=Paris pathNum=2 path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" latency=30
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]"
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" flow=1
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Dusseldorf oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=3 attempt=3
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam London Paris]" latency=14 hops=2 attempt=3
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Path found" pre=TEST dest=Paris pathNum=3 path="[Amsterdam London Paris]" latency=14
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam London Paris]"
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris]" flow=1
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Searching paths to destination" pre=TEST dest=Berlin
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Berlin pathNum=1 attempt=1
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=10 hops=5 attempt=1
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Path found" pre=TEST dest=Berlin pathNum=1 path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=10
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]"
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]" flow=1
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Berlin pathNum=2 attempt=2
-time=2026-06-10T18:44:39.793+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=29 hops=7 attempt=2
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Path found" pre=TEST dest=Berlin pathNum=2 path="[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=29
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]"
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" flow=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Paris->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Berlin pathNum=3 attempt=3
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Glasgow Birmingham London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=44 hops=9 attempt=3
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Path found" pre=TEST dest=Berlin pathNum=3 path="[Amsterdam Glasgow Birmingham London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=44
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Glasgow Birmingham London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]"
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Glasgow Birmingham London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" flow=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Glasgow oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Glasgow->Birmingham oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Birmingham->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=2 newFlow=3 oldResidual=4 newResidual=3
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Paris->Brussels oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=2 newFlow=3 oldResidual=4 newResidual=3
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=2 newFlow=3 oldResidual=4 newResidual=3
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=2 newFlow=3 oldResidual=4 newResidual=3
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=2 newFlow=3 oldResidual=4 newResidual=3
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Initial path search completed" pre=TEST totalPaths=6 destFlowCount="map[Berlin:3 Paris:3]"
-time=2026-06-10T18:44:39.794+08:00 level=INFO msg="STEP 3: Removing beta*|S| newest paths and releasing flows" pre=TEST beta=0.9 removeNum=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=0 path="[Amsterdam Brussels Paris]"
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Paris]" flow=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=1 path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]"
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" flow=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Dusseldorf oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=2 path="[Amsterdam London Paris]"
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam London Paris]" flow=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=3 newFlow=2 oldResidual=3 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=3 path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]"
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]" flow=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=3 newFlow=2 oldResidual=3 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=3 newFlow=2 oldResidual=3 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=3 newFlow=2 oldResidual=3 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=3 newFlow=2 oldResidual=3 newResidual=4
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=4 path="[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]"
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" flow=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Paris->Brussels oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
-time=2026-06-10T18:44:39.794+08:00 level=INFO msg="STEP 4-11: Iterative optimization" pre=TEST maxIter=12
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg=Iteration pre=TEST iter=1 totalPaths=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Glasgow Birmingham London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]"
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Glasgow Birmingham London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" flow=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Glasgow oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Glasgow->Birmingham oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Birmingham->London oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Paris->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Glasgow
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Glasgow
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=1
-time=2026-06-10T18:44:39.794+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Hamburg Berlin]" latency=15 hops=2 attempt=1
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="New path found" pre=TEST dest=Berlin path="[Amsterdam Hamburg Berlin]"
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Berlin]" flow=1
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Current score" pre=TEST iter=1 currentScore=11.516666666666666 bestScore=57.48333333333335
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg=Iteration pre=TEST iter=2 totalPaths=1
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Hamburg Berlin]"
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Berlin]" flow=1
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Hamburg
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Hamburg
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=2
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Paris]" latency=9 hops=2 attempt=2
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam Brussels Paris]"
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=2
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=41 hops=7 attempt=2
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam London Paris Brussels Dusseldorf Frankfurt Hamburg Berlin]"
-time=2026-06-10T18:44:39.805+08:00 level=INFO msg="FlowOptimizationSolver completed" pre=TEST start=Amsterdam destCount=2 totalFlows=6
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="=== Final Selected Paths ===" pre=TEST
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg=Path pre=TEST index=1 hops="Amsterdam -> Brussels -> Paris" rtt=9 rawRtt=9 hopsCount=2
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg=Path pre=TEST index=2 hops="Amsterdam -> Hamburg -> Frankfurt -> Dusseldorf -> Brussels -> Paris" rtt=30 rawRtt=30 hopsCount=5
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg=Path pre=TEST index=3 hops="Amsterdam -> London -> Paris" rtt=14 rawRtt=14 hopsCount=2
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg=Path pre=TEST index=4 hops="Amsterdam -> Brussels -> Dusseldorf -> Frankfurt -> Hamburg -> Berlin" rtt=10 rawRtt=10 hopsCount=5
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg=Path pre=TEST index=5 hops="Amsterdam -> London -> Paris -> Brussels -> Dusseldorf -> Frankfurt -> Hamburg -> Berlin" rtt=29 rawRtt=29 hopsCount=7
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg=Path pre=TEST index=6 hops="Amsterdam -> Glasgow -> Birmingham -> London -> Paris -> Brussels -> Dusseldorf -> Frankfurt -> Hamburg -> Berlin" rtt=44 rawRtt=44 hopsCount=9
-time=2026-06-10T18:44:39.805+08:00 level=DEBUG msg="=== End of Paths ===" pre=TEST
+time=2026-06-11T12:31:20.115+08:00 level=INFO msg="K-shortest paths found" pre=TEST start=Amsterdam end=Paris k=5 selected=5 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Strasbourg Paris] Rtt:29 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris] Rtt:30 RawRTT:0}]"
+time=2026-06-11T12:31:20.127+08:00 level=INFO msg="K-shortest paths found" pre=TEST start=Amsterdam end=Berlin k=5 selected=5 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Munich Berlin] Rtt:35 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Vienna Prague Berlin] Rtt:36 RawRTT:0}]"
+time=2026-06-11T12:31:20.129+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_debug start=Amsterdam end=Paris k=5 selected=5 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Strasbourg Paris] Rtt:29 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris] Rtt:30 RawRTT:0}]"
+time=2026-06-11T12:31:20.131+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_debug start=Amsterdam end=Berlin k=5 selected=5 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0} {Hops:[Amsterdam Hamburg Frankfurt Munich Berlin] Rtt:35 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Vienna Prague Berlin] Rtt:36 RawRTT:0}]"
+time=2026-06-11T12:31:20.131+08:00 level=INFO msg="ComputeMultiDestination START" pre=TEST start=Amsterdam ends="[Paris Berlin]" totalEdges=114
+time=2026-06-11T12:31:20.131+08:00 level=DEBUG msg="Nodes in graph" pre=TEST count=37
+time=2026-06-11T12:31:20.131+08:00 level=DEBUG msg="Valid destinations" pre=TEST destinations="[Paris Berlin]"
+time=2026-06-11T12:31:20.131+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_calc start=Amsterdam end=Paris k=3 selected=3 paths="[{Hops:[Amsterdam Brussels Paris] Rtt:9 RawRTT:0} {Hops:[Amsterdam London Paris] Rtt:14 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris] Rtt:24 RawRTT:0}]"
+time=2026-06-11T12:31:20.131+08:00 level=DEBUG msg="FlowOptimizationSolver: computed thetaL for destination" dest=Paris avgLatency=15.666666666666666 thetaL=31.333333333333332
+time=2026-06-11T12:31:20.132+08:00 level=INFO msg="K-shortest paths found" pre=thetaL_calc start=Amsterdam end=Berlin k=3 selected=3 paths="[{Hops:[Amsterdam Hamburg Berlin] Rtt:15 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin] Rtt:26 RawRTT:0} {Hops:[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin] Rtt:30 RawRTT:0}]"
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="FlowOptimizationSolver: computed thetaL for destination" dest=Berlin avgLatency=23.666666666666668 thetaL=47.333333333333336
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Computed parameters" pre=TEST capacity=6 U_hot=30 flowsPerDest=3 thetaLMap="map[Berlin:47.333333333333336 Paris:31.333333333333332]"
+time=2026-06-11T12:31:20.132+08:00 level=INFO msg="FlowOptimizationSolver: parameters calculated dynamically" pre=TEST numDestinations=2 flowsPerDest=3 capacity=6 "U_hot (90th percentile)"=30
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="STEP 1: Building residual graph with capacities" pre=TEST
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Residual graph built" pre=TEST nodes=37
+time=2026-06-11T12:31:20.132+08:00 level=INFO msg="STEP 2: Finding feasible paths for each destination" pre=TEST
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Searching paths to destination" pre=TEST dest=Paris
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=1 attempt=1
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Paris]" latency=9 hops=2 attempt=1
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Path found" pre=TEST dest=Paris pathNum=1 path="[Amsterdam Brussels Paris]" latency=9
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Brussels Paris]"
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Paris]" flow=1
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=2 attempt=2
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Paris]" latency=9 hops=2 attempt=2
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Skipping duplicate path" pre=TEST path="[Amsterdam Brussels Paris]"
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=2 attempt=3
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" latency=30 hops=5 attempt=3
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Path found" pre=TEST dest=Paris pathNum=2 path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" latency=30
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]"
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" flow=1
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Dusseldorf oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Paris pathNum=3 attempt=4
+time=2026-06-11T12:31:20.132+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Hamburg Frankfurt Strasbourg Paris]" latency=29 hops=4 attempt=4
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Path found" pre=TEST dest=Paris pathNum=3 path="[Amsterdam Hamburg Frankfurt Strasbourg Paris]" latency=29
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Hamburg Frankfurt Strasbourg Paris]"
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Frankfurt Strasbourg Paris]" flow=1
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Frankfurt oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Strasbourg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Searching paths to destination" pre=TEST dest=Berlin
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Berlin pathNum=1 attempt=1
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=10 hops=5 attempt=1
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Path found" pre=TEST dest=Berlin pathNum=1 path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]" latency=10
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]"
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Berlin pathNum=2 attempt=2
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]" latency=28 hops=6 attempt=2
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Path found" pre=TEST dest=Berlin pathNum=2 path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]" latency=28
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]"
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Paris->Strasbourg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="Finding path" pre=TEST dest=Berlin pathNum=3 attempt=3
+time=2026-06-11T12:31:20.133+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]" latency=38 hops=8 attempt=3
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Path found" pre=TEST dest=Berlin pathNum=3 path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]" latency=38
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Allocating flow on this path" pre=TEST path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]"
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]" flow=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=2 newFlow=3 oldResidual=4 newResidual=3
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Strasbourg oldFlow=1 newFlow=2 oldResidual=5 newResidual=4
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Zurich oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Zurich->Milan oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Milan->Munich oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Munich->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Initial path search completed" pre=TEST totalPaths=6 destFlowCount="map[Berlin:3 Paris:3]"
+time=2026-06-11T12:31:20.134+08:00 level=INFO msg="STEP 3: Removing beta*|S| newest paths and releasing flows" pre=TEST beta=0.9 removeNum=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=0 path="[Amsterdam Brussels Paris]"
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Paris]" flow=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=3 newFlow=2 oldResidual=3 newResidual=4
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=1 path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]"
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" flow=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Frankfurt oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Dusseldorf oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=2 path="[Amsterdam Hamburg Frankfurt Strasbourg Paris]"
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Frankfurt Strasbourg Paris]" flow=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Strasbourg oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=3 path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]"
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=2 newFlow=1 oldResidual=4 newResidual=5
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Releasing flow for removed path" pre=TEST iteration=4 path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]"
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Paris->Strasbourg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=INFO msg="STEP 4-11: Iterative optimization" pre=TEST maxIter=12
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg=Iteration pre=TEST iter=1 totalPaths=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]"
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]" flow=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Strasbourg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Zurich oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Zurich->Milan oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Milan->Munich oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Edge updated" edge=Munich->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Brussels
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Brussels
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Hamburg Berlin]" latency=15 hops=2 attempt=1
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="New path found" pre=TEST dest=Berlin path="[Amsterdam Hamburg Berlin]"
+time=2026-06-11T12:31:20.134+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Current score" pre=TEST iter=1 currentScore=11.516666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg=Iteration pre=TEST iter=2 totalPaths=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Hamburg Berlin]"
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Hamburg
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Hamburg
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=2
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam London Paris]" latency=14 hops=2 attempt=2
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="New path found" pre=TEST dest=Paris path="[Amsterdam London Paris]"
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Current score" pre=TEST iter=2 currentScore=11.526666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg=Iteration pre=TEST iter=3 totalPaths=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam London Paris]"
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->London
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=London
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=3
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Hamburg Frankfurt Strasbourg Paris]" latency=29 hops=4 attempt=3
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam Hamburg Frankfurt Strasbourg Paris]"
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=3
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]" latency=42 hops=8 attempt=3
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="New path found" pre=TEST dest=Berlin path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]"
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]" flow=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Strasbourg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Zurich oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Zurich->Milan oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Milan->Munich oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Munich->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Current score" pre=TEST iter=3 currentScore=16.246666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg=Iteration pre=TEST iter=4 totalPaths=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]"
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Zurich Milan Munich Berlin]" flow=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Strasbourg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Zurich oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Zurich->Milan oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Milan->Munich oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Munich->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Brussels
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Brussels
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=4
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Hamburg Berlin]" latency=15 hops=2 attempt=4
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="New path found" pre=TEST dest=Berlin path="[Amsterdam Hamburg Berlin]"
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Current score" pre=TEST iter=4 currentScore=11.516666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg=Iteration pre=TEST iter=5 totalPaths=1
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Hamburg Berlin]"
+time=2026-06-11T12:31:20.135+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Hamburg
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Hamburg
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam London Paris]" latency=14 hops=2 attempt=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="New path found" pre=TEST dest=Paris path="[Amsterdam London Paris]"
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Current score" pre=TEST iter=5 currentScore=11.526666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg=Iteration pre=TEST iter=6 totalPaths=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam London Paris]"
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->London
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=London
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Paris]" latency=9 hops=2 attempt=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam Brussels Paris]"
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Hamburg Berlin]" latency=15 hops=2 attempt=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="New path found" pre=TEST dest=Berlin path="[Amsterdam Hamburg Berlin]"
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Current score" pre=TEST iter=6 currentScore=11.516666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg=Iteration pre=TEST iter=7 totalPaths=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Hamburg Berlin]"
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Berlin]" flow=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Hamburg
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Hamburg
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=7
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris]" latency=24 hops=5 attempt=7
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="New path found" pre=TEST dest=Paris path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris]"
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris]" flow=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Strasbourg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Current score" pre=TEST iter=7 currentScore=13.926666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg=Iteration pre=TEST iter=8 totalPaths=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris]"
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Strasbourg Paris]" flow=1
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Strasbourg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Brussels
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Brussels
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=8
+time=2026-06-11T12:31:20.136+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]" latency=40 hops=6 attempt=8
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=8
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam London Paris]" latency=14 hops=2 attempt=8
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="New path found" pre=TEST dest=Paris path="[Amsterdam London Paris]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Current score" pre=TEST iter=8 currentScore=11.526666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg=Iteration pre=TEST iter=9 totalPaths=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam London Paris]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->London
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=London
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=9
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Brussels Paris]" latency=9 hops=2 attempt=9
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam Brussels Paris]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=9
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin]" latency=30 hops=5 attempt=9
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="New path found" pre=TEST dest=Berlin path="[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin]" flow=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Munich oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Munich->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Current score" pre=TEST iter=9 currentScore=13.866666666666665 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg=Iteration pre=TEST iter=10 totalPaths=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Brussels Dusseldorf Frankfurt Munich Berlin]" flow=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Brussels oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Brussels->Dusseldorf oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Dusseldorf->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Munich oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Munich->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Brussels
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Brussels
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=10
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]" latency=30 hops=5 attempt=10
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam Hamburg Frankfurt Dusseldorf Brussels Paris]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=10
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam London Paris Strasbourg Frankfurt Munich Berlin]" latency=44 hops=6 attempt=10
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="New path found" pre=TEST dest=Berlin path="[Amsterdam London Paris Strasbourg Frankfurt Munich Berlin]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris Strasbourg Frankfurt Munich Berlin]" flow=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Paris->Strasbourg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Munich oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Munich->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Current score" pre=TEST iter=10 currentScore=14.56 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg=Iteration pre=TEST iter=11 totalPaths=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam London Paris Strasbourg Frankfurt Munich Berlin]"
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam London Paris Strasbourg Frankfurt Munich Berlin]" flow=1
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Paris->Strasbourg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Strasbourg->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Munich oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Edge updated" edge=Munich->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->London
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=London
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=11
+time=2026-06-11T12:31:20.137+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam Hamburg Frankfurt Munich Vienna Prague Berlin]" latency=41 hops=6 attempt=11
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="New path found" pre=TEST dest=Berlin path="[Amsterdam Hamburg Frankfurt Munich Vienna Prague Berlin]"
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam Hamburg Frankfurt Munich Vienna Prague Berlin]" flow=1
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Frankfurt oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Munich oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Munich->Vienna oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Vienna->Prague oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Prague->Berlin oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Current score" pre=TEST iter=11 currentScore=14.59 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg=Iteration pre=TEST iter=12 totalPaths=1
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Removing oldest path" pre=TEST path="[Amsterdam Hamburg Frankfurt Munich Vienna Prague Berlin]"
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="releaseFlow: releasing flow" path="[Amsterdam Hamburg Frankfurt Munich Vienna Prague Berlin]" flow=1
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->Hamburg oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Hamburg->Frankfurt oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Frankfurt->Munich oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Munich->Vienna oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Vienna->Prague oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Prague->Berlin oldFlow=1 newFlow=0 oldResidual=5 newResidual=6
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Banning first edge of oldest path" pre=TEST edge=Amsterdam->Hamburg
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Banned edge" from=Amsterdam to=Hamburg
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Berlin iter=12
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Berlin thetaL=47.333333333333336
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Berlin path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]" latency=40 hops=6 attempt=12
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Skipping duplicate path in iteration" pre=TEST path="[Amsterdam London Paris Strasbourg Frankfurt Hamburg Berlin]"
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Searching new path for destination" pre=TEST dest=Paris iter=12
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="findFeasiblePathWithLatency: finding path" from=Amsterdam to=Paris thetaL=31.333333333333332
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Path found" from=Amsterdam to=Paris path="[Amsterdam London Paris]" latency=14 hops=2 attempt=12
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="New path found" pre=TEST dest=Paris path="[Amsterdam London Paris]"
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="allocateFlow: allocating flow" path="[Amsterdam London Paris]" flow=1
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=Amsterdam->London oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Edge updated" edge=London->Paris oldFlow=0 newFlow=1 oldResidual=6 newResidual=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="Current score" pre=TEST iter=12 currentScore=11.526666666666666 bestScore=64.90666666666667
+time=2026-06-11T12:31:20.138+08:00 level=INFO msg="FlowOptimizationSolver completed" pre=TEST start=Amsterdam destCount=2 totalFlows=6
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="=== Final Selected Paths ===" pre=TEST
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg=Path pre=TEST index=1 hops="Amsterdam -> Brussels -> Paris" rtt=9 rawRtt=9 hopsCount=2
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg=Path pre=TEST index=2 hops="Amsterdam -> Hamburg -> Frankfurt -> Dusseldorf -> Brussels -> Paris" rtt=30 rawRtt=30 hopsCount=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg=Path pre=TEST index=3 hops="Amsterdam -> Hamburg -> Frankfurt -> Strasbourg -> Paris" rtt=29 rawRtt=29 hopsCount=4
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg=Path pre=TEST index=4 hops="Amsterdam -> Brussels -> Dusseldorf -> Frankfurt -> Hamburg -> Berlin" rtt=10 rawRtt=10 hopsCount=5
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg=Path pre=TEST index=5 hops="Amsterdam -> London -> Paris -> Strasbourg -> Frankfurt -> Hamburg -> Berlin" rtt=28 rawRtt=28 hopsCount=6
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg=Path pre=TEST index=6 hops="Amsterdam -> Brussels -> Dusseldorf -> Frankfurt -> Strasbourg -> Zurich -> Milan -> Munich -> Berlin" rtt=38 rawRtt=38 hopsCount=8
+time=2026-06-11T12:31:20.138+08:00 level=DEBUG msg="=== End of Paths ===" pre=TEST
