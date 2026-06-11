@@ -3,6 +3,7 @@ package core_domain
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log/slog"
 	"math"
 	"os"
@@ -74,6 +75,10 @@ func lsParseCost266Edges(filePath string) []*graph.Edge {
 	defaultLoss := 0.0
 
 	scanner := bufio.NewScanner(file)
+	if err := scanner.Err(); err != nil {
+		fmt.Printf("Scanner error: %v\n", err)
+		return nil
+	}
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "LINKS") {
@@ -143,118 +148,34 @@ func lsCalculateRawRTT(hops []string, edges []*graph.Edge) float64 {
 }
 
 func TestLiveStyleSolver(t *testing.T) {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelInfo,
+	// Create a logger that writes to both console and file
+	logFile, err := os.Create("live_style_test.log")
+	if err != nil {
+		t.Fatalf("Failed to create log file: %v", err)
+	}
+	defer func() {
+		logFile.Close()
+	}()
+
+	// Write to both console and file
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+
+	logger := slog.New(slog.NewTextHandler(multiWriter, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
 	}))
 
 	cost266File := "evaluation/cost266"
 	edges := lsParseCost266Edges(cost266File)
-	if edges == nil || len(edges) == 0 {
+	if len(edges) == 0 {
 		t.Fatal("Failed to parse cost266 topology")
 	}
 
 	solver := NewLiveStyleSolver(edges, 2)
 
-	source := "Amsterdam"
-	dest := "Berlin"
-
-	fmt.Printf("\n========================================\n")
-	fmt.Printf("LiveStyle Solver Test: %s -> %s\n", source, dest)
-	fmt.Printf("========================================\n\n")
-
-	// Build graph for yensAlgorithm
-	graph_ := make(map[string][]*graph.Edge)
-	for _, e := range edges {
-		graph_[e.SourceIp] = append(graph_[e.SourceIp], e)
-	}
-
-	// Step 1: Get all K=5 paths using underlying solver
-	kspSolver := NewKShortestSolver(edges, 5)
-	allPaths, err := kspSolver.yensAlgorithm(source, dest, graph_, logger)
+	paths, err := solver.Computing("Amsterdam", "Berlin", "TEST", logger)
 	if err != nil {
-		t.Fatalf("Error finding paths: %v", err)
+		t.Fatalf("Error: %v", err)
 	}
 
-	fmt.Printf("[STEP 1] K=5 Shortest Paths:\n")
-	for i, path := range allPaths {
-		hopStr := strings.Join(path.hops, " -> ")
-		fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
-			i+1, path.cost, path.rawRTT, len(path.hops)-1, hopStr)
-	}
-
-	// Step 2: Show classification process (filter >10 hops, sort by rawRTT)
-	fmt.Printf("\n[STEP 2] Path Classification:\n")
-	var validPaths, filteredPaths []Path
-	for _, p := range allPaths {
-		if len(p.hops)-1 <= 10 {
-			validPaths = append(validPaths, p)
-		} else {
-			filteredPaths = append(filteredPaths, p)
-		}
-	}
-	fmt.Printf("  Valid Paths (<=10 hops): %d paths\n", len(validPaths))
-	for i, p := range validPaths {
-		hopStr := strings.Join(p.hops, " -> ")
-		fmt.Printf("    [%d] Weight=%.4f, RawRTT=%.2fms, %d hops: %s\n", i+1, p.cost, p.rawRTT, len(p.hops)-1, hopStr)
-	}
-	fmt.Printf("  Filtered Paths (>10 hops): %d paths\n", len(filteredPaths))
-	for i, p := range filteredPaths {
-		hopStr := strings.Join(p.hops, " -> ")
-		fmt.Printf("    [%d] Weight=%.4f, RawRTT=%.2fms, %d hops: %s\n", i+1, p.cost, p.rawRTT, len(p.hops)-1, hopStr)
-	}
-
-	// Step 3: Select top 2 paths
-	fmt.Printf("\n[STEP 3] Select Top 2 Paths:\n")
-	selectedPaths := solver.selectTopPaths(allPaths, 2)
-	for i, p := range selectedPaths {
-		hopStr := strings.Join(p.hops, " -> ")
-		fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
-			i+1, p.cost, p.rawRTT, len(p.hops)-1, hopStr)
-	}
-	fmt.Printf("\n")
+	fmt.Printf("Found %d paths\n", len(paths))
 }
-
-// func TestLiveStyleSolverMultiplePairs(t *testing.T) {
-// 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-// 		Level: slog.LevelInfo,
-// 	}))
-
-// 	cost266File := "evaluation/cost266"
-// 	edges := lsParseCost266Edges(cost266File)
-// 	if edges == nil || len(edges) == 0 {
-// 		t.Fatal("Failed to parse cost266 topology")
-// 	}
-
-// 	solver := NewLiveStyleSolver(edges, 2)
-
-// 	testCases := []struct {
-// 		start string
-// 		end   string
-// 	}{
-// 		{"Amsterdam", "Berlin"},
-// 		{"London", "Paris"},
-// 		{"Frankfurt", "Munich"},
-// 		{"Brussels", "Amsterdam"},
-// 		{"Paris", "Strasbourg"},
-// 	}
-
-// 	fmt.Println("\n=== LiveStyle Solver - Multiple Test Cases ===")
-
-// 	for _, tc := range testCases {
-// 		fmt.Printf("\n----------------------------------------\n")
-// 		fmt.Printf("Test: %s -> %s\n", tc.start, tc.end)
-// 		fmt.Printf("----------------------------------------\n")
-
-// 		paths, err := solver.Computing(tc.start, tc.end, "TEST", logger)
-// 		if err != nil {
-// 			fmt.Printf("Error: %v\n", err)
-// 			continue
-// 		}
-
-// 		for i, path := range paths {
-// 			hopStr := strings.Join(path.Hops, " -> ")
-// 			fmt.Printf("  [%d] Weight=%.4f, RawRTT=%.2fms, Hops=%d: %s\n",
-// 				i+1, path.Rtt, path.RawRTT, len(path.Hops)-1, hopStr)
-// 		}
-// 	}
-// }

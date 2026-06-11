@@ -9,6 +9,8 @@ import (
 	"strings"
 )
 
+const maxHops = 10 // maximum hop limit
+
 // ONEWANSolver implements ONE-WAN path selection algorithm
 type ONEWANSolver struct {
 	edges    []*graph.Edge
@@ -32,47 +34,19 @@ func NewONEWANSolver(edges []*graph.Edge, maxPaths int) *ONEWANSolver {
 // For each destination, up to maxPaths paths are found independently.
 // Destinations that are unreachable are skipped; an error is returned only if
 // no paths can be found for any destination.
-func (os *ONEWANSolver) ComputingMulti(start string, ends []string, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
-	return ComputingMulti(os, start, ends, pre, logger)
+// destCandidates holds candidate paths and their selection probabilities for a destination
+type destCandidates struct {
+	end   string
+	paths []routing.PathInfo
+	probs []float64
 }
 
-// ComputingMulti finds diverse paths from one start to multiple destinations.
-// Uses global load-aware selection to avoid hotspot congestion.
-//
-// Algorithm:
-// 1. Generate K candidate paths for each destination (already done)
-// 2. Select paths jointly considering global node load using Beam Search
-// 3. Maintain top K global states during selection
-func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
-	if len(ends) == 0 {
-		return nil, fmt.Errorf("no destinations provided")
-	}
+func (os *ONEWANSolver) ComputingMulti(start string, ends []string, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
 
-	if len(ends) == 1 {
-		kspSolver := NewKShortestSolverWithLatency(solver.edges, solver.maxPaths, true)
-		graph_ := make(map[string][]*graph.Edge)
-		for _, e := range solver.edges {
-			graph_[e.SourceIp] = append(graph_[e.SourceIp], e)
-		}
-		paths, err := kspSolver.yensAlgorithm(start, ends[0], graph_, logger)
-		if err != nil {
-			return nil, err
-		}
-		var pathInfos []routing.PathInfo
-		for _, path := range paths {
-			cleanHops := deduplicateHops(path.hops)
-			pathInfos = append(pathInfos, routing.PathInfo{
-				Hops:   cleanHops,
-				Rtt:    path.cost,
-				RawRTT: path.rawRTT,
-			})
-		}
-		return pathInfos, nil
-	}
-
+	// Build graph structure
 	graph_ := make(map[string][]*graph.Edge)
 	nodes := make(map[string]struct{})
-	for _, e := range solver.edges {
+	for _, e := range os.edges {
 		graph_[e.SourceIp] = append(graph_[e.SourceIp], e)
 		nodes[e.SourceIp] = struct{}{}
 		nodes[e.DestinationIp] = struct{}{}
@@ -82,17 +56,24 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		return nil, fmt.Errorf("start node %s not found", start)
 	}
 
-	type destCandidates struct {
-		end   string
-		paths []routing.PathInfo
-		probs []float64
+	// Step 1: Generate candidate paths for each destination (with maxHops filter)
+	allCandidates, err := os.generateCandidatePaths(start, ends, nodes, graph_, pre, logger)
+	if err != nil {
+		return nil, err
 	}
+
+	// Step 2: Select best paths using Beam Search
+	return os.beamSearchSelection(allCandidates, pre, logger)
+}
+
+// generateCandidatePaths generates candidate paths for each destination using DFS
+func (os *ONEWANSolver) generateCandidatePaths(start string, ends []string, nodes map[string]struct{},
+	graph_ map[string][]*graph.Edge, pre string, logger *slog.Logger) ([]destCandidates, error) {
+
 	var allCandidates []destCandidates
 
 	logger.Info("ONEWAN multi: generating candidate paths for each destination",
-		slog.String("pre", pre),
-		slog.String("start", start),
-		slog.Any("destinations", ends))
+		slog.String("pre", pre), slog.String("start", start), slog.Any("destinations", ends))
 
 	for _, end := range ends {
 		if _, ok := nodes[end]; !ok {
@@ -101,38 +82,45 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 			continue
 		}
 
-		kspSolver := NewKShortestSolverWithLatency(solver.edges, solver.maxPaths, true)
-		paths, err := kspSolver.yensAlgorithm(start, end, graph_, logger)
-		if err != nil {
-			logger.Warn("ONEWAN multi: yensAlgorithm failed for destination",
-				slog.String("pre", pre), slog.String("end", end), slog.Any("err", err))
+		// Use DFS to randomly generate multiple paths
+		paths := randomDFSPaths(start, end, graph_, os.maxPaths, logger)
+		if len(paths) == 0 {
+			logger.Warn("ONEWAN multi: randomDFSPaths failed for destination",
+				slog.String("pre", pre), slog.String("end", end))
 			continue
 		}
 
-		logger.Debug("yensAlgorithm", slog.String("pre", pre), slog.String("end", end), slog.Any("path", paths))
+		//logger.Debug("randomDFSPaths", slog.String("pre", pre), slog.String("end", end), slog.Int("path_count", len(paths)))
 
 		var pathDebug []string
 		for i, p := range paths {
 			pathDebug = append(pathDebug, fmt.Sprintf("[%d] cost=%.2f: %s", i+1, p.cost, strings.Join(p.hops, "->")))
 		}
-		logger.Debug("KSP paths after sorting", slog.String("end", end), slog.String("paths", strings.Join(pathDebug, "; ")))
+		//logger.Debug("DFS random paths", slog.String("end", end), slog.String("paths", strings.Join(pathDebug, "; ")))
 
 		var pathInfos []routing.PathInfo
 		for _, path := range paths {
 			cleanHops := deduplicateHops(path.hops)
 
-			logger.Info("ONEWAN multi: candidate path initialized",
-				slog.String("pre", pre),
-				slog.String("end", end),
-				slog.String("hops", strings.Join(cleanHops, "->")),
-				slog.Float64("cost", path.cost),
-				slog.Float64("rawRTT", path.rawRTT))
+			// Filter by maxHops
+			if len(cleanHops)-1 > maxHops {
+				continue
+			}
 
 			pathInfos = append(pathInfos, routing.PathInfo{
 				Hops:   cleanHops,
 				Rtt:    path.cost,
 				RawRTT: path.rawRTT,
 			})
+		}
+
+		pathInfos = filterPathsByHops(pathInfos, maxHops)
+		if len(pathInfos) == 0 {
+			logger.Warn("ONEWAN multi: no valid paths found for destination (all paths exceed maxHops)",
+				slog.String("pre", pre),
+				slog.String("end", end),
+				slog.Int("maxHops", maxHops))
+			continue
 		}
 
 		logger.Info("ONEWAN multi: candidate paths for destination",
@@ -151,8 +139,8 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		}
 
 		if len(pathInfos) > 0 {
-			if len(pathInfos) > solver.maxPaths {
-				pathInfos = pathInfos[:solver.maxPaths]
+			if len(pathInfos) > os.maxPaths {
+				pathInfos = pathInfos[:os.maxPaths]
 			}
 			allCandidates = append(allCandidates, destCandidates{end: end, paths: pathInfos})
 		}
@@ -162,20 +150,16 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		return nil, fmt.Errorf("no paths found from %s to any of %v", start, ends)
 	}
 
+	return allCandidates, nil
+}
+
+// beamSearchSelection selects best paths using stochastic beam search
+func (os *ONEWANSolver) beamSearchSelection(allCandidates []destCandidates, pre string, logger *slog.Logger) ([]routing.PathInfo, error) {
 	const numIterations = 10
 	const pathsPerDest = 2
-	const maxHops = 10
+	const loadWeight = 5.0
 
-	for i := range allCandidates {
-		allCandidates[i].paths = filterPathsByHops(allCandidates[i].paths, maxHops)
-		if len(allCandidates[i].paths) == 0 {
-			logger.Warn("no valid paths found for destination (all paths exceed maxHops), skipping",
-				slog.String("dest", allCandidates[i].end),
-				slog.Int("maxHops", maxHops))
-			continue
-		}
-	}
-
+	// Calculate selection probabilities based on inverse latency
 	for i := range allCandidates {
 		if len(allCandidates[i].paths) == 0 {
 			continue
@@ -196,18 +180,20 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		}
 	}
 
+	// Build edge load map
+	edgeLoadMap := make(map[string]float64)
+	for _, e := range os.edges {
+		edgeLoadMap[e.SourceIp+"->"+e.DestinationIp] = e.Load
+	}
+
 	type scoredSolution struct {
 		paths []routing.PathInfo
 		score float64
 	}
 
-	edgeLoadMap := make(map[string]float64)
-	for _, e := range solver.edges {
-		edgeLoadMap[e.SourceIp+"->"+e.DestinationIp] = e.Load
-	}
-
 	var allSolutions []scoredSolution
 
+	// Stochastic beam search iterations
 	for iter := 0; iter < numIterations; iter++ {
 		var selectedPaths []routing.PathInfo
 		edgeUsage := make(map[string]float64)
@@ -254,8 +240,6 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		}
 
 		totalScore := 0.0
-		const loadWeight = 5.0
-
 		processedEdges := make(map[string]bool)
 		for _, path := range selectedPaths {
 			totalScore += path.RawRTT
@@ -291,6 +275,7 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 			slog.Float64("score", totalScore))
 	}
 
+	// Find best solution
 	bestSolution := allSolutions[0]
 	for _, sol := range allSolutions[1:] {
 		if sol.score < bestSolution.score {
@@ -305,7 +290,6 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 
 	logger.Info("ONEWAN multi paths selected (stochastic beam search)",
 		slog.String("pre", pre),
-		slog.String("start", start),
 		slog.Int("dest_count", len(allCandidates)),
 		slog.Int("total_paths", len(bestSolution.paths)),
 		slog.Any("selected_paths", bestPathStrs),
@@ -313,16 +297,6 @@ func ComputingMulti(solver *ONEWANSolver, start string, ends []string, pre strin
 		slog.Int("solutions_evaluated", len(allSolutions)))
 
 	return bestSolution.paths, nil
-}
-
-func filterPathsByHops(paths []routing.PathInfo, maxHops int) []routing.PathInfo {
-	var result []routing.PathInfo
-	for _, path := range paths {
-		if len(path.Hops)-1 <= maxHops {
-			result = append(result, path)
-		}
-	}
-	return result
 }
 
 func deduplicateHops(hops []string) []string {
@@ -333,6 +307,109 @@ func deduplicateHops(hops []string) []string {
 	for i := 1; i < len(hops); i++ {
 		if hops[i] != hops[i-1] {
 			result = append(result, hops[i])
+		}
+	}
+	return result
+}
+
+// randomDFSPaths uses DFS with randomization to generate multiple diverse paths
+func randomDFSPaths(start, end string, graph_ map[string][]*graph.Edge, maxPaths int, logger *slog.Logger) []Path {
+	const maxAttempts = 100
+	const maxHops = 15
+
+	var paths []Path
+	usedPaths := make(map[string]bool) // Track unique paths by their string representation
+
+	for attempt := 0; attempt < maxAttempts && len(paths) < maxPaths; attempt++ {
+		path := dfsRandomPath(start, end, graph_, maxHops, logger)
+		if path != nil {
+			pathStr := strings.Join(path.hops, "->")
+			if !usedPaths[pathStr] {
+				usedPaths[pathStr] = true
+				paths = append(paths, *path)
+				logger.Debug("randomDFSPaths: found unique path",
+					slog.Int("attempt", attempt),
+					slog.Int("total_paths", len(paths)),
+					slog.Int("hop", len(path.hops)),
+					slog.Any("rtt", path.rawRTT),
+					slog.String("path", pathStr))
+			}
+		}
+	}
+
+	// Sort paths by cost (latency)
+	for i := 0; i < len(paths)-1; i++ {
+		for j := i + 1; j < len(paths); j++ {
+			if paths[j].cost < paths[i].cost {
+				paths[i], paths[j] = paths[j], paths[i]
+			}
+		}
+	}
+
+	return paths
+}
+
+// dfsRandomPath performs a single DFS with randomization to find a path
+func dfsRandomPath(current, target string, graph_ map[string][]*graph.Edge, maxHops int, logger *slog.Logger) *Path {
+	visited := make(map[string]bool)
+	var hops []string
+	var totalLatency float64
+
+	var dfs func(node string, depth int) bool
+	dfs = func(node string, depth int) bool {
+		if depth > maxHops {
+			return false
+		}
+
+		visited[node] = true
+		hops = append(hops, node)
+
+		if node == target {
+			return true
+		}
+
+		// Get neighbors and shuffle for randomness
+		neighbors := graph_[node]
+		if len(neighbors) == 0 {
+			hops = hops[:len(hops)-1]
+			delete(visited, node)
+			return false
+		}
+
+		// Shuffle neighbors for randomization
+		indices := rand.Perm(len(neighbors))
+		for _, idx := range indices {
+			edge := neighbors[idx]
+			next := edge.DestinationIp
+			if !visited[next] {
+				if dfs(next, depth+1) {
+					totalLatency += edge.Latency
+					return true
+				}
+			}
+		}
+
+		// Backtrack
+		hops = hops[:len(hops)-1]
+		delete(visited, node)
+		return false
+	}
+
+	if dfs(current, 0) {
+		return &Path{
+			hops:   hops,
+			cost:   totalLatency,
+			rawRTT: totalLatency,
+		}
+	}
+	return nil
+}
+
+func filterPathsByHops(paths []routing.PathInfo, maxHops int) []routing.PathInfo {
+	var result []routing.PathInfo
+	for _, path := range paths {
+		if len(path.Hops)-1 <= maxHops {
+			result = append(result, path)
 		}
 	}
 	return result

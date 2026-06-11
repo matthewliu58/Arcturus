@@ -1,0 +1,10 @@
+time=2026-06-11T13:38:27.391+08:00 level=INFO msg="LiveStyle: Starting KSP search" pre=TEST start=Amsterdam end=Berlin
+time=2026-06-11T13:38:27.409+08:00 level=INFO msg="LiveStyle: KSP search completed" pre=TEST start=Amsterdam end=Berlin path_count=5
+time=2026-06-11T13:38:27.409+08:00 level=DEBUG msg="LiveStyle: KSP path" pre=TEST start=Amsterdam end=Berlin index=1 cost=0.058968375874900086 rawRTT=15 hops=2 path=Amsterdam->Hamburg->Berlin
+time=2026-06-11T13:38:27.409+08:00 level=DEBUG msg="LiveStyle: KSP path" pre=TEST start=Amsterdam end=Berlin index=2 cost=0.08672573518778082 rawRTT=26 hops=5 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin
+time=2026-06-11T13:38:27.409+08:00 level=DEBUG msg="LiveStyle: KSP path" pre=TEST start=Amsterdam end=Berlin index=3 cost=0.11351348901457707 rawRTT=30 hops=5 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Munich->Berlin
+time=2026-06-11T13:38:27.409+08:00 level=DEBUG msg="LiveStyle: KSP path" pre=TEST start=Amsterdam end=Berlin index=4 cost=0.11751333488686683 rawRTT=36 hops=7 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Munich->Vienna->Prague->Berlin
+time=2026-06-11T13:38:27.409+08:00 level=DEBUG msg="LiveStyle: KSP path" pre=TEST start=Amsterdam end=Berlin index=5 cost=0.1488963672574872 rawRTT=42 hops=8 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Strasbourg->Zurich->Milan->Munich->Berlin
+time=2026-06-11T13:38:27.409+08:00 level=INFO msg="LiveStyle: Selected paths" pre=TEST start=Amsterdam end=Berlin k=2 selected_count=2
+time=2026-06-11T13:38:27.409+08:00 level=INFO msg="LiveStyle: Selected path" pre=TEST start=Amsterdam end=Berlin index=1 cost=0.058968375874900086 rawRTT=15 hops=2 path=Amsterdam->Hamburg->Berlin
+time=2026-06-11T13:38:27.409+08:00 level=INFO msg="LiveStyle: Selected path" pre=TEST start=Amsterdam end=Berlin index=2 cost=0.08672573518778082 rawRTT=26 hops=5 path=Amsterdam->Brussels->Dusseldorf->Frankfurt->Hamburg->Berlin

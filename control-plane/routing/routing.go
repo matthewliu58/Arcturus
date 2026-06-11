@@ -164,10 +164,10 @@ func InitMiddleMultiInterface(g *graph.GraphManager, algorithm string, pre strin
 	edges := g.GetEdges()
 	switch algorithm {
 	case ONEWANMulti:
-		solver := middle.NewONEWANSolver(edges, 5) // 2 paths per destination
+		solver := middle.NewONEWANSolver(edges, 10)
 		return RoutingMiddleMultiInterface{Operate: solver}
 	case CarouselGreedyMulti:
-		solver := middle.NewFlowOptimizationSolver(edges) // capacity=30, latency=100, 3 flows per destination
+		solver := middle.NewFlowOptimizationSolver(edges)
 		return RoutingMiddleMultiInterface{Operate: solver}
 	default:
 		return RoutingMiddleMultiInterface{}

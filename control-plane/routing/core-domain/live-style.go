@@ -5,6 +5,7 @@ import (
 	"control-plane/routing/routing"
 	"fmt"
 	"log/slog"
+	"strings"
 )
 
 // LiveStyleSolver implements a path selection algorithm that:
@@ -50,10 +51,20 @@ func (ls *LiveStyleSolver) Computing(start, end, pre string, logger *slog.Logger
 	}
 
 	// Step 1: Generate K=5 shortest paths using Yen's algorithm
+	logger.Info("LiveStyle: Starting KSP search", slog.String("pre", pre), slog.String("start", start), slog.String("end", end))
 	kspSolver := NewKShortestSolver(ls.edges, 5)
 	paths, err := kspSolver.yensAlgorithm(start, end, graph_, logger)
 	if err != nil {
 		return nil, err
+	}
+
+	logger.Info("LiveStyle: KSP search completed", slog.String("pre", pre), slog.String("start", start),
+		slog.String("end", end), slog.Int("path_count", len(paths)))
+	for i, p := range paths {
+		hopStr := strings.Join(p.hops, "->")
+		logger.Debug("LiveStyle: KSP path", slog.String("pre", pre), slog.String("start", start),
+			slog.String("end", end), slog.Int("index", i+1), slog.Float64("cost", p.cost),
+			slog.Float64("rawRTT", p.rawRTT), slog.Int("hops", len(p.hops)-1), slog.String("path", hopStr))
 	}
 
 	// Step 2: Select top paths based on hop count and RTT
@@ -68,11 +79,14 @@ func (ls *LiveStyleSolver) Computing(start, end, pre string, logger *slog.Logger
 			RawRTT: path.rawRTT,
 		})
 	}
-
-	logger.Info("LiveStyle paths selected", slog.String("pre", pre),
-		slog.String("start", start), slog.String("end", end),
-		slog.Int("k", ls.k), slog.Int("selected", len(pathInfos)),
-		slog.Any("paths", pathInfos))
+	logger.Info("LiveStyle: Selected paths", slog.String("pre", pre), slog.String("start", start),
+		slog.String("end", end), slog.Int("k", ls.k), slog.Int("selected_count", len(selectedPaths)))
+	for i, p := range selectedPaths {
+		hopStr := strings.Join(p.hops, "->")
+		logger.Info("LiveStyle: Selected path", slog.String("pre", pre), slog.String("start", start),
+			slog.String("end", end), slog.Int("index", i+1), slog.Float64("cost", p.cost),
+			slog.Float64("rawRTT", p.rawRTT), slog.Int("hops", len(p.hops)-1), slog.String("path", hopStr))
+	}
 
 	return pathInfos, nil
 }
@@ -99,9 +113,9 @@ func (ls *LiveStyleSolver) selectTopPaths(paths []Path, count int) []Path {
 		}
 	}
 
-	// Select top 2 paths
-	if len(validPaths) > 2 {
-		return validPaths[:2]
+	// Select top count paths
+	if len(validPaths) > count {
+		return validPaths[:count]
 	}
 	return validPaths
 }

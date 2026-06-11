@@ -233,8 +233,6 @@ func (d *FlowOptimizationSolver) buildResidualGraphWithCapacity() map[string]map
 	return g
 }
 
-const maxHops = 10 // maximum hop limit
-
 // edgeInfo holds edge information for sorting
 type edgeInfo struct {
 	to      string
