@@ -11,7 +11,7 @@ from itertools import combinations
 if len(sys.argv) > 1:
     log_file = sys.argv[1]
 else:
-    log_file = "livenet_test_multi.log"
+    log_file = "cost266_livenet_test_multi.log"
 
 path_pattern = re.compile(
     r'level=INFO msg="LiveStyle: Selected path".*?rawRTT=(?P<rtt>\d+).*?path=(?P<path>.+)'

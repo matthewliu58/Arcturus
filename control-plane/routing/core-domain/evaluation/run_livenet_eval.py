@@ -3,9 +3,12 @@ import os
 import glob
 
 def main():
-    os.chdir("c:/Users/matth/Documents/GitHub/Arcturus/control-plane/routing/core-domain")
+    # Change to parent directory (core-domain)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(script_dir)
+    os.chdir(parent_dir)
     
-    results_file = "livenet_test_results.txt"
+    results_file = "cost266_livenet_test_results.txt"
     
     with open(results_file, "w") as f:
         f.write("=" * 70 + "\n")

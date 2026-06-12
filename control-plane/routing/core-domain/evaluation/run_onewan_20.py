@@ -3,7 +3,10 @@ import os
 import glob
 
 def main():
-    os.chdir("c:/Users/matth/Documents/GitHub/Arcturus/control-plane/routing/core-domain")
+    # Change to parent directory (core-domain)
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(script_dir)
+    os.chdir(parent_dir)
     
     # Run Go test
     print("Running ONEWAN Multi tests (20 runs)...")
@@ -12,7 +15,7 @@ def main():
     if result.stderr:
         print("Errors:", result.stderr)
     
-    results_file = "onewan_multi_results.txt"
+    results_file = "cost266_onewan_multi_results.txt"
     
     with open(results_file, "w") as f:
         f.write("=" * 70 + "\n")

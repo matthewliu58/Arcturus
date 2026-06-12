@@ -10,7 +10,7 @@ from itertools import combinations
 if len(sys.argv) > 1:
     log_file = sys.argv[1]
 else:
-    log_file = "onewan_multi_test.log"
+    log_file = "cost266_onewan_multi_test.log"
 
 # Pattern for ONEWAN multi selected paths
 path_pattern = re.compile(

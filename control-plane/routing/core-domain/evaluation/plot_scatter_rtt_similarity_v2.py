@@ -67,9 +67,9 @@ def cross(o, a, b):
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 # Parse all three result files
-lifestyle_data = parse_results('livenet_test_results.txt')
-onewan_data = parse_results('onewan_multi_results.txt')
-carousel_data = parse_results('carousel_greed_results.txt')
+lifestyle_data = parse_results('cost266_livenet_test_results.txt')
+onewan_data = parse_results('cost266_onewan_multi_results.txt')
+carousel_data = parse_results('cost266_carousel_greed_results.txt')
 
 # Set font to support Chinese (fallback to DejaVu Sans)
 plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
