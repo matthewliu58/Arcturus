@@ -136,7 +136,7 @@ func lsParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 
 func TestLiveStyleSolver(t *testing.T) {
 	// Create a logger that writes to both console and file
-	logFile, err := os.Create("live_style_test.log")
+	logFile, err := os.Create("livenet_test.log")
 	if err != nil {
 		t.Fatalf("Failed to create log file: %v", err)
 	}
