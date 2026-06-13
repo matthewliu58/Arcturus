@@ -67,11 +67,9 @@ def cross(o, a, b):
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 # Parse all three result files
-import os
-_base = os.path.dirname(os.path.abspath(__file__))
-lifestyle_data = parse_results(os.path.join(_base, 'cost266_livenet_test_results.txt'))
-onewan_data = parse_results(os.path.join(_base, 'cost266_onewan_multi_results.txt'))
-carousel_data = parse_results(os.path.join(_base, 'cost266_carousel_greed_results.txt'))
+lifestyle_data = parse_results('evaluation/janos-us-ca_livenet_test_results.txt')
+onewan_data = parse_results('evaluation/janos-us-ca_onewan_multi_results.txt')
+carousel_data = parse_results('evaluation/janos-us-ca_carousel_greed_results.txt')
 
 # Set font to support Chinese (fallback to DejaVu Sans)
 plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
@@ -119,12 +117,11 @@ ax.grid(True, linestyle='--', alpha=0.7)
 ax.legend(loc='upper right', fontsize=14, markerscale=1.5, handletextpad=0.8, borderpad=0.8)
 
 
-
-plt.suptitle('(a) cost266 Paths RTT vs Similarity', fontsize=14, y=0.02)
+plt.suptitle('(b) janos-us-ca Paths RTT vs Similarity', fontsize=14, y=0.02)
 plt.tight_layout()
-plt.savefig(os.path.join(_base, 'scatter_rtt_p90_vs_similarity.pdf'), dpi=300, bbox_inches='tight')
-plt.savefig(os.path.join(_base, 'scatter_rtt_p90_vs_similarity.png'), dpi=150, bbox_inches='tight')
-print("Scatter plot saved as evaluation/scatter_rtt_p90_vs_similarity.png")
+plt.savefig('evaluation/scatter_rtt_p90_vs_similarity_janos-us-ca.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('evaluation/scatter_rtt_p90_vs_similarity_janos-us-ca.png', dpi=150, bbox_inches='tight')
+print("Scatter plot saved as evaluation/scatter_rtt_p90_vs_similarity_janos-us-ca.png")
 
 # Print summary statistics
 print("\n=== Algorithm Comparison Summary ===")

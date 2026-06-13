@@ -10,7 +10,7 @@ from itertools import combinations
 if len(sys.argv) > 1:
     log_file = sys.argv[1]
 else:
-    log_file = "carousel_greed_test.log"
+    log_file = "janos-us-ca_carousel_greed_test.log"
 
 # Path pattern for Carousel Greed algorithm
 path_pattern = re.compile(

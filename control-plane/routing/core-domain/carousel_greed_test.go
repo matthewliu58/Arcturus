@@ -91,17 +91,17 @@ func cgParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 }
 
 func TestFlowOptimizationSolverMulti(t *testing.T) {
-	cost266File := "evaluation/cost266"
+	topoFile := "evaluation/janos-us-ca"
 
 	// Parse topology to get all nodes
 	tempLogFile, _ := os.Create("temp_carousel_parse.log")
 	defer os.Remove("temp_carousel_parse.log")
 	tempLogger := slog.New(slog.NewTextHandler(tempLogFile, &slog.HandlerOptions{Level: slog.LevelDebug}))
-	edges := cgParseCost266Edges(cost266File, tempLogger)
+	edges := cgParseCost266Edges(topoFile, tempLogger)
 	tempLogFile.Close()
 
 	if len(edges) == 0 {
-		t.Fatal("Failed to parse cost266 topology")
+		t.Fatal("Failed to parse janos-us-ca topology")
 	}
 
 	// Get unique nodes
@@ -128,7 +128,7 @@ func TestFlowOptimizationSolverMulti(t *testing.T) {
 
 	// Run 20 tests
 	for sourceIdx, source := range selectedSources {
-		logFileName := fmt.Sprintf("carousel_greed_test_%d_%d.log", time.Now().Unix(), sourceIdx+1)
+		logFileName := fmt.Sprintf("janos-us-ca_carousel_greed_test_%d_%d.log", time.Now().Unix(), sourceIdx+1)
 		logFile, err := os.Create(logFileName)
 		if err != nil {
 			t.Fatalf("Failed to create log file: %v", err)
@@ -138,10 +138,10 @@ func TestFlowOptimizationSolverMulti(t *testing.T) {
 		logger := slog.New(slog.NewTextHandler(multiWriter, &slog.HandlerOptions{Level: slog.LevelDebug}))
 
 		// Parse edges with this logger
-		edges = cgParseCost266Edges(cost266File, logger)
+		edges = cgParseCost266Edges(topoFile, logger)
 		if len(edges) == 0 {
 			logFile.Close()
-			t.Fatal("Failed to parse cost266 topology")
+			t.Fatal("Failed to parse janos-us-ca topology")
 		}
 
 		solver := NewFlowOptimizationSolver(edges)

@@ -1,0 +1,634 @@
+======================================================================
+Carousel Greed Algorithm - 20 Random Test Runs
+======================================================================
+
+--- Run 1 ---
+===== Latency =====
+Mean RTT  : 77.60 ms
+Median RTT: 90.50 ms
+P90 RTT   : 118.20 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 4.240
+Path 2 HAR : 3.504
+Path 3 HAR : 9.459
+Path 4 HAR : 7.440
+Path 5 HAR : 15.270
+Path 6 HAR : 29.268
+Path 7 HAR : 32.195
+Path 8 HAR : 5.881
+Path 9 HAR : 1.872
+Path 10 HAR : 4.240
+Overall HAR mean  : 11.337
+Overall HAR median: 6.661
+Overall HAR P90   : 29.561
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.467
+
+===== Top used edges =====
+Denver<->SaltLakeCity | usage=4 | CPU=32%
+Indianapolis<->Nashville | usage=4 | CPU=39%
+ElPaso<->Houston | usage=4 | CPU=33%
+Calgary<->Winnipeg | usage=4 | CPU=37%
+Minneapolis<->Winnipeg | usage=4 | CPU=36%
+
+--- Run 2 ---
+===== Latency =====
+Mean RTT  : 45.70 ms
+Median RTT: 43.50 ms
+P90 RTT   : 88.30 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 2.904
+Path 2 HAR : 17.076
+Path 3 HAR : 7.122
+Path 4 HAR : 41.975
+Path 5 HAR : 8.196
+Path 6 HAR : 33.736
+Path 7 HAR : 6.774
+Path 8 HAR : 28.113
+Path 9 HAR : 17.741
+Path 10 HAR : 16.627
+Overall HAR mean  : 17.768
+Overall HAR median: 15.187
+Overall HAR P90   : 34.560
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.630
+
+===== Top used edges =====
+Dallas<->OklahomaCity | usage=15 | CPU=32%
+Dallas<->Memphis | usage=13 | CPU=32%
+Memphis<->StLouis | usage=12 | CPU=34%
+Chicago<->StLouis | usage=7 | CPU=30%
+KansasCity<->StLouis | usage=5 | CPU=32%
+
+--- Run 3 ---
+===== Latency =====
+Mean RTT  : 50.60 ms
+Median RTT: 42.00 ms
+P90 RTT   : 100.50 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 6.371
+Path 2 HAR : 6.033
+Path 3 HAR : 2.805
+Path 4 HAR : 58.354
+Path 5 HAR : 7.464
+Path 6 HAR : 70.608
+Path 7 HAR : 3.239
+Path 8 HAR : 2.550
+Path 9 HAR : 2.244
+Path 10 HAR : 2.920
+Overall HAR mean  : 16.259
+Overall HAR median: 4.636
+Overall HAR P90   : 59.579
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.578
+
+===== Top used edges =====
+LosAngeles<->SanFrancisco | usage=8 | CPU=43%
+Portland<->SanFrancisco | usage=6 | CPU=41%
+LasVegas<->Phoenix | usage=5 | CPU=41%
+Phoenix<->SanDiego | usage=4 | CPU=37%
+LosAngeles<->SanDiego | usage=4 | CPU=34%
+
+--- Run 4 ---
+===== Latency =====
+Mean RTT  : 38.75 ms
+Median RTT: 28.00 ms
+P90 RTT   : 80.80 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 40.937
+Path 2 HAR : 8.368
+Path 3 HAR : 2.468
+Path 4 HAR : 78.081
+Path 5 HAR : 8.682
+Path 6 HAR : 19.617
+Path 7 HAR : 40.937
+Path 8 HAR : 338.503
+Path 9 HAR : 45.031
+Path 10 HAR : 43.495
+Overall HAR mean  : 70.997
+Overall HAR median: 40.937
+Overall HAR P90   : 230.732
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.633
+
+===== Top used edges =====
+Atlanta<->Nashville | usage=12 | CPU=32%
+Indianapolis<->Nashville | usage=11 | CPU=30%
+Atlanta<->Tampa | usage=10 | CPU=55%
+Memphis<->Nashville | usage=10 | CPU=33%
+Cincinnati<->Indianapolis | usage=10 | CPU=34%
+
+--- Run 5 ---
+===== Latency =====
+Mean RTT  : 50.55 ms
+Median RTT: 42.00 ms
+P90 RTT   : 99.90 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 29.293
+Path 2 HAR : 102.087
+Path 3 HAR : 49.335
+Path 4 HAR : 24.930
+Path 5 HAR : 3.296
+Path 6 HAR : 107.985
+Path 7 HAR : 39.438
+Path 8 HAR : 144.148
+Path 9 HAR : 1.800
+Path 10 HAR : 312.618
+Overall HAR mean  : 260.802
+Overall HAR median: 105.036
+Overall HAR P90   : 725.260
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.549
+
+===== Top used edges =====
+Houston<->NewOrleans | usage=11 | CPU=34%
+Dallas<->Houston | usage=10 | CPU=39%
+Memphis<->Nashville | usage=9 | CPU=31%
+Miami<->Tampa | usage=9 | CPU=57%
+Miami<->NewOrleans | usage=9 | CPU=37%
+
+--- Run 6 ---
+===== Latency =====
+Mean RTT  : 59.38 ms
+Median RTT: 44.00 ms
+P90 RTT   : 120.00 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 14.306
+Path 2 HAR : 15.736
+Path 3 HAR : 7.875
+Path 4 HAR : 10.829
+Path 5 HAR : 11.025
+Path 6 HAR : 2.750
+Path 7 HAR : 3.750
+Path 8 HAR : 22.741
+Path 9 HAR : 56.598
+Path 10 HAR : 267.215
+Overall HAR mean  : 111.698
+Overall HAR median: 19.238
+Overall HAR P90   : 261.936
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.789
+
+===== Top used edges =====
+Cincinnati<->Cleveland | usage=16 | CPU=31%
+Chicago<->Detroit | usage=9 | CPU=31%
+Cleveland<->Detroit | usage=8 | CPU=35%
+Chicago<->Minneapolis | usage=8 | CPU=36%
+KansasCity<->Minneapolis | usage=8 | CPU=39%
+
+--- Run 7 ---
+===== Latency =====
+Mean RTT  : 52.65 ms
+Median RTT: 43.00 ms
+P90 RTT   : 127.60 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 19.277
+Path 2 HAR : 721.206
+Path 3 HAR : 10.648
+Path 4 HAR : 19.638
+Path 5 HAR : 2.200
+Path 6 HAR : 95.050
+Path 7 HAR : 76.879
+Path 8 HAR : 25.555
+Path 9 HAR : 1065.408
+Path 10 HAR : 457.227
+Overall HAR mean  : 277.178
+Overall HAR median: 37.763
+Overall HAR P90   : 1001.890
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.649
+
+===== Top used edges =====
+Seattle<->Vancouver | usage=13 | CPU=57%
+Portland<->Seattle | usage=13 | CPU=30%
+Portland<->SanFrancisco | usage=13 | CPU=34%
+LasVegas<->SaltLakeCity | usage=11 | CPU=57%
+LasVegas<->Sacrameto | usage=10 | CPU=36%
+
+--- Run 8 ---
+===== Latency =====
+Mean RTT  : 47.25 ms
+Median RTT: 47.00 ms
+P90 RTT   : 67.10 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 2.535
+Path 2 HAR : 1.800
+Path 3 HAR : 34.175
+Path 4 HAR : 3.036
+Path 5 HAR : 4.370
+Path 6 HAR : 10.278
+Path 7 HAR : 1.800
+Path 8 HAR : 3.042
+Path 9 HAR : 37.593
+Path 10 HAR : 86.634
+Overall HAR mean  : 66.763
+Overall HAR median: 9.291
+Overall HAR P90   : 111.726
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.609
+
+===== Top used edges =====
+Dallas<->Denver | usage=14 | CPU=46%
+Dallas<->OklahomaCity | usage=10 | CPU=33%
+KansasCity<->OklahomaCity | usage=10 | CPU=30%
+Denver<->SaltLakeCity | usage=6 | CPU=36%
+Memphis<->Nashville | usage=6 | CPU=38%
+
+--- Run 9 ---
+===== Latency =====
+Mean RTT  : 46.95 ms
+Median RTT: 32.50 ms
+P90 RTT   : 117.20 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 4.884
+Path 2 HAR : 1.400
+Path 3 HAR : 25.755
+Path 4 HAR : 165.750
+Path 5 HAR : 21.460
+Path 6 HAR : 3.625
+Path 7 HAR : 4.950
+Path 8 HAR : 6.349
+Path 9 HAR : 23.414
+Path 10 HAR : 78.666
+Overall HAR mean  : 28.654
+Overall HAR median: 11.801
+Overall HAR P90   : 80.284
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.461
+
+===== Top used edges =====
+Chicago<->Detroit | usage=9 | CPU=40%
+Philadelphia<->WashingtonDC | usage=8 | CPU=31%
+NewYork<->Philadelphia | usage=8 | CPU=36%
+Cleveland<->Detroit | usage=8 | CPU=37%
+Detroit<->Toronto | usage=7 | CPU=35%
+
+--- Run 10 ---
+===== Latency =====
+Mean RTT  : 40.80 ms
+Median RTT: 31.00 ms
+P90 RTT   : 66.50 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 23.860
+Path 2 HAR : 1.680
+Path 3 HAR : 10.396
+Path 4 HAR : 61.647
+Path 5 HAR : 21.881
+Path 6 HAR : 23.345
+Path 7 HAR : 11.436
+Path 8 HAR : 130.613
+Path 9 HAR : 3.640
+Path 10 HAR : 16.325
+Overall HAR mean  : 33.887
+Overall HAR median: 19.766
+Overall HAR P90   : 69.989
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.749
+
+===== Top used edges =====
+Miami<->Tampa | usage=17 | CPU=46%
+Atlanta<->Tampa | usage=14 | CPU=34%
+Atlanta<->Nashville | usage=12 | CPU=32%
+Memphis<->Nashville | usage=10 | CPU=38%
+Memphis<->NewOrleans | usage=5 | CPU=38%
+
+--- Run 11 ---
+===== Latency =====
+Mean RTT  : 42.35 ms
+Median RTT: 29.00 ms
+P90 RTT   : 82.10 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 7.651
+Path 2 HAR : 6.795
+Path 3 HAR : 22.063
+Path 4 HAR : 4.320
+Path 5 HAR : 34.179
+Path 6 HAR : 8.072
+Path 7 HAR : 56.551
+Path 8 HAR : 14.400
+Path 9 HAR : 6.323
+Path 10 HAR : 5.616
+Overall HAR mean  : 13.287
+Overall HAR median: 7.862
+Overall HAR P90   : 34.381
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.540
+
+===== Top used edges =====
+Memphis<->Nashville | usage=10 | CPU=34%
+Memphis<->NewOrleans | usage=9 | CPU=46%
+Atlanta<->Nashville | usage=7 | CPU=34%
+Memphis<->StLouis | usage=7 | CPU=39%
+Houston<->NewOrleans | usage=7 | CPU=59%
+
+--- Run 12 ---
+===== Latency =====
+Mean RTT  : 41.40 ms
+Median RTT: 34.00 ms
+P90 RTT   : 72.90 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 3.750
+Path 2 HAR : 6.804
+Path 3 HAR : 34.249
+Path 4 HAR : 15.876
+Path 5 HAR : 28.541
+Path 6 HAR : 18.144
+Path 7 HAR : 7.875
+Path 8 HAR : 5.504
+Path 9 HAR : 4.875
+Path 10 HAR : 1.000
+Overall HAR mean  : 19.390
+Overall HAR median: 14.393
+Overall HAR P90   : 37.462
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.726
+
+===== Top used edges =====
+KansasCity<->Minneapolis | usage=16 | CPU=37%
+KansasCity<->StLouis | usage=12 | CPU=34%
+Chicago<->StLouis | usage=9 | CPU=38%
+Chicago<->Detroit | usage=7 | CPU=53%
+KansasCity<->OklahomaCity | usage=6 | CPU=32%
+
+--- Run 13 ---
+===== Latency =====
+Mean RTT  : 38.60 ms
+Median RTT: 26.00 ms
+P90 RTT   : 91.10 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 1.430
+Path 2 HAR : 1.100
+Path 3 HAR : 33.065
+Path 4 HAR : 9.668
+Path 5 HAR : 13.178
+Path 6 HAR : 7.092
+Path 7 HAR : 4.560
+Path 8 HAR : 3.590
+Path 9 HAR : 1.870
+Path 10 HAR : 9.631
+Overall HAR mean  : 12.135
+Overall HAR median: 9.527
+Overall HAR P90   : 26.004
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.500
+
+===== Top used edges =====
+Memphis<->StLouis | usage=10 | CPU=36%
+Chicago<->StLouis | usage=9 | CPU=38%
+KansasCity<->OklahomaCity | usage=8 | CPU=37%
+Dallas<->OklahomaCity | usage=8 | CPU=32%
+Indianapolis<->Nashville | usage=8 | CPU=51%
+
+--- Run 14 ---
+===== Latency =====
+Mean RTT  : 43.50 ms
+Median RTT: 35.50 ms
+P90 RTT   : 78.10 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 8.159
+Path 2 HAR : 3.420
+Path 3 HAR : 3.420
+Path 4 HAR : 40.205
+Path 5 HAR : 1.320
+Path 6 HAR : 1.452
+Path 7 HAR : 8.092
+Path 8 HAR : 16.993
+Path 9 HAR : 2.704
+Path 10 HAR : 33.504
+Overall HAR mean  : 11.492
+Overall HAR median: 7.944
+Overall HAR P90   : 34.174
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.504
+
+===== Top used edges =====
+Chicago<->Detroit | usage=10 | CPU=32%
+Cleveland<->Detroit | usage=7 | CPU=34%
+Chicago<->Minneapolis | usage=6 | CPU=49%
+Chicago<->Indianapolis | usage=6 | CPU=42%
+Indianapolis<->Nashville | usage=6 | CPU=31%
+
+--- Run 15 ---
+===== Latency =====
+Mean RTT  : 62.40 ms
+Median RTT: 47.50 ms
+P90 RTT   : 114.10 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 7.946
+Path 2 HAR : 1.320
+Path 3 HAR : 11.401
+Path 4 HAR : 5.886
+Path 5 HAR : 6.762
+Path 6 HAR : 11.686
+Path 7 HAR : 11.188
+Path 8 HAR : 9.261
+Path 9 HAR : 6.378
+Path 10 HAR : 12.855
+Overall HAR mean  : 8.468
+Overall HAR median: 8.603
+Overall HAR P90   : 11.803
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.504
+
+===== Top used edges =====
+Charlotte<->WashingtonDC | usage=6 | CPU=57%
+Memphis<->Nashville | usage=5 | CPU=34%
+NewYork<->Toronto | usage=5 | CPU=36%
+NewYork<->Philadelphia | usage=5 | CPU=53%
+Philadelphia<->WashingtonDC | usage=5 | CPU=31%
+
+--- Run 16 ---
+===== Latency =====
+Mean RTT  : 52.80 ms
+Median RTT: 45.00 ms
+P90 RTT   : 108.10 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 13.505
+Path 2 HAR : 33.535
+Path 3 HAR : 21.143
+Path 4 HAR : 21.269
+Path 5 HAR : 1.400
+Path 6 HAR : 3.407
+Path 7 HAR : 40.523
+Path 8 HAR : 32.754
+Path 9 HAR : 2.050
+Path 10 HAR : 2.184
+Overall HAR mean  : 17.177
+Overall HAR median: 17.324
+Overall HAR P90   : 34.234
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.600
+
+===== Top used edges =====
+Atlanta<->Tampa | usage=6 | CPU=30%
+Miami<->Tampa | usage=5 | CPU=46%
+Atlanta<->NewOrleans | usage=5 | CPU=33%
+Dallas<->OklahomaCity | usage=5 | CPU=37%
+KansasCity<->OklahomaCity | usage=5 | CPU=39%
+
+--- Run 17 ---
+===== Latency =====
+Mean RTT  : 46.45 ms
+Median RTT: 33.50 ms
+P90 RTT   : 94.00 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 5.796
+Path 2 HAR : 2.940
+Path 3 HAR : 9.904
+Path 4 HAR : 7.580
+Path 5 HAR : 9.117
+Path 6 HAR : 21.503
+Path 7 HAR : 4.508
+Path 8 HAR : 14.007
+Path 9 HAR : 3.450
+Path 10 HAR : 5.670
+Overall HAR mean  : 8.518
+Overall HAR median: 5.813
+Overall HAR P90   : 17.214
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.611
+
+===== Top used edges =====
+Cleveland<->NewYork | usage=14 | CPU=36%
+Cleveland<->Detroit | usage=9 | CPU=33%
+Detroit<->Toronto | usage=6 | CPU=45%
+Cleveland<->Pittsburgh | usage=6 | CPU=33%
+Chicago<->Detroit | usage=5 | CPU=47%
+
+--- Run 18 ---
+===== Latency =====
+Mean RTT  : 78.30 ms
+Median RTT: 79.50 ms
+P90 RTT   : 149.50 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 40.440
+Path 2 HAR : 38.234
+Path 3 HAR : 18.318
+Path 4 HAR : 55.978
+Path 5 HAR : 33.641
+Path 6 HAR : 11.426
+Path 7 HAR : 9.017
+Path 8 HAR : 1.300
+Path 9 HAR : 6.936
+Path 10 HAR : 37.264
+Overall HAR mean  : 25.255
+Overall HAR median: 25.979
+Overall HAR P90   : 41.994
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.556
+
+===== Top used edges =====
+LasVegas<->LosAngeles | usage=8 | CPU=35%
+LosAngeles<->SanFrancisco | usage=8 | CPU=54%
+LasVegas<->SaltLakeCity | usage=7 | CPU=42%
+Sacrameto<->SaltLakeCity | usage=6 | CPU=32%
+Chicago<->StLouis | usage=6 | CPU=39%
+
+--- Run 19 ---
+===== Latency =====
+Mean RTT  : 42.20 ms
+Median RTT: 36.00 ms
+P90 RTT   : 78.10 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 14.729
+Path 2 HAR : 29.635
+Path 3 HAR : 106.698
+Path 4 HAR : 5.886
+Path 5 HAR : 7.056
+Path 6 HAR : 19.051
+Path 7 HAR : 12.807
+Path 8 HAR : 16.782
+Path 9 HAR : 4.560
+Path 10 HAR : 93.072
+Overall HAR mean  : 54.782
+Overall HAR median: 30.618
+Overall HAR P90   : 107.270
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.637
+
+===== Top used edges =====
+Philadelphia<->WashingtonDC | usage=15 | CPU=50%
+Atlanta<->Nashville | usage=11 | CPU=56%
+Charlotte<->WashingtonDC | usage=10 | CPU=32%
+Charlotte<->Tampa | usage=10 | CPU=33%
+Atlanta<->Tampa | usage=8 | CPU=31%
+
+--- Run 20 ---
+===== Latency =====
+Mean RTT  : 63.11 ms
+Median RTT: 61.00 ms
+P90 RTT   : 112.00 ms
+
+===== Hot-edge Risk (HAR) =====
+Path 1 HAR : 18.496
+Path 2 HAR : 2.931
+Path 3 HAR : 14.012
+Path 4 HAR : 4.798
+Path 5 HAR : 20.346
+Path 6 HAR : 3.722
+Path 7 HAR : 8.867
+Path 8 HAR : 4.497
+Path 9 HAR : 1.680
+Overall HAR mean  : 8.817
+Overall HAR median: 4.798
+Overall HAR P90   : 18.866
+
+===== Path Structure =====
+Prefix-3 similarity (backbone sharing): 0.574
+
+===== Top used edges =====
+KansasCity<->StLouis | usage=5 | CPU=31%
+Calgary<->Vancouver | usage=5 | CPU=54%
+Seattle<->Vancouver | usage=4 | CPU=30%
+Portland<->Seattle | usage=4 | CPU=38%
+LasVegas<->SaltLakeCity | usage=4 | CPU=34%
+
+======================================================================
+Summary of 20 Runs
+======================================================================
+
+Average RTT across all runs: 51.07 ms
+Min RTT: 38.60 ms
+Max RTT: 78.30 ms
+
+Average HAR across all runs: 53.733
+Min HAR: 8.468
+Max HAR: 277.178

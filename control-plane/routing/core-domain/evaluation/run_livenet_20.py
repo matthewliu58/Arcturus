@@ -8,7 +8,7 @@ def main():
     parent_dir = os.path.dirname(script_dir)
     os.chdir(parent_dir)
     
-    results_file = "cost266_livenet_test_results.txt"
+    results_file = "janos-us-ca_livenet_test_results.txt"
     
     # Clear/create results file
     with open(results_file, "w") as f:
@@ -20,7 +20,7 @@ def main():
     har_means = []
     
     # Find all 20 log files
-    log_files = sorted(glob.glob("livenet_test_random_*_*.log"))
+    log_files = sorted(glob.glob("janos-us-ca_livenet_test_random_*_*.log"))
     print(f"Found {len(log_files)} log files")
     
     for i, log_file in enumerate(log_files[:20], 1):
@@ -29,7 +29,7 @@ def main():
         print(f"{'='*60}")
         
         # Run evaluation
-        result = subprocess.run(f"py livenet-evaluation.py {log_file}", shell=True, capture_output=True, text=True)
+        result = subprocess.run(f"py evaluation/run_livenet-evaluation.py {log_file}", shell=True, capture_output=True, text=True)
         eval_output = result.stdout
         print(eval_output)
         

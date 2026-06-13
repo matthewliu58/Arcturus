@@ -92,15 +92,15 @@ func omParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 func TestONEWANMultiSolver(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
-	cost266File := "evaluation/cost266"
+	topoFile := "evaluation/janos-us-ca"
 
 	// Get all unique nodes from topology
 	tempLogger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelError,
 	}))
-	edges := omParseCost266Edges(cost266File, tempLogger)
+	edges := omParseCost266Edges(topoFile, tempLogger)
 	if len(edges) == 0 {
-		t.Fatal("Failed to parse cost266 topology")
+		t.Fatal("Failed to parse janos-us-ca topology")
 	}
 
 	nodes := make(map[string]bool)
@@ -122,7 +122,7 @@ func TestONEWANMultiSolver(t *testing.T) {
 	selectedSources := nodeList[:numSources]
 
 	for sourceIdx, source := range selectedSources {
-		logFileName := fmt.Sprintf("onewan_multi_test_%d_%d.log", time.Now().Unix(), sourceIdx+1)
+		logFileName := fmt.Sprintf("janos-us-ca_onewan_multi_test_%d_%d.log", time.Now().Unix(), sourceIdx+1)
 		logFile, err := os.Create(logFileName)
 		if err != nil {
 			t.Fatalf("Failed to create log file: %v", err)
@@ -133,7 +133,7 @@ func TestONEWANMultiSolver(t *testing.T) {
 			Level: slog.LevelDebug,
 		}))
 
-		edges = omParseCost266Edges(cost266File, logger)
+		edges = omParseCost266Edges(topoFile, logger)
 
 		// Randomly select 10 unique destinations
 		rand.Shuffle(len(nodeList), func(i, j int) { nodeList[i], nodeList[j] = nodeList[j], nodeList[i] })

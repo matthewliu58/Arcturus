@@ -153,10 +153,10 @@ func TestLiveStyleSolver(t *testing.T) {
 		Level: slog.LevelDebug,
 	}))
 
-	cost266File := "evaluation/cost266"
-	edges := lsParseCost266Edges(cost266File, logger)
+	topoFile := "evaluation/janos-us-ca"
+	edges := lsParseCost266Edges(topoFile, logger)
 	if len(edges) == 0 {
-		t.Fatal("Failed to parse cost266 topology")
+		t.Fatal("Failed to parse janos-us-ca topology")
 	}
 
 	solver := NewLiveStyleSolver(edges, 2)
@@ -173,15 +173,15 @@ func TestLiveStyleSolver(t *testing.T) {
 func TestLiveStyleSolverRandom(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
-	cost266File := "evaluation/cost266"
+	topoFile := "evaluation/janos-us-ca"
 
 	// Get all unique nodes from topology
 	tempLogger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		Level: slog.LevelError,
 	}))
-	edges := lsParseCost266Edges(cost266File, tempLogger)
+	edges := lsParseCost266Edges(topoFile, tempLogger)
 	if len(edges) == 0 {
-		t.Fatal("Failed to parse cost266 topology")
+		t.Fatal("Failed to parse janos-us-ca topology")
 	}
 
 	nodes := make(map[string]bool)
@@ -205,7 +205,7 @@ func TestLiveStyleSolverRandom(t *testing.T) {
 
 	for sourceIdx, source := range selectedSources {
 		// Create log file for this source
-		logFileName := fmt.Sprintf("livenet_test_random_%d_%d.log", time.Now().Unix(), sourceIdx+1)
+		logFileName := fmt.Sprintf("janos-us-ca_livenet_test_random_%d_%d.log", time.Now().Unix(), sourceIdx+1)
 		logFile, err := os.Create(logFileName)
 		if err != nil {
 			t.Fatalf("Failed to create log file: %v", err)
@@ -217,7 +217,7 @@ func TestLiveStyleSolverRandom(t *testing.T) {
 		}))
 
 		// Re-parse edges to log them for this run
-		edges = lsParseCost266Edges(cost266File, logger)
+		edges = lsParseCost266Edges(topoFile, logger)
 
 		// Randomly select 10 unique destinations (excluding source)
 		rand.Shuffle(len(nodeList), func(i, j int) { nodeList[i], nodeList[j] = nodeList[j], nodeList[i] })

@@ -15,7 +15,7 @@ def main():
     if result.stderr:
         print("Errors:", result.stderr)
     
-    results_file = "cost266_onewan_multi_results.txt"
+    results_file = "janos-us-ca_onewan_multi_results.txt"
     
     with open(results_file, "w") as f:
         f.write("=" * 70 + "\n")
@@ -25,7 +25,7 @@ def main():
     avg_rtts = []
     har_means = []
     
-    log_files = sorted(glob.glob("onewan_multi_test_*_*.log"))
+    log_files = sorted(glob.glob("janos-us-ca_onewan_multi_test_*_*.log"))
     print(f"\nFound {len(log_files)} log files")
     
     for i, log_file in enumerate(log_files[:20], 1):
@@ -33,7 +33,7 @@ def main():
         print(f"Processing Run {i}/20: {log_file}")
         print(f"{'='*60}")
         
-        result = subprocess.run(f"py onewan-multi-evaluation.py {log_file}", shell=True, capture_output=True, text=True)
+        result = subprocess.run(f"py evaluation/run_onewan-multi-evaluation.py {log_file}", shell=True, capture_output=True, text=True)
         eval_output = result.stdout
         print(eval_output)
         
