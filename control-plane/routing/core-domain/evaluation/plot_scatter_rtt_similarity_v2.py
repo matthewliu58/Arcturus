@@ -105,8 +105,11 @@ for alg in algorithms:
     plot_envelope(ax, points, alg['color'])
 
 # Add labels
-ax.set_xlabel('RTT P90 (ms)', fontsize=12)
-ax.set_ylabel('Prefix-3 Similarity', fontsize=12)
+ax.set_xlabel('RTT P90 (ms)', fontsize=16)
+ax.set_ylabel('Prefix-3 Similarity', fontsize=16)
+
+# Set tick label font size
+ax.tick_params(axis='both', labelsize=16)
 
 # Thicken outer border
 for spine in ax.spines.values():
@@ -116,11 +119,11 @@ for spine in ax.spines.values():
 ax.grid(True, linestyle='--', alpha=0.7)
 
 # Add legend
-ax.legend(loc='upper right', fontsize=14, markerscale=1.5, handletextpad=0.8, borderpad=0.8)
+ax.legend(loc='upper right', fontsize=16, markerscale=2.0, handletextpad=0.8, borderpad=0.8)
 
 
 
-plt.suptitle('(a) cost266 Paths RTT vs Similarity', fontsize=14, y=0.02)
+plt.suptitle('(a) cost266 Paths RTT vs Similarity', fontsize=18, y=-0.01)
 plt.tight_layout()
 plt.savefig(os.path.join(_base, 'scatter_rtt_p90_vs_similarity.pdf'), dpi=300, bbox_inches='tight')
 plt.savefig(os.path.join(_base, 'scatter_rtt_p90_vs_similarity.png'), dpi=150, bbox_inches='tight')

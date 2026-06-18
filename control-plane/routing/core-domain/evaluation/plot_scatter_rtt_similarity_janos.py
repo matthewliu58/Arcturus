@@ -67,9 +67,9 @@ def cross(o, a, b):
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 # Parse all three result files
-lifestyle_data = parse_results('evaluation/janos-us-ca_livenet_test_results.txt')
-onewan_data = parse_results('evaluation/janos-us-ca_onewan_multi_results.txt')
-carousel_data = parse_results('evaluation/janos-us-ca_carousel_greed_results.txt')
+lifestyle_data = parse_results('janos-us-ca_livenet_test_results.txt')
+onewan_data = parse_results('janos-us-ca_onewan_multi_results.txt')
+carousel_data = parse_results('janos-us-ca_carousel_greed_results.txt')
 
 # Set font to support Chinese (fallback to DejaVu Sans)
 plt.rcParams['font.sans-serif'] = ['DejaVu Sans']
@@ -103,8 +103,11 @@ for alg in algorithms:
     plot_envelope(ax, points, alg['color'])
 
 # Add labels
-ax.set_xlabel('RTT P90 (ms)', fontsize=12)
-ax.set_ylabel('Prefix-3 Similarity', fontsize=12)
+ax.set_xlabel('RTT P90 (ms)', fontsize=16)
+ax.set_ylabel('Prefix-3 Similarity', fontsize=16)
+
+# Set tick label font size
+ax.tick_params(axis='both', labelsize=16)
 
 # Thicken outer border
 for spine in ax.spines.values():
@@ -114,14 +117,14 @@ for spine in ax.spines.values():
 ax.grid(True, linestyle='--', alpha=0.7)
 
 # Add legend
-ax.legend(loc='upper right', fontsize=14, markerscale=1.5, handletextpad=0.8, borderpad=0.8)
+ax.legend(loc='upper right', fontsize=16, markerscale=2.0, handletextpad=0.8, borderpad=0.8)
 
 
-plt.suptitle('(b) janos-us-ca Paths RTT vs Similarity', fontsize=14, y=0.02)
+plt.suptitle('(b) janos-us-ca Paths RTT vs Similarity', fontsize=18, y=-0.01)
 plt.tight_layout()
-plt.savefig('evaluation/scatter_rtt_p90_vs_similarity_janos-us-ca.pdf', dpi=300, bbox_inches='tight')
-plt.savefig('evaluation/scatter_rtt_p90_vs_similarity_janos-us-ca.png', dpi=150, bbox_inches='tight')
-print("Scatter plot saved as evaluation/scatter_rtt_p90_vs_similarity_janos-us-ca.png")
+plt.savefig('scatter_rtt_p90_vs_similarity_janos-us-ca.pdf', dpi=300, bbox_inches='tight')
+plt.savefig('scatter_rtt_p90_vs_similarity_janos-us-ca.png', dpi=150, bbox_inches='tight')
+print("Scatter plot saved as scatter_rtt_p90_vs_similarity_janos-us-ca.png")
 
 # Print summary statistics
 print("\n=== Algorithm Comparison Summary ===")
