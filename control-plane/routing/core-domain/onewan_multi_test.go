@@ -7,12 +7,15 @@ import (
 	"log/slog"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"control-plane/routing/graph"
 )
+
+var omRttRegex = regexp.MustCompile(`# RTT:\s*(\d+(?:\.\d+)?)ms`)
 
 func omParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 	file, err := os.Open(filePath)
@@ -50,15 +53,12 @@ func omParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 					source := nodes[0]
 					target := nodes[1]
 
-					var rawRTT float64 = 1.0
-					if idx := strings.Index(line, "# RTT:"); idx != -1 {
-						rttStr := strings.TrimSpace(line[idx+6:])
-						if len(rttStr) > 2 && rttStr[len(rttStr)-2:] == "ms" {
-							fmt.Sscanf(rttStr[:len(rttStr)-2], "%f", &rawRTT)
-						}
-					}
+				var rawRTT float64 = 1.0
+				if m := omRttRegex.FindStringSubmatch(line); m != nil {
+					fmt.Sscanf(m[1], "%f", &rawRTT)
+				}
 
-					cpuUtil := float64(GetRandomUtil())
+				cpuUtil := float64(GetRandomUtil())
 
 					logger.Debug("Edge created",
 						slog.String("source", source),
@@ -92,7 +92,7 @@ func omParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 func TestONEWANMultiSolver(t *testing.T) {
 	rand.Seed(time.Now().UnixNano())
 
-	topoFile := "evaluation/janos-us-ca"
+	topoFile := "evaluation/native"
 
 	// Get all unique nodes from topology
 	tempLogger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
@@ -112,17 +112,15 @@ func TestONEWANMultiSolver(t *testing.T) {
 		nodeList = append(nodeList, node)
 	}
 
-	// Shuffle nodes to select 20 unique sources
-	rand.Shuffle(len(nodeList), func(i, j int) { nodeList[i], nodeList[j] = nodeList[j], nodeList[i] })
-
+	// Select 20 sources with replacement (allow repeats since only 12 nodes)
 	numSources := 20
-	if len(nodeList) < numSources {
-		numSources = len(nodeList)
+	selectedSources := make([]string, numSources)
+	for i := 0; i < numSources; i++ {
+		selectedSources[i] = nodeList[rand.Intn(len(nodeList))]
 	}
-	selectedSources := nodeList[:numSources]
 
 	for sourceIdx, source := range selectedSources {
-		logFileName := fmt.Sprintf("janos-us-ca_onewan_multi_test_%d_%d.log", time.Now().Unix(), sourceIdx+1)
+		logFileName := fmt.Sprintf("native_onewan_multi_test_%d_%d.log", time.Now().Unix(), sourceIdx+1)
 		logFile, err := os.Create(logFileName)
 		if err != nil {
 			t.Fatalf("Failed to create log file: %v", err)

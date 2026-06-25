@@ -7,12 +7,15 @@ import (
 	"log/slog"
 	"math/rand"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
 
 	"control-plane/routing/graph"
 )
+
+var cgRttRegex = regexp.MustCompile(`# RTT:\s*(\d+(?:\.\d+)?)ms`)
 
 func cgParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 	file, err := os.Open(filePath)
@@ -51,15 +54,12 @@ func cgParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 					source := nodes[0]
 					target := nodes[1]
 
-					var rawRTT float64 = 1.0
-					if idx := strings.Index(line, "# RTT:"); idx != -1 {
-						rttStr := strings.TrimSpace(line[idx+6:])
-						if len(rttStr) > 2 && rttStr[len(rttStr)-2:] == "ms" {
-							fmt.Sscanf(rttStr[:len(rttStr)-2], "%f", &rawRTT)
-						}
-					}
+				var rawRTT float64 = 1.0
+				if m := cgRttRegex.FindStringSubmatch(line); m != nil {
+					fmt.Sscanf(m[1], "%f", &rawRTT)
+				}
 
-					cpuUtil := float64(GetRandomUtil())
+				cpuUtil := float64(GetRandomUtil())
 
 					logger.Debug("Edge created",
 						slog.String("source", source),
@@ -91,7 +91,7 @@ func cgParseCost266Edges(filePath string, logger *slog.Logger) []*graph.Edge {
 }
 
 func TestFlowOptimizationSolverMulti(t *testing.T) {
-	topoFile := "evaluation/janos-us-ca"
+	topoFile := "evaluation/native"
 
 	// Parse topology to get all nodes
 	tempLogFile, _ := os.Create("temp_carousel_parse.log")
@@ -114,21 +114,17 @@ func TestFlowOptimizationSolverMulti(t *testing.T) {
 		nodeList = append(nodeList, node)
 	}
 
-	// Shuffle nodes to select 20 unique sources
+	// Select 20 sources with replacement (allow repeats since only 12 nodes)
 	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(nodeList), func(i, j int) {
-		nodeList[i], nodeList[j] = nodeList[j], nodeList[i]
-	})
-
 	numSources := 20
-	if len(nodeList) < numSources {
-		numSources = len(nodeList)
+	selectedSources := make([]string, numSources)
+	for i := 0; i < numSources; i++ {
+		selectedSources[i] = nodeList[rand.Intn(len(nodeList))]
 	}
-	selectedSources := nodeList[:numSources]
 
 	// Run 20 tests
 	for sourceIdx, source := range selectedSources {
-		logFileName := fmt.Sprintf("janos-us-ca_carousel_greed_test_%d_%d.log", time.Now().Unix(), sourceIdx+1)
+		logFileName := fmt.Sprintf("native_carousel_greed_test_%d_%d.log", time.Now().Unix(), sourceIdx+1)
 		logFile, err := os.Create(logFileName)
 		if err != nil {
 			t.Fatalf("Failed to create log file: %v", err)
