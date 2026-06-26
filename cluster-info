@@ -9,6 +9,8 @@ node1:
   city: Tokyo
   role: master
   server: ""
+  user: root
+  pw: ""
 
 # Node 3 - Slave Node
 node3:
@@ -19,6 +21,8 @@ node3:
   city: HongKong
   role: slave
   server: 192.168.1.100
+  user: root
+  pw: "123456"
 
 # Node 4 - Slave Node
 node4:
@@ -29,3 +33,5 @@ node4:
   city: Seoul
   role: slave
   server: 192.168.1.100
+  user: root
+  pw: "123456"

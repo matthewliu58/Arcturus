@@ -1,7 +1,6 @@
 #!/bin/bash
 
 CLUSTER_INFO_FILE="cluster-info"
-TARGET_PASSWORD="root@12345"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -18,11 +17,11 @@ fi
 read_cluster_info() {
     local node_name="$1"
     local key="$2"
-    grep -A 15 "^${node_name}:" "$CLUSTER_INFO_FILE" | grep "${key}:" | awk '{print $2}'
+    grep -A 20 "^${node_name}:" "$CLUSTER_INFO_FILE" | grep "${key}:" | awk -F': ' '{print $2}' | sed 's/^"//;s/"$//'
 }
 
 get_all_master_private_ips() {
-    grep -A 15 "role: master" "$CLUSTER_INFO_FILE" | grep "private_ip:" | awk '{print $2}'
+    grep -A 20 "role: master" "$CLUSTER_INFO_FILE" | grep "private_ip:" | awk -F': ' '{print $2}' | sed 's/^"//;s/"$//'
 }
 
 deploy_to_target() {
@@ -34,8 +33,10 @@ deploy_to_target() {
     local city=$(read_cluster_info "$node_name" "city")
     local role=$(read_cluster_info "$node_name" "role")
     local server_private_ip=$(read_cluster_info "$node_name" "server")
+    local ssh_user=$(read_cluster_info "$node_name" "user")
+    local ssh_pw=$(read_cluster_info "$node_name" "pw")
 
-    echo -e "${GREEN}Deploying to $node_name | IP: $public_ip${NC}"
+    echo -e "${GREEN}Deploying to $node_name | IP: $public_ip | User: $ssh_user${NC}"
 
     local temp_dir=$(mktemp -d)
     cp -r ./* "$temp_dir"/
@@ -78,11 +79,35 @@ EOF
     sed -i "/^server_list:/,/^[^ ]/c\\server_list:\n$server_list" "$cfg"
 
     tar -czf "$temp_dir/SkyAccel.tar.gz" -C "$temp_dir" .
-    sshpass -p "$TARGET_PASSWORD" scp "$temp_dir/SkyAccel.tar.gz" root@$public_ip:/root/
-    sshpass -p "$TARGET_PASSWORD" ssh root@$public_ip "mkdir -p /root/SkyAccel && tar -xzf /root/SkyAccel.tar.gz -C /root/SkyAccel && cd /root/SkyAccel && bash setup-systemd.sh"
+
+    # Copy and deploy to remote
+    echo -e "${GREEN}[1/3] Copying files to $public_ip...${NC}"
+    if [ -n "$ssh_pw" ]; then
+        sshpass -p "$ssh_pw" scp -o StrictHostKeyChecking=no "$temp_dir/SkyAccel.tar.gz" ${ssh_user}@${public_ip}:/root/
+    else
+        scp -o StrictHostKeyChecking=no "$temp_dir/SkyAccel.tar.gz" ${ssh_user}@${public_ip}:/root/
+    fi
+
+    echo -e "${GREEN}[2/3] Running basic-env.sh + optimize-network.sh...${NC}"
+    if [ -n "$ssh_pw" ]; then
+        sshpass -p "$ssh_pw" ssh -o StrictHostKeyChecking=no ${ssh_user}@${public_ip} \
+            "mkdir -p /root/SkyAccel && tar -xzf /root/SkyAccel.tar.gz -C /root/SkyAccel && cd /root/SkyAccel && bash basic-env.sh && bash optimize-network.sh"
+    else
+        ssh -o StrictHostKeyChecking=no ${ssh_user}@${public_ip} \
+            "mkdir -p /root/SkyAccel && tar -xzf /root/SkyAccel.tar.gz -C /root/SkyAccel && cd /root/SkyAccel && bash basic-env.sh && bash optimize-network.sh"
+    fi
+
+    echo -e "${GREEN}[3/3] Building and starting services...${NC}"
+    if [ -n "$ssh_pw" ]; then
+        sshpass -p "$ssh_pw" ssh -o StrictHostKeyChecking=no ${ssh_user}@${public_ip} \
+            "cd /root/SkyAccel && bash setup-systemd.sh"
+    else
+        ssh -o StrictHostKeyChecking=no ${ssh_user}@${public_ip} \
+            "cd /root/SkyAccel && bash setup-systemd.sh"
+    fi
 
     rm -rf "$temp_dir"
-    echo -e "${GREEN} $node_name deployed successfully!${NC}"
+    echo -e "${GREEN}$node_name deployed successfully!${NC}"
 }
 
 deploy_all() {

@@ -6,11 +6,11 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # Allow reuse of local address/port
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 # Bind to all interfaces on port 8082
-server.bind(("0.0.0.0", 8082))
+server.bind(("0.0.0.0", 8081))
 # Listen for incoming connections (backlog=100)
 server.listen(100)
 
-print("Server started: 0.0.0.0:8082 | Auto-filter \\x00 padding | Echo valid data + \\n")
+print("Server started: 0.0.0.0:8081 | Auto-filter \\x00 padding | Echo valid data + \\n")
 
 def handle(conn, addr):
     """Handle client connection in a separate thread"""
