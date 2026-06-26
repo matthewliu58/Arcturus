@@ -191,10 +191,18 @@ func directOriginProxy(conn net.Conn, originAddr string, data []byte, reqID uint
 	}
 	defer originConn.Close()
 
-	_, _ = originConn.Write(data)
+	_ = originConn.SetDeadline(time.Now().Add(proxyTimeout))
 
-	_ = originConn.SetReadDeadline(time.Now().Add(proxyTimeout))
-	resp, err := io.ReadAll(originConn)
+	_, err = originConn.Write(data)
+	if err != nil {
+		l.Error("write origin failed", slog.Any("reqId", reqID),
+			slog.String("originAddr", originAddr), slog.Any("err", err))
+		return false
+	}
+
+	// Read until newline delimiter instead of waiting for connection close
+	reader := bufio.NewReader(originConn)
+	resp, err := reader.ReadBytes('\n')
 	if err != nil {
 		l.Error("read origin resp failed", slog.Any("reqId", reqID),
 			slog.String("originAddr", originAddr), slog.Any("err", err))
