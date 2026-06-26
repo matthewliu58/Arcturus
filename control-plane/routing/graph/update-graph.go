@@ -179,54 +179,35 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 		slog.Float64("latency", latency))
 
 	const (
-		// CPU thresholds (referenced from lyapunov-config.go)
-		// CPU < 60: no penalty
-		// 60 <= CPU < 80: increasing penalty
-		// CPU >= 80: max penalty
-		CPUMid   = 60.0 // Threshold to start penalty
-		CPUHigh  = 80.0 // Threshold for max penalty
-		cpuPower = 2.0  // Power for penalty curve
+		cpuMax   = 60.0
+		cpuPower = 2.0
 
-		// Loss risk: sigmoid with inflection at 5% loss, risk~0 at 0%.
-		// At 0% loss risk ≈ 0.006; at 5% risk = 0.5; at 10%+ risk → 1.0.
-		// lossInflection = 0.05
-		// lossSharpness  = 40.0
-
-		// Latency risk: single continuous power curve.
-		// 0ms → risk 0, latencyMax → risk 1.0.
-		// Set to 20ms for cost266 dataset (90th percentile ≈ 19ms)
-		latencyMax = 20.0 //30.0
-		latPower   = 1.5
-
-		wCPU  = 0.5
-		wLoss = 0.0
-		wLat  = 0.5
+		lossInflection = 0.05
+		lossSharpness  = 40.0
+		latencyMax     = 150.0
+		latPower       = 1.5
+		wCPU           = 0.7
+		wLoss          = 0.0
+		wLat           = 0.3
 	)
 
-	// CPU risk: no penalty below CPUMid (60), penalty increases continuously beyond 60
 	var cpuRisk float64
-	if cpuPressure < CPUMid {
-		// CPU < 60: no penalty
+	if cpuPressure < 60.0 {
 		cpuRisk = 0.0
 	} else {
-		// CPU >= 60: continuous penalty (no cap)
-		// Normalize to [0,∞) range starting from CPUMid
-		cpuRatio := (cpuPressure - CPUMid) / (CPUHigh - CPUMid)
+		cpuRatio := cpuPressure / cpuMax
 		cpuRisk = math.Pow(cpuRatio, cpuPower)
 	}
 
-	// Loss risk: sigmoid, near-zero at 0% loss.
 	var lossRisk float64
-	// if loss >= 1.0 {
-	// 	lossRisk = 1.0
-	// } else if loss <= 0 {
-	// 	lossRisk = 0
-	// } else {
-	// 	x := lossSharpness * (loss - lossInflection)
-	// 	lossRisk = 1.0 / (1.0 + math.Exp(-x))
-	// }
+	if loss >= 1.0 {
+		lossRisk = 1.0
+	} else if loss <= 0 {
+		lossRisk = 0
+	} else {
+		lossRisk = 1.0 / (1.0 + math.Exp(-lossSharpness*(loss-lossInflection)))
+	}
 
-	// Latency risk: continuous power curve (no cap).
 	latRatio := latency / latencyMax
 	if latRatio < 0 {
 		latRatio = 0
