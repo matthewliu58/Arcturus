@@ -2,11 +2,5 @@ port: "7082"
 control_host: "http://127.0.0.1:7081"
 access_log: "/root/data-proxy/log/access.log"
 
-node:
-  provider: "Vultr"
-  continent: "Asia"
-  country: "KR"
-  city: "Seoul"
-  ip:
-    private: "0.0.0.0"
-    public: "141.164.55.197"
+# Node configuration - shared across modules
+# See: ../config/node.yaml

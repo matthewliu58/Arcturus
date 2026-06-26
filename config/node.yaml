@@ -1,0 +1,11 @@
+# Shared node configuration for Arcturus modules
+# This file should be placed at: Arcturus/config/node.yaml
+# And can be referenced by control-plane, data-plane, and data-proxy modules
+
+provider: "Vultr"
+continent: "Asia"
+country: "KR"
+city: "Seoul"
+ip:
+  private: "0.0.0.0"
+  public: "141.164.55.197"

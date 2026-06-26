@@ -88,6 +88,24 @@ func ReadYamlConfig(logger *slog.Logger) (*Config, error) {
 		return nil, fmt.Errorf("failed to parse yaml: %w", err)
 	}
 
+	// Load shared node config if module config doesn't have node
+	if config.Node.Provider == "" {
+		nodeConfigPath := filepath.Join(exeDir, "..", "..", "config", "node.yaml")
+		if content, err := os.ReadFile(nodeConfigPath); err == nil {
+			var nodeConfig NodeConfig
+			if err := yaml.Unmarshal(content, &nodeConfig); err == nil {
+				config.Node = nodeConfig
+				logger.Info("Loaded shared node configuration",
+					slog.String("provider", nodeConfig.Provider),
+					slog.String("continent", nodeConfig.Continent),
+					slog.String("country", nodeConfig.Country),
+					slog.String("city", nodeConfig.City),
+					slog.String("public_ip", nodeConfig.IP.Public),
+					slog.String("private_ip", nodeConfig.IP.Private))
+			}
+		}
+	}
+
 	Config_ = &config
 
 	testPathMap := make(map[int]string)

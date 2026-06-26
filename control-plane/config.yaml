@@ -8,11 +8,5 @@ server_ip: "141.164.55.197"
 data_dir: "/root/etcd"
 #name: "etcd-1"
 
-node:
-  provider: "Vultr"
-  continent: "Asia"
-  country: "KR"
-  city: "Seoul"
-  ip:
-    private: "0.0.0.0"
-    public: "141.164.55.197"
+# Node configuration - shared across modules
+# See: ../config/node.yaml

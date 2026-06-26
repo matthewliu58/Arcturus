@@ -6,13 +6,14 @@ import (
 	last "data-plane/edge-domain"
 	"data-plane/probing"
 	"data-plane/util"
-	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 type SourceHandler struct {
@@ -62,7 +63,7 @@ func main() {
 		return
 	}
 	logger.Info("Successfully read the configuration file",
-		slog.String("pre", pre), slog.Any("config", util.Config_))
+		slog.String("pre", pre))
 
 	if err = util.InitIPInfo(pre, logger); err != nil {
 		logger.Warn("IP library initialization failed", slog.String("pre", pre), slog.Any("err", err))

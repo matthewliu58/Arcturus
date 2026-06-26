@@ -45,11 +45,5 @@ aggregator:
   buffer_size: 5120
   batch_timeout_ms: 50
 
-node:
-  provider: "Vultr"
-  continent: "Asia"
-  country: "SG"
-  city: "Singapore"
-  ip:
-    private: "0.0.0.0"
-    public: "104.238.177.110"
+# Node configuration - shared across modules
+# See: ../config/node.yaml
