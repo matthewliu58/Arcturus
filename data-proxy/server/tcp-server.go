@@ -306,6 +306,8 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 	if !found {
 		l.Warn("no path with hops > 2, using first path", slog.Any("reqId", reqID))
 		pathInfo = routeInfo.Routing[0]
+	} else {
+		l.Info("final routing", slog.Any("reqId", reqID), slog.Any("pathInfo", pathInfo))
 	}
 
 	//userID := reqID
@@ -440,54 +442,63 @@ func handleConnectionKeepAlive(conn net.Conn, port int, a, l *slog.Logger, serve
 			l.Error("no path in routing info", slog.Any("reqId", reqID))
 			return
 		}
-		pathInfo := routeInfo.Routing[0]
 
-		if len(pathInfo.Hops) <= 2 {
-			originAddr := pathInfo.Hops[len(pathInfo.Hops)-1]
-			if ok := directOriginProxy(conn, originAddr, data, reqID, l); !ok {
-				l.Error("direct origin proxy failed", slog.Any("reqId", reqID))
+		// Find a path with hops > 2, skipping paths with <= 2 hops
+		var pathInfo util.PathInfo
+		found := false
+		for _, p := range routeInfo.Routing {
+			if len(p.Hops) > 2 {
+				pathInfo = p
+				found = true
+				break
 			}
+		}
+
+		if !found {
+			l.Warn("no path with hops > 2, using first path", slog.Any("reqId", reqID))
+			pathInfo = routeInfo.Routing[0]
 		} else {
-			//userID := util.GenShortReqID(clientIP)
-			nextHop := util.HopIPToNet(pathInfo.Hops[1])
+			l.Info("final routing", slog.Any("reqId", reqID), slog.Any("pathInfo", pathInfo))
+		}
+		//userID := util.GenShortReqID(clientIP)
+		nextHop := util.HopIPToNet(pathInfo.Hops[1])
 
-			var hops []string
-			port_ := ""
-			for _, h := range pathInfo.Hops {
-				if strings.Contains(h, ":") {
-					t := strings.Split(h, ":")
-					h = t[0]
-					port_ = t[1]
-				}
-				hops = append(hops, h)
+		var hops []string
+		port_ := ""
+		for _, h := range pathInfo.Hops {
+			if strings.Contains(h, ":") {
+				t := strings.Split(h, ":")
+				h = t[0]
+				port_ = t[1]
 			}
-			routingKey := strings.Join(hops, ",")
-			p64, _ := strconv.ParseUint(port_, 10, 16)
+			hops = append(hops, h)
+		}
+		routingKey := strings.Join(hops, ",")
+		p64, _ := strconv.ParseUint(port_, 10, 16)
 
-			waitCh, cleanup := disaggregator.GlobalDisagg.Register(reqID)
+		waitCh, cleanup := disaggregator.GlobalDisagg.Register(reqID)
 
-			pathInfo_ := util.PathInfo{Hops: hops}
-			aggregator.GlobalAggRequest.AddToBatch(false, routingKey, "tcp", uint16(p64), pathInfo_, nextHop, reqID, data)
+		pathInfo_ := util.PathInfo{Hops: hops}
+		aggregator.GlobalAggRequest.AddToBatch(false, routingKey, "tcp", uint16(p64), pathInfo_, nextHop, reqID, data)
 
-			select {
-			case respData, ok := <-waitCh:
-				cleanup()
-				if !ok {
-					l.Error("wait chan closed", slog.Any("reqId", reqID))
-					//return
-				}
-				_ = conn.SetWriteDeadline(time.Now().Add(proxyTimeout))
-				if _, err := conn.Write(respData); err != nil {
-					l.Error("write response failed", slog.Any("reqId", reqID), slog.Any("err", err))
-					//return
-				} else {
-					l.Debug("client receive response", slog.Any("reqId", reqID), slog.String("respData", string(respData)))
-					l.Info("aggregated proxy response sent", slog.Any("reqId", reqID))
-				}
-			case <-time.After(proxyTimeout):
-				cleanup()
-				l.Error("wait response timeout", slog.Any("reqId", reqID))
+		select {
+		case respData, ok := <-waitCh:
+			cleanup()
+			if !ok {
+				l.Error("wait chan closed", slog.Any("reqId", reqID))
+				//return
 			}
+			_ = conn.SetWriteDeadline(time.Now().Add(proxyTimeout))
+			if _, err := conn.Write(respData); err != nil {
+				l.Error("write response failed", slog.Any("reqId", reqID), slog.Any("err", err))
+				//return
+			} else {
+				l.Debug("client receive response", slog.Any("reqId", reqID), slog.String("respData", string(respData)))
+				l.Info("aggregated proxy response sent", slog.Any("reqId", reqID))
+			}
+		case <-time.After(proxyTimeout):
+			cleanup()
+			l.Error("wait response timeout", slog.Any("reqId", reqID))
 		}
 
 		reqID = util.GenShortReqID(clientIP)
