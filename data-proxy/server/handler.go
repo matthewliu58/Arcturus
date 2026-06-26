@@ -18,7 +18,7 @@ var (
 )
 
 const (
-	routeTimeout = 10 * time.Second
+	routeTimeout = 1 * time.Second
 	proxyTimeout = 10 * time.Second
 )
 

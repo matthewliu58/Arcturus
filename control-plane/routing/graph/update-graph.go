@@ -192,7 +192,7 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 	)
 
 	var cpuRisk float64
-	if cpuPressure < 60.0 {
+	if cpuPressure < 50.0 {
 		cpuRisk = 0.0
 	} else {
 		cpuRatio := cpuPressure / cpuMax
