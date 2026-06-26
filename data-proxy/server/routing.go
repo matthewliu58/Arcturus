@@ -89,5 +89,9 @@ func GetRoutingFromControlPlane(port int, l *slog.Logger) *util.RoutingInfo {
 		return &util.RoutingInfo{}
 	}
 
+	for i, p := range routingResp.Data.Routing {
+		l.Info("routing path", slog.Int("idx", i), slog.Any("hops", p.Hops), slog.Float64("rtt", p.Rtt))
+	}
+
 	return &routingResp.Data
 }
