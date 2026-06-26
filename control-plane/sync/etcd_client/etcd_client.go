@@ -39,7 +39,7 @@ func NewEtcdClient(endpoints []string, dialTimeout time.Duration) (*clientv3.Cli
 }
 
 func PutKey(cli *clientv3.Client, key, value, pre string, logger *slog.Logger) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	_, err := cli.Put(ctx, key, value)
@@ -52,16 +52,19 @@ func PutKey(cli *clientv3.Client, key, value, pre string, logger *slog.Logger) {
 
 func PutKeyWithLease(cli *clientv3.Client, key, value string, ttlSeconds int64, pre string, logger *slog.Logger) error {
 
-	leaseResp, err := cli.Grant(context.Background(), ttlSeconds)
+	grantCtx, grantCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer grantCancel()
+
+	leaseResp, err := cli.Grant(grantCtx, ttlSeconds)
 	if err != nil {
-		logger.Error("Put error", slog.String("pre", pre), slog.Any("err", err))
+		logger.Error("Grant lease error", slog.String("pre", pre), slog.Any("err", err))
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
+	putCtx, putCancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer putCancel()
 
-	_, err = cli.Put(ctx, key, value, clientv3.WithLease(leaseResp.ID))
+	_, err = cli.Put(putCtx, key, value, clientv3.WithLease(leaseResp.ID))
 	if err != nil {
 		logger.Error("Put error", slog.String("pre", pre), slog.Any("err", err))
 		return err
@@ -71,7 +74,7 @@ func PutKeyWithLease(cli *clientv3.Client, key, value string, ttlSeconds int64, 
 }
 
 func DeleteKey(cli *clientv3.Client, key string, logger *slog.Logger) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	resp, err := cli.Delete(ctx, key)
@@ -88,7 +91,7 @@ func DeleteKey(cli *clientv3.Client, key string, logger *slog.Logger) {
 }
 
 func GetKey(cli *clientv3.Client, key string, logger *slog.Logger) {
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	resp, err := cli.Get(ctx, key)
@@ -127,7 +130,7 @@ func WatchPrefix(cli *clientv3.Client, prefix string, callback func(eventType, k
 
 func GetPrefixAll(cli *clientv3.Client, prefix, pre string, logger *slog.Logger) (map[string]string, error) {
 
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	resp, err := cli.Get(ctx, prefix, clientv3.WithPrefix())
