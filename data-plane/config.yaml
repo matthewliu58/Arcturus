@@ -1,6 +1,6 @@
 port: "7082"
 control_host: "http://127.0.0.1:7081"
-access_log: "/root/data-proxy/log/access.log"
+access_log: "/root/SkyAccel/data-proxy/log/access.log"
 
 # Node configuration - shared across modules
 # See: ../config/node.yaml

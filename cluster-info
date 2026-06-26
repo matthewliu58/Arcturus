@@ -7,18 +7,6 @@ node1:
   continent: Asia
   country: JP
   city: Tokyo
-  private_ip: 192.168.1.100
-  role: master
-  server: ""
-
-# Node 2 - Master Node
-node2:
-  ip: 202.182.96.101
-  provider: DigitalOcean
-  continent: Asia
-  country: SG
-  city: Singapore
-  private_ip: 192.168.1.101
   role: master
   server: ""
 
@@ -28,8 +16,7 @@ node3:
   provider: AWS
   continent: Asia
   country: HK
-  city: Hong Kong
-  private_ip: 192.168.1.102
+  city: HongKong
   role: slave
   server: 192.168.1.100
 
@@ -40,6 +27,5 @@ node4:
   continent: Asia
   country: KR
   city: Seoul
-  private_ip: 192.168.1.103
   role: slave
-  server: 192.168.1.101
+  server: 192.168.1.100

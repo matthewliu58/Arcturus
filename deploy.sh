@@ -28,7 +28,6 @@ get_all_master_private_ips() {
 deploy_to_target() {
     local node_name="$1"
     local public_ip=$(read_cluster_info "$node_name" "ip")
-    local private_ip=$(read_cluster_info "$node_name" "private_ip")
     local provider=$(read_cluster_info "$node_name" "provider")
     local continent=$(read_cluster_info "$node_name" "continent")
     local country=$(read_cluster_info "$node_name" "country")
@@ -36,21 +35,24 @@ deploy_to_target() {
     local role=$(read_cluster_info "$node_name" "role")
     local server_private_ip=$(read_cluster_info "$node_name" "server")
 
-    echo -e "${GREEN}Deploying to $node_name | Public: $public_ip | Private: $private_ip${NC}"
+    echo -e "${GREEN}Deploying to $node_name | IP: $public_ip${NC}"
 
     local temp_dir=$(mktemp -d)
     cp -r ./* "$temp_dir"/
-    cp "$CLUSTER_INFO_FILE" "$temp_dir"/
 
-    for comp in control-plane data-plane data-proxy; do
-        local cfg="$temp_dir/$comp/config.yaml"
-        sed -i "s|public: \"[^\"]*\"|public: \"$public_ip\"|" "$cfg"
-        sed -i "s|private: \"[^\"]*\"|private: \"$private_ip\"|" "$cfg"
-        sed -i "s|provider: \"[^\"]*\"|provider: \"$provider\"|" "$cfg"
-        sed -i "s|continent: \"[^\"]*\"|continent: \"$continent\"|" "$cfg"
-        sed -i "s|country: \"[^\"]*\"|country: \"$country\"|" "$cfg"
-        sed -i "s|city: \"[^\"]*\"|city: \"$city\"|" "$cfg"
-    done
+    # Generate config/node.yaml with node info from cluster-info
+    mkdir -p "$temp_dir/config"
+    cat > "$temp_dir/config/node.yaml" <<EOF
+# Shared node configuration for Arcturus modules
+# Auto-generated from cluster-info by deploy.sh
+
+provider: "$provider"
+continent: "$continent"
+country: "$country"
+city: "$city"
+ip:
+  public: "$public_ip"
+EOF
 
     local cfg="$temp_dir/control-plane/config.yaml"
     local master_private_ips=($(get_all_master_private_ips))

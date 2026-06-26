@@ -3,24 +3,24 @@ port: "7083"
 control_host: "http://127.0.0.1:7081"
 
 test_routing:
-  - port: 8081
-    path: "104.238.177.110,149.28.88.62,34.20.157.38:8082"
-  - port: 8082
-    path: "104.238.177.110,149.28.88.62,47.251.90.204:8082"
+#  - port: 8081
+#    path: "104.238.177.110,149.28.88.62,34.20.157.38:8082"
+#  - port: 8082
+#    path: "104.238.177.110,149.28.88.62,47.251.90.204:8082"
 
-agg_worker_num: 8
-agg_worker_count: 8
-tcp_worker_count: 100
-back_worker_count: 100
-tunnel_concurrent_limit: 100
+agg_worker_num: 4
+agg_worker_count: 4
+tcp_worker_count: 50
+back_worker_count: 50
+tunnel_concurrent_limit: 50
 
 listeners:
   - proto: "tcp"
     port: 8081
     batch_num: 10
-  - proto: "tcp"
-    port: 8002
-    batch_num: 10
+#  - proto: "tcp"
+#    port: 8002
+#    batch_num: 10
 #  - proto: "udp"
 #    port: 8002
 #  - proto: "tcp"

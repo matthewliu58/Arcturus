@@ -3,8 +3,8 @@ port: "7081"
 ip_lib: "http://127.0.0.1:7082"
 
 server_list:
-  - "141.164.55.197"
-server_ip: "141.164.55.197"
+  - "141.164.51.166"
+server_ip: "1141.164.51.166"
 data_dir: "/root/etcd"
 #name: "etcd-1"
 
