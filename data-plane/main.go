@@ -50,7 +50,7 @@ func main() {
 	logFile, _ := os.OpenFile(logFilePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 
 	baseHandler := slog.NewTextHandler(logFile, &slog.HandlerOptions{
-		Level:     slog.LevelInfo,
+		Level:     slog.LevelDebug,
 		AddSource: true,
 	})
 	logger := slog.New(&SourceHandler{handler: baseHandler})

@@ -172,7 +172,7 @@ func main() {
 		panic("Failed to open log file: " + err.Error())
 	}
 	baseHandler := slog.NewTextHandler(logFile, &slog.HandlerOptions{
-		Level:     slog.LevelInfo,
+		Level:     slog.LevelDebug,
 		AddSource: true,
 	})
 	logger := slog.New(&SourceHandler{handler: baseHandler})
