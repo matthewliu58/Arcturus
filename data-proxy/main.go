@@ -72,7 +72,7 @@ func main() {
 		Compress:   false,
 	}
 
-	logHandler := slog.NewTextHandler(appLog, &slog.HandlerOptions{Level: slog.LevelDebug})
+	logHandler := slog.NewTextHandler(appLog, &slog.HandlerOptions{Level: slog.LevelInfo})
 	accessHandler := slog.NewTextHandler(accessLog, &slog.HandlerOptions{Level: slog.LevelInfo})
 
 	logger := slog.New(&SourceHandler{handler: logHandler})
