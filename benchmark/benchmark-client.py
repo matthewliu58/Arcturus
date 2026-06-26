@@ -4,9 +4,9 @@ import threading
 import random
 from datetime import datetime
 
-SERVER_IP = "66.42.97.58"
+SERVER_IP = "141.164.51.166"
 SERVER_PORT = 8081
-CONCURRENCY = 10
+CONCURRENCY = 200
 TOTAL_RUN_SECONDS = 20
 MIN_SLEEP = 0.2
 MAX_SLEEP = 0.5
