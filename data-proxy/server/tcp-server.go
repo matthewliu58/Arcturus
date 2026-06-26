@@ -291,14 +291,21 @@ func handleConnection(conn net.Conn, port int, a, l *slog.Logger) {
 		l.Error("no path in routing info", slog.Any("reqId", reqID))
 		return
 	}
-	pathInfo := routeInfo.Routing[0]
 
-	if len(pathInfo.Hops) <= 2 {
-		originAddr := pathInfo.Hops[len(pathInfo.Hops)-1]
-		if ok := directOriginProxy(conn, originAddr, data, reqID, l); !ok {
-			l.Error("direct origin proxy failed", slog.Any("reqId", reqID))
+	// Find a path with hops > 2, skipping paths with <= 2 hops
+	var pathInfo util.PathInfo
+	found := false
+	for _, p := range routeInfo.Routing {
+		if len(p.Hops) > 2 {
+			pathInfo = p
+			found = true
+			break
 		}
-		return
+	}
+
+	if !found {
+		l.Warn("no path with hops > 2, using first path", slog.Any("reqId", reqID))
+		pathInfo = routeInfo.Routing[0]
 	}
 
 	//userID := reqID
