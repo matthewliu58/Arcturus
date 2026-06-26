@@ -186,9 +186,9 @@ func EdgeRisk(cpuPressure, loss, latency float64, pre string, l *slog.Logger) fl
 		lossSharpness  = 40.0
 		latencyMax     = 150.0
 		latPower       = 1.5
-		wCPU           = 0.7
+		wCPU           = 0.5
 		wLoss          = 0.0
-		wLat           = 0.3
+		wLat           = 0.5
 	)
 
 	var cpuRisk float64
